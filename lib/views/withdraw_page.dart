@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/withdraw_model.dart';
 
@@ -122,11 +123,15 @@ class _WithdrawPageState extends State<WithdrawPage> {
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
 
-    final url = Uri.parse(
-        'https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode');
+    final url = Uri.parse(ApiConstants.investorProfile(investorCode));
+
+    // final url = Uri.parse(
+    //     'https://growupagro.tech/api/investor/profile?investor_code=$investorCode');
 
     try {
-      final response = await http.get(url, headers: {
+      final response = await http.get(
+          url,
+          headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
       });
@@ -150,12 +155,17 @@ class _WithdrawPageState extends State<WithdrawPage> {
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
 
-    final url = Uri.parse(
-        'https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode'
-    );
+    // final url = Uri.parse(
+    //     'https://growupagro.tech/api/investor/profile?investor_code=$investorCode'
+    // );
+
+    final url = Uri.parse(ApiConstants.investorProfile(investorCode));
 
     try {
-      final response = await http.get(url, headers: {
+      final response = await http.get(
+          url,
+
+          headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
       });
@@ -189,8 +199,6 @@ class _WithdrawPageState extends State<WithdrawPage> {
       debugPrint('Error fetching banking/mobile info: $e');
     }
   }
-
-
 
 
   Future<void> _fetchWithdrawHistory() async {
@@ -261,7 +269,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
           _accountNumberController.text.isEmpty ||
           _branchNameController.text.isEmpty ||
           _routingNumberController.text.isEmpty) {
-        _showSnack('Please fill all bank account details.', isError: true);
+        _showSnack('Please update your banking information from your profile.', isError: true);
         return;
       }
     } else {
@@ -273,14 +281,14 @@ class _WithdrawPageState extends State<WithdrawPage> {
       }
 
       if (mobileNumber.isEmpty) {
-        _showSnack('Please enter your mobile number.', isError: true);
+        _showSnack('Please update your valid mobile number from your profile.', isError: true);
         return;
       }
 
       // Validate mobile number (BD format: 01XXXXXXXXX)
       final mobileRegex = RegExp(r'^01[3-9]\d{8}$');
       if (!mobileRegex.hasMatch(mobileNumber)) {
-        _showSnack('Invalid mobile number. Must be 11 digits and start with 013-019.',
+        _showSnack('Please update your valid mobile number from your profile. Must be 11 digits and start with 013-019.',
             isError: true);
         return;
       }
@@ -616,22 +624,25 @@ class _WithdrawPageState extends State<WithdrawPage> {
                       ),
                     )),
                     DataCell(Text(item.note ?? 'N/A')),
-                    DataCell(hasInvoice
-                        ? (downloadingInvoices.contains(invoiceNo.toString())
-                        ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child:
-                      CircularProgressIndicator(strokeWidth: 2),
+                    DataCell(
+                      hasInvoice && item.status == "approved"
+                          ? (downloadingInvoices.contains(invoiceNo.toString())
+                          ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                          : IconButton(
+                        icon: const Icon(Icons.download, color: Colors.green, size: 20),
+                        tooltip: 'Open Invoice in Browser',
+                        onPressed: () => _openInvoiceInBrowser(invoiceNo.toString()),
+                      ))
+                          : const Icon(
+                        Icons.block, // blocked / no access
+                        color: Colors.red,
+                        size: 24,
+                      ),
                     )
-                        : IconButton(
-                      icon: const Icon(Icons.download,
-                          color: Colors.green, size: 20),
-                      tooltip: 'Download Invoice',
-                      onPressed: () => _downloadInvoice(
-                          context, invoiceNo.toString()),
-                    ))
-                        : const Text('N/A')),
                   ]);
                 }),
               ),
@@ -666,68 +677,50 @@ class _WithdrawPageState extends State<WithdrawPage> {
     );
   }
 
-  Future<void> _downloadInvoice(
-      BuildContext context, String invoiceNo) async {
-    final dio = Dio();
-
-    try {
-      // Get auth token
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('auth_token');
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content:
-            Text('Authentication token missing. Please log in again.')));
-        return;
-      }
-
-      // Get app documents directory (sandboxed, no permission needed)
-      final Directory appDocDir = await getApplicationDocumentsDirectory();
-      final String filePath = '${appDocDir.path}/invoice_$invoiceNo.pdf';
-
-      final url = ApiConstants.invoicePdf(invoiceNo);
-
-      // Download invoice PDF
-      //final url = 'https://admin-growup.onebitstore.site/api/invoice/pdf/$invoiceNo';
-      await dio.download(
-        url,
-        filePath,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
-          followRedirects: false,
-          validateStatus: (status) => status != null && status < 500,
-        ),
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            debugPrint(
-                'Downloading: ${(received / total * 100).toStringAsFixed(0)}%');
-          }
-        },
-      );
-
-      // Open the downloaded PDF
-      await OpenFile.open(filePath);
-
-      // Show snackbar with share option
+  Future<void> _openInvoiceInBrowser(String? invoiceNo) async {
+    if (invoiceNo == null || invoiceNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded and opened successfully.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Download error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: $e'),
+        const SnackBar(
+          content: Text('Invalid invoice number.'),
           backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    // Show loader
+    setState(() => downloadingInvoices.add(invoiceNo));
+
+    final url = 'https://growupagro.tech/api/invoice/pdf/$invoiceNo';
+
+    try {
+      final uri = Uri.parse(url);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // opens in browser
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error opening invoice: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to open invoice: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      // Hide loader
+      setState(() => downloadingInvoices.remove(invoiceNo));
     }
   }
+
 }

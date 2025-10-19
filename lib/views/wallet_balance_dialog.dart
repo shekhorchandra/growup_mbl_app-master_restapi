@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/models/wallet_history_model.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -42,8 +43,10 @@ class _WalletHistoryDialogState extends State<WalletHistoryDialog> {
       final token = prefs.getString('auth_token') ?? '';
       final investorCode = prefs.getString('investor_code') ?? '';
 
+      final url = Uri.parse(ApiConstants.walletHistory(investorCode));
       final response = await http.get(
-        Uri.parse('https://admin-growup.onebitstore.site/api/wallet-history?investor_code=$investorCode'),
+        // Uri.parse('https://growupagro.tech/api/wallet-history?investor_code=$investorCode'),
+        url,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

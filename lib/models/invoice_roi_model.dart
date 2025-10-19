@@ -19,13 +19,14 @@ class RoiInvoice {
 
   factory RoiInvoice.fromJson(Map<String, dynamic> json) {
     return RoiInvoice(
-      projectName: json['project_name'] ?? '',
-      projectCategory: json['project_category'] ?? '',
-      projectCode: json['project_code'] ?? '',
-      invoiceNo: json['invoice_no'] ?? '',
-      totalRoi: json['total_roi'] ?? '',
-      amountInvested: json['amount_invested'] ?? '',
-      currency: json['currency'] ?? '',
+      projectName: json['project_name']?.toString() ?? '',
+      projectCategory: json['project_category']?.toString() ?? '',
+      projectCode: json['project_code']?.toString() ?? '',
+      invoiceNo: json['invoice_no']?.toString() ?? '',
+      totalRoi: json['total_roi']?.toString() ?? '0',
+      amountInvested: json['amount_invested']?.toString() ?? '0',
+      currency: json['currency']?.toString() ?? '',
     );
   }
+
 }

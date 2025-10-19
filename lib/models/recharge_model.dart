@@ -1,34 +1,37 @@
 class Recharge {
-  final int sl;
   final String date;
   final String amount;
   final String method;
   final String status;
   final String note;
+  final String invoiceNo;
   final String? invoiceUrl;
   final String? invoiceDownloadUrl;
 
   Recharge({
-    required this.sl,
     required this.date,
     required this.amount,
     required this.method,
     required this.status,
     required this.note,
+    required this.invoiceNo,
     this.invoiceUrl,
     this.invoiceDownloadUrl,
   });
 
   factory Recharge.fromJson(Map<String, dynamic> json) {
     return Recharge(
-      sl: json['sl'] ?? 0,
       date: json['date'] ?? '',
-      amount: json['amount'] ?? '',
+      amount: json['amount']?.toString() ?? '',
       method: json['method'] ?? '',
       status: json['status'] ?? '',
       note: json['note'] ?? '',
-      invoiceUrl: json['invoice_url'],
-      invoiceDownloadUrl: json['invoice_download_url'],
+      invoiceNo: (json['invoice_no'] != null && json['invoice_no'].toString().isNotEmpty)
+          ? json['invoice_no'].toString()
+          : "N/A",
+      invoiceUrl: json['invoice_url']?.toString(),
+      invoiceDownloadUrl: json['invoice_download_url']?.toString(),
     );
   }
+
 }

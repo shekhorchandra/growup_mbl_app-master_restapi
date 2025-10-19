@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WalletHistoryPage extends StatefulWidget {
   const WalletHistoryPage({super.key});
@@ -90,9 +91,16 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
             'Error ${response.statusCode}: ${json.decode(response.body)['message']}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
-    } finally {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Wallet Transaction History not found",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red, // 🔴 red background
+        ),
+      );
+    }  finally {
       setState(() => isLoading = false);
     }
   }
@@ -144,76 +152,37 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
     }
   }
 
-  Future<void> _downloadInvoiceToDownloads(
-      BuildContext context, String invoiceNo) async {
+  Future<void> _openInvoiceInBrowser(
+      BuildContext context,
+      String invoiceNo,
+      ) async {
     setState(() {
       downloadingInvoices.add(invoiceNo);
     });
 
-    final dio = Dio();
-    //final url = 'https://admin-growup.onebitstore.site/api/invoice/pdf/$invoiceNo';
+    final url = 'https://growupagro.tech/api/invoice/pdf/$invoiceNo';
 
     try {
-      // ✅ Get auth token
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('auth_token');
+      final uri = Uri.parse(url);
 
-      if (token == null) {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // open in default browser
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Authentication token missing. Please log in again.'),
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
           ),
         );
-        return;
       }
-
-      // ✅ Get app-specific directory (sandboxed, no storage permission needed)
-      Directory downloadsDir;
-      if (Platform.isAndroid || Platform.isIOS) {
-        downloadsDir = await getApplicationDocumentsDirectory();
-      } else {
-        downloadsDir = Directory.systemTemp;
-      }
-
-      final filePath = '${downloadsDir.path}/invoice_$invoiceNo.pdf';
-
-      final url = ApiConstants.invoicePdf(invoiceNo);
-      // ✅ Download invoice
-      await dio.download(
-        url,
-        filePath,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
-          followRedirects: false,
-          validateStatus: (status) => status != null && status < 500,
-        ),
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            debugPrint(
-                'Downloading: ${(received / total * 100).toStringAsFixed(0)}%');
-          }
-        },
-      );
-
-      // ✅ Open the downloaded PDF
-      await OpenFile.open(filePath);
-
-      // ✅ Optionally share via snackbar action
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded and opened successfully.'),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
-      debugPrint('Download error: $e');
+      debugPrint('Error opening invoice: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Download failed: $e'),
+          content: Text('Failed to open invoice: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -223,6 +192,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
       });
     }
   }
+
 
 
   ///  Custom Status Chip
@@ -247,8 +217,12 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
         textColor = Colors.white;
         break;
       case 'completed':
-        backgroundColor = Colors.grey.shade300;
-        textColor = Colors.black;
+        backgroundColor = Colors.lightGreen;
+        textColor = Colors.white;
+        break;
+      case 'failed':
+        backgroundColor = Colors.redAccent;
+        textColor = Colors.white;
         break;
       default:
         backgroundColor = Colors.grey;
@@ -277,7 +251,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wallet History',
+        title: const Text('Wallet Transaction History',
             style: TextStyle(
                 fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: const Color(0xFF2E7D32),
@@ -331,7 +305,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                           DataColumn(label: Text('Transaction Info')),
                           DataColumn(label: Text('Amount')),
                           DataColumn(label: Text('Status')),
-                          DataColumn(label: Text('Actioned By')),
+                          //DataColumn(label: Text('Actioned By')),
                           DataColumn(label: Text('Note')),
                           DataColumn(label: Text('Invoice')),
                         ],
@@ -377,31 +351,32 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                   ],
                                 )),
                                 DataCell(_getStatusChip(item.status)),
-                                const DataCell(Text('N/A')),
+                                // const DataCell(Text('N/A')),
                                 DataCell(Text(item.note ?? 'N/A')),
                                 DataCell(
-                                  item.invoiceNo != 0
-                                      ? (downloadingInvoices.contains(
-                                      item.invoiceNo.toString())
+                                  item.status == "approved"
+                                      ? (downloadingInvoices.contains(item.invoiceNo.toString())
                                       ? const SizedBox(
                                     width: 24,
                                     height: 24,
-                                    child:
-                                    CircularProgressIndicator(
-                                        strokeWidth: 2),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                       : IconButton(
-                                    icon: const Icon(Icons.download,
-                                        color: Colors.green),
-                                    tooltip: 'Download Invoice',
-                                    onPressed: () =>
-                                        _downloadInvoiceToDownloads(
-                                            context,
-                                            item.invoiceNo
-                                                .toString()),
+                                    icon: const Icon(Icons.download, color: Colors.green),
+                                    tooltip: 'Open Invoice in Browser',
+                                    onPressed: () => _openInvoiceInBrowser(
+                                      context,
+                                      item.invoiceNo.toString(),
+                                    ),
                                   ))
-                                      : const Text('N/A'),
-                                ),
+                                      : const Icon(
+                                    Icons.block,
+                                    color: Colors.red, // visually “disabled” look
+                                    size: 24,
+                                  ),
+                                )
+
+
                               ]);
                             }),
                       ),

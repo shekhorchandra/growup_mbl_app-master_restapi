@@ -17,12 +17,13 @@ class RoiModel {
 
   factory RoiModel.fromJson(Map<String, dynamic> json) {
     return RoiModel(
-      id: json['id'],
-      projectId: json['project_id'],
-      investorId: json['investor_id'],
-      roiAmount: (json['roi_amount'] as num).toDouble(),
+      id: int.parse(json['id'].toString()),
+      projectId: int.parse(json['project_id'].toString()),
+      investorId: int.parse(json['investor_id'].toString()),
+      roiAmount: double.parse(json['roi_amount'].toString()),
       countingDate: json['counting_date'] ?? '',
       createdAt: json['created_at'] ?? '',
     );
   }
+
 }

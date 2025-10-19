@@ -34,11 +34,12 @@ class InvestmentHistoryItem {
       projectCategory: json['project_category'],
       firstInvestmentDate: json['first_investment_date'],
       totalInvestment: json['total_investment'],
-      investmentCount: json['investment_count'],
+      investmentCount: int.parse(json['investment_count'].toString()), // fixed
       projectProgress: (json['project_progress'] as num?)?.toDouble(),
       status: json['status'],
       roiDetails: (json['roi_details'] as num?)?.toDouble(),
       capitalReturnDetails: (json['capital_return_details'] as num?)?.toDouble(),
     );
   }
+
 }

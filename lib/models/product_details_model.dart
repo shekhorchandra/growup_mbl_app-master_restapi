@@ -63,19 +63,23 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      productName: json['product_name'],
-      slug: json['slug'],
-      subCategoryId: json['sub_category_id'],
-      subCategoryName: json['sub_category_name'],
-      categoryName: json['category_name'],
-      imageUrls: List<String>.from(json['image_urls']),
-      sellingPrice: json['selling_price'],
-      videoEmbedHtml: json['video_embed_html'],
-      metaDescription: json['meta_description'],
-      inStock: json['in_stock'],
-      stockUnit: json['stock_unit'],
-      tags: List<String>.from(json['tags']),
+      id: json['id'] ?? 0,
+      productName: json['product_name'] ?? '',
+      slug: json['slug'] ?? '',
+      subCategoryId: int.tryParse(json['sub_category_id'].toString()) ?? 0,
+      subCategoryName: json['sub_category_name'] ?? '',
+      categoryName: json['category_name'] ?? '',
+      imageUrls: json['image_urls'] != null
+          ? List<String>.from(json['image_urls'])
+          : [],
+      sellingPrice: json['selling_price'] ?? '',
+      videoEmbedHtml: json['video_embed_html'] ?? '',
+      metaDescription: json['meta_description'] ?? '',
+      inStock: int.tryParse(json['in_stock'].toString()) ?? 0,
+      stockUnit: json['stock_unit'] ?? '',
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
     );
   }
+
+
 }

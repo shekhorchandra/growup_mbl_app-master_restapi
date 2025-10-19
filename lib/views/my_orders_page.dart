@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,8 +45,11 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
 
+    final url = Uri.parse(ApiConstants.myOrders(investorCode));
+
     final response = await http.get(
-      Uri.parse("https://admin-growup.onebitstore.site/api/my-orders?investor_code=$investorCode"),
+      // Uri.parse("https://growupagro.tech/api/my-orders?investor_code=$investorCode"),
+      url,
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',

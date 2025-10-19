@@ -6,8 +6,11 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+
+
 }
 
+//apply(plugin = "com.google.gms.google-services") // ✅ Use apply() in Kotlin DSL
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
@@ -41,8 +44,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.0.15"
+        versionCode = 26
+        versionName = "1.1.9"
     }
 
     splits {

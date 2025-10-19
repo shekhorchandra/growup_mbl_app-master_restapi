@@ -141,10 +141,28 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     } catch (e) {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Failed to load project details')),
       );
     }
   }
+
+  // String formatDate(String? rawDate) {
+  //   if (rawDate == null || rawDate.isEmpty) return 'N/A';
+  //   try {
+  //     final date = DateTime.parse(rawDate); // parse API string
+  //     return DateFormat('dd MMM yyyy').format(date); // → "18 Apr 2025"
+  //   } catch (_) {
+  //     return rawDate; // fallback if parsing fails
+  //   }
+  // }
+  String formatDate(String? isoDate) {
+    if (isoDate == null || isoDate.isEmpty) return 'N/A';
+    final parsedDate = DateTime.tryParse(isoDate);
+    if (parsedDate == null) return 'N/A';
+    return DateFormat('dd MMM yyyy').format(parsedDate);
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,9 +193,9 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
                   project.imageUrl!,
-                  height: 350,
+                  // height: 350,
                   width: double.infinity,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) =>
                   const Icon(Icons.broken_image, size: 100),
                 ),
@@ -191,11 +209,14 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
             const Text("Project Overview:",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             Html(data: project.overviewHtml ?? ''),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             _buildKeyPointsCard(project),
-            if (project.securityInformation.isNotEmpty) _buildSecurityCard(project),
-            const SizedBox(height: 24),
+
+            const SizedBox(height: 15),
             _buildSummaryCard(project),
+            const SizedBox(height: 15),
+            if (project.securityInformation.isNotEmpty) _buildSecurityCard(project),
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -236,6 +257,571 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     );
   }
 
+  // Widget _buildSummaryCard(ProjectDetailsModel project) {
+  //   final int investmentGoalValue =
+  //       int.tryParse(project.investmentGoal.replaceAll(',', '')) ?? 0;
+  //
+  //   // -------------------- LOGIC SECTION (same as PHP) --------------------
+  //   final DateTime now = DateTime.now();
+  //   final DateTime? startDate = DateTime.tryParse(project.project_start_date ?? '');
+  //   final DateTime? roiStartDate = DateTime.tryParse(project.roiStartDate ?? '');
+  //
+  //
+  //   // Assuming you fetched wallet balance & canInvest flag from API/local storage
+  //   final double walletBalance = project.walletBalance ?? 0; // replace with your actual wallet balance
+  //   final bool canInvest = project.can_invest == 1;
+  //
+  //   // Remaining goal = total goal - raised
+  //   final int remainingGoal = (investmentGoalValue) - (project.rasied ?? 0);
+  //   final bool hasRemainingCapacity =
+  //       remainingGoal >= (project.minInvestmentAmount ?? 0);
+  //
+  //   bool isInvestmentWindowOpen = false;
+  //   if (startDate != null && roiStartDate != null) {
+  //     isInvestmentWindowOpen =
+  //         now.isAfter(startDate) && now.isBefore(roiStartDate);
+  //   }
+  //
+  //   int investmentBtn = 0;
+  //   int shurjopayBtn = 0;
+  //   int amountStatus = 0;
+  //
+  //   // Investment button logic
+  //   if ((project.minInvestmentAmount ?? 0) <= walletBalance &&
+  //       canInvest &&
+  //       walletBalance > 0 &&
+  //       isInvestmentWindowOpen &&
+  //       hasRemainingCapacity) {
+  //     investmentBtn = 1;
+  //   }
+  //
+  //   // Shurjopay button logic
+  //   if (canInvest && isInvestmentWindowOpen && hasRemainingCapacity) {
+  //     shurjopayBtn = 2;
+  //   }
+  //
+  //   // Amount status logic
+  //   if ((project.minInvestmentAmount ?? 0) > walletBalance) {
+  //     amountStatus = 1;
+  //   }
+  //   // -------------------- END LOGIC SECTION --------------------
+  //
+  //   return Card(
+  //     elevation: 3,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text("Project Summary",
+  //               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  //           const Divider(),
+  //           InfoRow(title: "Project Name", value: project.projectName),
+  //           InfoRow(title: "Business Type", value: project.businessTypeName),
+  //           InfoRow(
+  //             title: "Investment Time",
+  //             value: "${project.investment_time.toString()} days",
+  //           ),
+  //           InfoRow(
+  //             title: "Start Date",
+  //             value: formatDate(project.project_start_date ?? ''),
+  //           ),
+  //           InfoRow(
+  //             title: "Mature Date",
+  //             value: formatDate(project.project_end_date ?? ''),
+  //           ),
+  //           InfoRow(
+  //             title: "ROI Start Date",
+  //             value: formatDate(project.roiStartDate ?? ''), // if roiStartDate is nullable
+  //           ),
+  //           InfoRow(
+  //               title: "Investment Goal",
+  //               value: "${project.investmentGoal} Tk"),
+  //           InfoRow(
+  //               title: "Min Investment",
+  //               value:
+  //               '${NumberFormat.decimalPattern().format(project.minInvestmentAmount ?? 0)} Tk'),
+  //           InfoRow(
+  //             title: "In Waiting",
+  //             value:
+  //             "${NumberFormat.decimalPattern().format(project.in_waiting)} Tk",
+  //           ),
+  //           InfoRow(
+  //             title: "Raised",
+  //             value:
+  //             "${NumberFormat.decimalPattern().format(project.rasied)} Tk",
+  //           ),
+  //           InfoRow(title: "Projected", value: project.projected),
+  //           InfoRow(
+  //             title: "ROI (%)",
+  //             value:
+  //             "Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%",
+  //           ),
+  //           InfoRow(
+  //               title: "Project Duration",
+  //               value: project.projectDurationViewer),
+  //           InfoRow(
+  //             title: "Project Status",
+  //             value: project.status == 1 ? 'Running' : 'Closed',
+  //             style: TextStyle(
+  //               color: project.status == 1 ? Colors.green : Colors.red,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //
+  //           const SizedBox(height: 12),
+  //
+  //           // -------------------- BUTTON SECTION --------------------
+  //           if (project.status == 1 && isInvestmentWindowOpen && hasRemainingCapacity)
+  //             Column(
+  //               children: [
+  //                 if (investmentBtn == 1)
+  //                   ElevatedButton(
+  //                     onPressed: _isInvestLoading || _isShurjoLoading
+  //                         ? null
+  //                         : () async {
+  //                       setState(() => _isInvestLoading = true);
+  //                       await _triggerInvestDialog();
+  //                       if (mounted) setState(() => _isInvestLoading = false);
+  //                     },
+  //                     style: ElevatedButton.styleFrom(
+  //                         backgroundColor: const Color(0xFFAECC00)),
+  //                     child: _isInvestLoading
+  //                         ? const SizedBox(
+  //                       width: 20,
+  //                       height: 20,
+  //                       child: CircularProgressIndicator(
+  //                         strokeWidth: 2,
+  //                         color: Colors.white,
+  //                       ),
+  //                     )
+  //                         : const Text('Invest Now',
+  //                         style:
+  //                         TextStyle(color: Colors.white, fontSize: 12)),
+  //                   ),
+  //
+  //                 if (shurjopayBtn == 2)
+  //                   const SizedBox(height: 10),
+  //                 if (shurjopayBtn == 2)
+  //                   ElevatedButton(
+  //                     onPressed: _isInvestLoading || _isShurjoLoading
+  //                         ? null
+  //                         : () async {
+  //                       setState(() => _isShurjoLoading = true);
+  //                       await _triggerShurjoInvestDialog();
+  //                       if (mounted) setState(() => _isShurjoLoading = false);
+  //                     },
+  //                     style:
+  //                     ElevatedButton.styleFrom(backgroundColor: Colors.green),
+  //                     child: _isShurjoLoading
+  //                         ? const SizedBox(
+  //                       width: 20,
+  //                       height: 20,
+  //                       child: CircularProgressIndicator(
+  //                         strokeWidth: 2,
+  //                         color: Colors.white,
+  //                       ),
+  //                     )
+  //                         : const Text('Pay with ShurjoPay',
+  //                         style:
+  //                         TextStyle(color: Colors.white, fontSize: 12)),
+  //                   ),
+  //
+  //                 if (amountStatus == 1)
+  //                   const Padding(
+  //                     padding: EdgeInsets.only(top: 8.0),
+  //                     child: Text(
+  //                       "Insufficient balance for minimum investment.",
+  //                       style: TextStyle(color: Colors.red, fontSize: 12),
+  //                     ),
+  //                   ),
+  //               ],
+  //             )
+  //           else
+  //             const SizedBox.shrink(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+  Widget _buildSummaryCard(ProjectDetailsModel project) {
+    // ---- helper: parse any reasonable date string ----
+    DateTime? _parseDate(String? raw) {
+      if (raw == null || raw.trim().isEmpty) return null;
+      try {
+        // most backends send either "yyyy-MM-dd" or "yyyy-MM-dd HH:mm:ss"
+        if (raw.contains(' ')) {
+          return DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw, true).toLocal();
+        }
+        if (raw.contains('-')) {
+          return DateFormat('yyyy-MM-dd').parse(raw, true).toLocal();
+        }
+        if (raw.contains('/')) {
+          return DateFormat('dd/MM/yyyy').parse(raw, true).toLocal();
+        }
+      } catch (e) {
+        debugPrint('❌ date parse failed for "$raw": $e');
+      }
+      return null;
+    }
+
+    // ---- numeric conversions ----
+    final int raised = project.rasied ?? 0;
+    final int investmentGoalValue =
+        double.tryParse(project.investmentGoal.toString().replaceAll(',', ''))?.toInt() ?? 0;
+
+    // ---- date setup ----
+    final DateTime? startDate = _parseDate(project.project_start_date);
+    final DateTime? roiStartDate = _parseDate(project.roiStartDate);
+    final DateTime today = DateTime.now();
+
+    // ---- active investment logic ----
+    final bool isInvestmentActive = project.status == 1 &&
+        startDate != null &&
+        roiStartDate != null &&
+        !today.isBefore(startDate) &&       // today >= start
+        today.isBefore(roiStartDate) &&     // today < roi start
+        raised <= investmentGoalValue;
+
+    debugPrint('today: $today');
+    debugPrint('startDate: $startDate');
+    debugPrint('roiStartDate: $roiStartDate');
+    debugPrint('raised: $raised');
+    debugPrint('goal: $investmentGoalValue');
+    debugPrint('isInvestmentActive: $isInvestmentActive');
+
+    // ---- UI ----
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Project Summary',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(),
+            InfoRow(title: 'Project Name', value: project.projectName),
+            InfoRow(title: 'Business Type', value: project.businessTypeName),
+            InfoRow(
+                title: 'Investment Time',
+                value: '${project.investment_time.toString()} days'),
+            InfoRow(
+                title: 'Start Date',
+                value: formatDate(project.project_start_date)),
+            InfoRow(
+                title: 'Mature Date',
+                value: formatDate(project.project_end_date)),
+            InfoRow(
+                title: 'ROI Start Date',
+                value: formatDate(project.roiStartDate)),
+            // InfoRow(
+            //     title: 'Investment Goal',
+            //     value: '${project.investmentGoal} Tk'),
+
+            InfoRow(
+              title: 'Investment Goal',
+              value: '${NumberFormat.decimalPattern().format(project.investmentGoal ?? 0)} Tk',
+            ),
+
+            InfoRow(
+                title: 'Min Investment',
+                value:
+                '${NumberFormat.decimalPattern().format(project.minInvestmentAmount ?? 0)} Tk'),
+            InfoRow(
+                title: 'In Waiting',
+                value:
+                '${NumberFormat.decimalPattern().format(project.in_waiting)} Tk'),
+            InfoRow(
+                title: 'Raised',
+                value:
+                '${NumberFormat.decimalPattern().format(project.rasied)} Tk'),
+            InfoRow(title: 'Projected', value: project.projected),
+            InfoRow(
+                title: 'ROI (%)',
+                value:
+                'Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%'),
+            InfoRow(
+              title: 'Project Duration',
+              value: '${project.projectDurationViewer} Months',
+            ),
+
+            InfoRow(
+              title: 'Project Status',
+              value: project.status == 1 ? 'Running' : 'Closed',
+              style: TextStyle(
+                color: project.status == 1 ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ---- conditional buttons ----
+            if (isInvestmentActive)
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isInvestLoading || _isShurjoLoading
+                          ? null
+                          : () async {
+                        setState(() => _isInvestLoading = true);
+                        await _triggerInvestDialog();
+                        if (mounted) setState(() => _isInvestLoading = false);
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFAECC00)),
+                      child: _isInvestLoading
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                          : const Text('Invest Now',
+                          style:
+                          TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isInvestLoading || _isShurjoLoading
+                          ? null
+                          : () async {
+                        setState(() => _isShurjoLoading = true);
+                        await _triggerShurjoInvestDialog();
+                        if (mounted) setState(() => _isShurjoLoading = false);
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      child: _isShurjoLoading
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                          : const Text('Pay with ShurjoPay',
+                          style:
+                          TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                ],
+              )
+            else
+              const SizedBox.shrink(),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+
+
+  // Widget _buildSummaryCard(ProjectDetailsModel project) {
+  //   final int investmentGoalValue = int.tryParse(
+  //       project.investmentGoal.replaceAll(',', '')
+  //   ) ?? 0;
+  //   return Card(
+  //     elevation: 3,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text("Project Summary", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  //           const Divider(),
+  //           InfoRow(title: "Project Name", value: project.projectName),
+  //           InfoRow(title: "Business Type", value: project.businessTypeName),
+  //           InfoRow(
+  //             title: "Investment Time",
+  //             value: "${project.investment_time.toString()} days",
+  //           ),
+  //
+  //
+  //           InfoRow(
+  //             title: "Start Date",
+  //             value: formatDate(project.project_start_date),
+  //           ),
+  //
+  //           InfoRow(
+  //             title: "Mature Date",
+  //             value: formatDate(project.project_end_date),
+  //           ),
+  //
+  //           InfoRow(
+  //             title: "ROI Start Date",
+  //             value: formatDate(project.roiStartDate),
+  //           ),
+  //
+  //           InfoRow(title: "Investment Goal",
+  //               value: "${project.investmentGoal} Tk"
+  //           ),
+  //           InfoRow(
+  //             title: "Min Investment",
+  //             value: '${NumberFormat.decimalPattern().format(project.minInvestmentAmount ?? 0)} Tk'
+  //           ),
+  //           InfoRow(
+  //             title: "In Waiting",
+  //             value: "${NumberFormat.decimalPattern().format(project.in_waiting)} Tk",
+  //           ),
+  //           InfoRow(
+  //             title: "Raised",
+  //             value: "${NumberFormat.decimalPattern().format(project.rasied)} Tk",
+  //           ),
+  //           InfoRow(title: "Projected", value: project.projected),
+  //           InfoRow(
+  //             title: "ROI (%)",
+  //             value: "Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%",
+  //           ),
+  //           InfoRow(title: "Project Duration", value: project.projectDurationViewer),
+  //
+  //
+  //           InfoRow(
+  //             title: "Project Status",
+  //             value: project.status == 1 ? 'Running' : 'Closed',
+  //             style: TextStyle(
+  //               color: project.status == 1 ? Colors.green : Colors.red,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //           const SizedBox(height: 12),
+  //           if (project.status == 1 && project.investment_time > 0)
+  //             Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: ElevatedButton(
+  //                     onPressed: _isInvestLoading || _isShurjoLoading
+  //                         ? null // Disable if either is loading to avoid multiple simultaneous taps
+  //                         : () async {
+  //                       setState(() => _isInvestLoading = true);
+  //                       await _triggerInvestDialog();
+  //                       if (mounted) setState(() => _isInvestLoading = false);
+  //                     },
+  //                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFAECC00)),
+  //                     child: _isInvestLoading
+  //                         ? const SizedBox(
+  //                       width: 20,
+  //                       height: 20,
+  //                       child: CircularProgressIndicator(
+  //                         strokeWidth: 2,
+  //                         color: Colors.white,
+  //                       ),
+  //                     )
+  //                         : const Text(
+  //                       'Invest Now',
+  //                       style: TextStyle(color: Colors.white, fontSize: 12),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 10),
+  //                 Expanded(
+  //                   child: ElevatedButton(
+  //                     onPressed: _isInvestLoading || _isShurjoLoading
+  //                         ? null
+  //                         : () async {
+  //                       setState(() => _isShurjoLoading = true);
+  //                       await _triggerShurjoInvestDialog();
+  //                       if (mounted) setState(() => _isShurjoLoading = false);
+  //                     },
+  //                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+  //                     child: _isShurjoLoading
+  //                         ? const SizedBox(
+  //                       width: 20,
+  //                       height: 20,
+  //                       child: CircularProgressIndicator(
+  //                         strokeWidth: 2,
+  //                         color: Colors.white,
+  //                       ),
+  //                     )
+  //                         : const Text(
+  //                       'Pay with ShurjoPay',
+  //                       style: TextStyle(color: Colors.white, fontSize: 12),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             )
+  //
+  //           else
+  //             const SizedBox.shrink(), // or show a message like: "This project is closed or expired."
+  //             // const SizedBox(height: 40),
+  //
+  //
+  //   // if (project.status == 1 && project.rasied <= investmentGoalValue)
+  //   //   Row(
+  //   //     children: [
+  //   //       Expanded(
+  //   //         child: ElevatedButton(
+  //   //           onPressed: _isInvestLoading || _isShurjoLoading
+  //   //               ? null
+  //   //               : () async {
+  //   //             setState(() => _isInvestLoading = true);
+  //   //             await _triggerInvestDialog();
+  //   //             if (mounted) setState(() => _isInvestLoading = false);
+  //   //           },
+  //   //           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFAECC00)),
+  //   //           child: _isInvestLoading
+  //   //               ? const SizedBox(
+  //   //             width: 20,
+  //   //             height: 20,
+  //   //             child: CircularProgressIndicator(
+  //   //               strokeWidth: 2,
+  //   //               color: Colors.white,
+  //   //             ),
+  //   //           )
+  //   //               : const Text(
+  //   //             'Invest Now',
+  //   //             style: TextStyle(color: Colors.white, fontSize: 12),
+  //   //           ),
+  //   //         ),
+  //   //       ),
+  //   //       const SizedBox(width: 10),
+  //   //       Expanded(
+  //   //         child: ElevatedButton(
+  //   //           onPressed: _isInvestLoading || _isShurjoLoading
+  //   //               ? null
+  //   //               : () async {
+  //   //             setState(() => _isShurjoLoading = true);
+  //   //             await _triggerShurjoInvestDialog();
+  //   //             if (mounted) setState(() => _isShurjoLoading = false);
+  //   //           },
+  //   //           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+  //   //           child: _isShurjoLoading
+  //   //               ? const SizedBox(
+  //   //             width: 20,
+  //   //             height: 20,
+  //   //             child: CircularProgressIndicator(
+  //   //               strokeWidth: 2,
+  //   //               color: Colors.white,
+  //   //             ),
+  //   //           )
+  //   //               : const Text(
+  //   //             'Pay with ShurjoPay',
+  //   //             style: TextStyle(color: Colors.white, fontSize: 12),
+  //   //           ),
+  //   //         ),
+  //   //       ),
+  //   //     ],
+  //   //   )
+  //   // else
+  //   //   const SizedBox.shrink(),
+  //
+  //
+  //
+  //   ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildSecurityCard(ProjectDetailsModel project) {
     return Card(
       elevation: 3,
@@ -259,118 +845,6 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 ],
               ),
             )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(ProjectDetailsModel project) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Project Summary", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Divider(),
-            InfoRow(title: "Project Name", value: project.projectName),
-            InfoRow(title: "Business Type", value: project.businessTypeName),
-            InfoRow(
-              title: "Investment Time",
-              value: "${project.investment_time.toString()} days",
-            ),
-
-            InfoRow(title: "Investment Goal", value: project.investmentGoal),
-            InfoRow(
-              title: "Min Investment",
-              value: NumberFormat.decimalPattern().format(project.minInvestmentAmount ?? 0),
-            ),
-            InfoRow(
-              title: "In Waiting",
-              value: NumberFormat.decimalPattern().format(project.in_waiting),
-            ),
-            InfoRow(
-              title: "Raised",
-              value: NumberFormat.decimalPattern().format(project.rasied),
-            ),
-            InfoRow(title: "Projected", value: project.projected),
-            InfoRow(
-              title: "ROI (%)",
-              value: "Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%",
-            ),
-            InfoRow(title: "Duration", value: project.projectDurationViewer),
-            InfoRow(title: "ROI Start Date", value: project.roiStartDate),
-            InfoRow(
-              title: "Project Status",
-              value: project.status == 1 ? 'Running' : 'Closed',
-              style: TextStyle(
-                color: project.status == 1 ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (project.status == 1 && project.investment_time > 0)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isInvestLoading || _isShurjoLoading
-                          ? null // Disable if either is loading to avoid multiple simultaneous taps
-                          : () async {
-                        setState(() => _isInvestLoading = true);
-                        await _triggerInvestDialog();
-                        if (mounted) setState(() => _isInvestLoading = false);
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFAECC00)),
-                      child: _isInvestLoading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                          : const Text(
-                        'Invest Now',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isInvestLoading || _isShurjoLoading
-                          ? null
-                          : () async {
-                        setState(() => _isShurjoLoading = true);
-                        await _triggerShurjoInvestDialog();
-                        if (mounted) setState(() => _isShurjoLoading = false);
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                      child: _isShurjoLoading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                          : const Text(
-                        'Pay with ShurjoPay',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else
-              const SizedBox.shrink(), // or show a message like: "This project is closed or expired."
-
           ],
         ),
       ),
@@ -418,6 +892,16 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     }
   }
 
+  void _showSnack(String msg, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<Map<String, dynamic>?> _showInvestDialog({bool isShurjoPay = false}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -426,6 +910,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     final email = prefs.getString('investor_email') ?? 'default@email.com';
     final investorName = prefs.getString('investor_name') ?? '';
     final investorPhone = prefs.getString('investor_phone') ?? '';
+    final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
 
     if (token == null || investorId == null || investorCode == null || _project == null) {
       if (!mounted) return null;
@@ -629,14 +1114,16 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 //                       if (isShurjoPay) {
 //                         try {
 //                           final tokenRes = await http.post(
-//                             Uri.parse('https://sandbox.shurjopayment.com/api/get_token'),
+//                             Uri.parse('https://engine.shurjopayment.com/api/get_token'),
 //                             headers: {
 //                               'Content-Type': 'application/json',
 //                               'Accept': 'application/json',
 //                             },
 //                             body: jsonEncode({
-//                               'username': 'sp_sandbox',
-//                               'password': 'pyyk97hu&6u6',
+//                               // 'username': 'sp_sandbox',
+//                               // 'password': 'pyyk97hu&6u6',
+//                               'username': 'growup_agrotech',
+//                               'password': 'growjjxwdm6wazy4',
 //                             }),
 //                           );
 //
@@ -647,31 +1134,32 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 //                           final storeId = tokenData['store_id'].toString();
 //
 //                           final orderId = 'growup_${DateTime.now().millisecondsSinceEpoch}';
-//                           final clientIp = await _getPublicIP();
+//                           // final clientIp = await _getPublicIP();
 //
 //                           final payRes = await http.post(
-//                             Uri.parse('https://sandbox.shurjopayment.com/api/secret-pay'),
+//                             Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
 //                             headers: {
 //                               'Content-Type': 'application/json',
 //                               'Accept': 'application/json',
 //                               'Authorization': 'Bearer $spToken',
 //                             },
 //                             body: jsonEncode({
-//                               "prefix": "sp",
+//                               // "prefix": "sp",
+//                               "prefix": "GAL",
 //                               "token": spToken,
-//                               "return_url": "https://admin-growup.onebitstore.site/api/shurjopay/payment/callback",
-//                               "cancel_url": "https://sandbox.shurjopayment.com/response",
+//                               "return_url": "https://growupagro.tech/api/shurjopay/payment/callback",
+//                               "cancel_url": "https://growupagro.tech/api/shurjopay/payment/callback",
 //                               "store_id": storeId,
 //                               "amount": amount,
 //                               "order_id": orderId,
 //                               "currency": "BDT",
-//                               "customer_name": "GrowUp Investor",
-//                               "customer_address": "Dhaka, Bangladesh",
+//                               "customer_name": investorName,
+//                               "customer_address": investorAddress,
 //                               "customer_email": email,
-//                               "customer_phone": "+8801700000000",
+//                               "customer_phone": investorPhone,
 //                               "customer_city": "Dhaka",
 //                               "customer_post_code": "1200",
-//                               "client_ip": clientIp,
+//                               "client_ip": "127.0.0.1",
 //                               "value1": investorId,               // Raw investor_code
 //                               "value2": widget.projectId.toString(), // Raw project ID
 //                               "value3": "project_investment",       // transaction type expected by backend
@@ -723,107 +1211,267 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 //                           }
 //                         }
 //                       }
+//                       if (isShurjoPay) {
+//                         try {
+//                           final shurjoPay = ShurjoPay();
+//
+//                           final request = ShurjopayRequestModel(
+//                             configs: ShurjopayConfigs(
+//                               userName: 'growup_agrotech',
+//                               password: 'growjjxwdm6wazy4',
+//                               prefix: 'GAL',
+//                               clientIP: '127.0.0.1',
+//                             ),
+//                             currency: "BDT",
+//                             amount: amount.toDouble(),
+//                             orderID: "growup_${DateTime.now().millisecondsSinceEpoch}",
+//                             customerName: investorName,
+//                             customerPhoneNumber: investorPhone,
+//                             customerEmail: email,
+//                             customerAddress: "Dhaka, Bangladesh",
+//                             customerCity: "Dhaka",
+//                             customerPostcode: "1200",
+//                             returnURL: "url",
+//                             cancelURL: "url",
+//                           );
+//
+//                           final response = await shurjoPay.makePayment(
+//                             context: context,
+//                             shurjopayRequestModel: request,
+//                           );
+//
+//                           if (response.status == true) {
+//                             // Verify after returning
+//                             final verify = await shurjoPay.verifyPayment(orderID: response.shurjopayOrderID!);
+//
+//                             if (verify.spCode == "1000") {
+//                               if (!mounted) return;
+//                               ScaffoldMessenger.of(outerContext).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text('Payment successful!'),
+//                                   backgroundColor: Colors.green,
+//                                 ),
+//                               );
+//                               disposeController();
+//                               Navigator.pop(dialogContext, {
+//                                 "success": true,
+//                                 "data": jsonEncode({
+//                                   "id": verify.id,
+//                                   "orderId": verify.orderId,
+//                                   "currency": verify.currency,
+//                                   "amount": verify.amount,
+//                                   "payableAmount": verify.payableAmount,
+//                                   "discsountAmount": verify.discsountAmount,
+//                                   "discPercent": verify.discPercent,
+//                                   "receivedAmount": verify.receivedAmount,
+//                                   "usdAmt": verify.usdAmt,
+//                                   "usdRate": verify.usdRate,
+//                                   "cardHolderName": verify.cardHolderName,
+//                                   "cardNumber": verify.cardNumber,
+//                                   "phoneNo": verify.phoneNo,
+//                                   "bankTrxId": verify.bankTrxId,
+//                                   "invoiceNo": verify.invoiceNo,
+//                                   "bankStatus": verify.bankStatus,
+//                                   "customerOrderId": verify.customerOrderId,
+//                                   "spCode": verify.spCode,
+//                                   "spMessage": verify.spMessage,
+//                                   "name": verify.name,
+//                                   "email": verify.email,
+//                                   "address": verify.address,
+//                                   "city": verify.city,
+//                                   "value1": verify.value1,
+//                                   "value2": verify.value2,
+//                                   "value3": verify.value3,
+//                                   "value4": verify.value4,
+//                                   "transactionStatus": verify.transactionStatus,
+//                                   "method": verify.method,
+//                                   "dateTime": verify.dateTime,
+//                                   "message": verify.message,
+//                                 })
+//                               });
+//
+//                             } else {
+//                               if (!mounted) return;
+//                               ScaffoldMessenger.of(outerContext).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text('❌ Payment verification failed'),
+//                                   backgroundColor: Colors.red,
+//                                 ),
+//                               );
+//                             }
+//                           } else {
+//                             if (!mounted) return;
+//                             ScaffoldMessenger.of(outerContext).showSnackBar(
+//                               const SnackBar(
+//                                 content: Text('❌ Payment initiation failed'),
+//                                 backgroundColor: Colors.red,
+//                               ),
+//                             );
+//                           }
+//                         } catch (e) {
+//                           if (!mounted) return;
+//                           ScaffoldMessenger.of(outerContext).showSnackBar(
+//                             SnackBar(content: Text('❌ Payment error: $e')),
+//                           );
+//                         } finally {
+//                           if (mounted) {
+//                             setState(() {
+//                               _isLoading = false;
+//                             });
+//                           }
+//                         }
+//                       }
+
                       if (isShurjoPay) {
                         try {
-                          final shurjoPay = ShurjoPay();
+                          if (token == null || token.isEmpty) {
+                            _showSnack("Authorization token missing. Please login again.");
+                            setState(() => _isLoading = false);
+                            return;
+                          }
 
-                          final request = ShurjopayRequestModel(
-                            configs: ShurjopayConfigs(
-                              userName: 'growup_agrotech',
-                              password: 'growjjxwdm6wazy4',
-                              prefix: 'GAL',
-                              clientIP: '127.0.0.1',
-                            ),
-                            currency: "BDT",
-                            amount: amount.toDouble(),
-                            orderID: "growup_${DateTime.now().millisecondsSinceEpoch}",
-                            customerName: investorName,
-                            customerPhoneNumber: investorPhone,
-                            customerEmail: email,
-                            customerAddress: "Dhaka, Bangladesh",
-                            customerCity: "Dhaka",
-                            customerPostcode: "1200",
-                            returnURL: "url",
-                            cancelURL: "url",
+                          // -----------------------------
+                          // Step 1: Initiate transaction
+                          // -----------------------------
+                          final initiateResponse = await http.post(
+                            Uri.parse('https://growupagro.tech/api/transaction-initiate'),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer $token',
+                            },
+                            body: jsonEncode({
+                              "amount": amount,
+                              "type": "investment",
+                              "note": "ok",
+                            }),
                           );
 
-                          final response = await shurjoPay.makePayment(
-                            context: context,
-                            shurjopayRequestModel: request,
+                          print("Transaction API Response: ${initiateResponse.body}");
+
+                          if (initiateResponse.statusCode != 200 && initiateResponse.statusCode != 201) {
+                            print('Transaction initiation failed: ${initiateResponse.body}');
+                            _showSnack("Failed to initiate transaction.");
+                            setState(() => _isLoading = false);
+                            return;
+                          }
+
+                          print('Transaction initiate status: ${initiateResponse.statusCode}');
+                          print('Transaction initiate response: ${initiateResponse.body}');
+
+                          final initiateData = jsonDecode(initiateResponse.body);
+
+                          if (initiateData['success'] != true) {
+                            _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
+                            setState(() => _isLoading = false);
+                            return;
+                          }
+
+                          // Safely extract transaction ID
+                          final walletTransaction = initiateData['data']?['wallet_transaction'];
+                          final transactionId = walletTransaction?['id']?.toString();
+
+                          if (transactionId == null || transactionId.isEmpty) {
+                            _showSnack("Transaction ID missing from server response.");
+                            print("transactionId is null or empty");
+                            setState(() => _isLoading = false);
+                            return;
+                          }
+
+                          print("Transaction ID from backend: $transactionId");
+
+                          // -----------------------------
+                          // Step 2: Get ShurjoPay token
+                          // -----------------------------
+                          final tokenRes = await http.post(
+                            Uri.parse('https://engine.shurjopayment.com/api/get_token'),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Accept': 'application/json',
+                            },
+                            body: jsonEncode({
+                              'username': 'growup_agrotech',
+                              'password': 'growjjxwdm6wazy4',
+                            }),
                           );
 
-                          if (response.status == true) {
-                            // Verify after returning
-                            final verify = await shurjoPay.verifyPayment(orderID: response.shurjopayOrderID!);
+                          print("ShurjoPay Token Response: ${tokenRes.body}");
 
-                            if (verify.spCode == "1000") {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(outerContext).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Payment successful!'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                              disposeController();
-                              Navigator.pop(dialogContext, {
-                                "success": true,
-                                "data": jsonEncode({
-                                  "id": verify.id,
-                                  "orderId": verify.orderId,
-                                  "currency": verify.currency,
-                                  "amount": verify.amount,
-                                  "payableAmount": verify.payableAmount,
-                                  "discsountAmount": verify.discsountAmount,
-                                  "discPercent": verify.discPercent,
-                                  "receivedAmount": verify.receivedAmount,
-                                  "usdAmt": verify.usdAmt,
-                                  "usdRate": verify.usdRate,
-                                  "cardHolderName": verify.cardHolderName,
-                                  "cardNumber": verify.cardNumber,
-                                  "phoneNo": verify.phoneNo,
-                                  "bankTrxId": verify.bankTrxId,
-                                  "invoiceNo": verify.invoiceNo,
-                                  "bankStatus": verify.bankStatus,
-                                  "customerOrderId": verify.customerOrderId,
-                                  "spCode": verify.spCode,
-                                  "spMessage": verify.spMessage,
-                                  "name": verify.name,
-                                  "email": verify.email,
-                                  "address": verify.address,
-                                  "city": verify.city,
-                                  "value1": verify.value1,
-                                  "value2": verify.value2,
-                                  "value3": verify.value3,
-                                  "value4": verify.value4,
-                                  "transactionStatus": verify.transactionStatus,
-                                  "method": verify.method,
-                                  "dateTime": verify.dateTime,
-                                  "message": verify.message,
-                                })
-                              });
+                          if (tokenRes.statusCode != 200) throw Exception('Failed to get ShurjoPay token');
 
-                            } else {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(outerContext).showSnackBar(
-                                const SnackBar(
-                                  content: Text('❌ Payment verification failed'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                          final tokenData = jsonDecode(tokenRes.body);
+                          final spToken = tokenData['token'];
+                          final storeId = tokenData['store_id'].toString();
+
+                          final orderId = 'growup_${DateTime.now().millisecondsSinceEpoch}';
+
+                          // -----------------------------
+                          // Step 3: Initiate ShurjoPay payment
+                          // -----------------------------
+                          final payRes = await http.post(
+                            Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Accept': 'application/json',
+                              'Authorization': 'Bearer $spToken',
+                            },
+                            body: jsonEncode({
+                              "prefix": "GAL",
+                              "token": spToken,
+                              "return_url": "https://growupagro.tech/api/shurjopay/payment/callback",
+                              "cancel_url": "https://growupagro.tech/api/shurjopay/payment/callback",
+                              "store_id": storeId,
+                              "amount": amount,
+                              "order_id": orderId,
+                              "currency": "BDT",
+                              "customer_name": investorName,
+                              "customer_address": investorAddress,
+                              "customer_email": email,
+                              "customer_phone": investorPhone,
+                              "customer_city": "N/A",
+                              "customer_post_code": "1200",
+                              "client_ip": "127.0.0.1",
+                              "value1": investorId,
+                              "value2": "N/A",
+                              "value3": "project_investment",
+                              "value4": transactionId, // pass actual transaction ID
+                            }),
+                          );
+
+                          print("ShurjoPay Pay Response: ${payRes.body}");
+
+                          if (payRes.statusCode != 200) {
+                            throw Exception('Payment initiation failed with status ${payRes.statusCode}');
+                          }
+
+                          final payData = jsonDecode(payRes.body);
+                          final checkoutUrl = payData['checkout_url'];
+
+                          if (checkoutUrl != null && checkoutUrl.toString().startsWith('http')) {
+                            final launched = await launchUrl(
+                              Uri.parse(checkoutUrl),
+                              mode: LaunchMode.externalApplication,
+                            );
+
+                            if (!launched) {
+                              throw Exception('Could not launch payment URL');
                             }
-                          } else {
-                            if (!mounted) return;
+
+                            disposeController();
+
                             ScaffoldMessenger.of(outerContext).showSnackBar(
                               const SnackBar(
-                                content: Text('❌ Payment initiation failed'),
-                                backgroundColor: Colors.red,
+                                content: Text('Please complete your payment in browser and come back.'),
+                                backgroundColor: Colors.blue,
                               ),
                             );
+                          } else {
+                            final message = payData['message'] ?? 'Unknown error';
+                            throw Exception('Payment failed: $message');
                           }
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(outerContext).showSnackBar(
-                            SnackBar(content: Text('❌ Payment error: $e')),
+                            SnackBar(content: Text('Payment failed: $e')),
                           );
                         } finally {
                           if (mounted) {
@@ -834,11 +1482,12 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                         }
                       }
 
+
                       else {
                         // Wallet payment flow (unchanged)
                         try {
                           final response = await http.post(
-                            Uri.parse('https://admin-growup.onebitstore.site/api/investor/invest-now'),
+                            Uri.parse('https://growupagro.tech/api/investor/invest-now'),
                             headers: {
                               'Content-Type': 'application/json',
                               'Authorization': 'Bearer $token',

@@ -158,6 +158,13 @@ class _RoiDetailsPageState extends State<RoiDetailsPage> {
           )),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : filteredData.isEmpty
+          ? const Center(
+        child: Text(
+          "No ROI records found for this project.",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      )
           : Column(
         children: [
           Padding(

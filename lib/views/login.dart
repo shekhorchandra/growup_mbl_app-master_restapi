@@ -90,8 +90,8 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
 
   //forget pass start
   Future<void> handleForgotPassword() async {
-    final uri = Uri.parse('https://admin-growup.onebitstore.site/api/forgot-password');
-    // final uri = Uri.parse(ApiConstants.forgotPassword);
+    // final uri = Uri.parse('https://growupagro.tech/investor/forgot-password');
+    final uri = Uri.parse(ApiConstants.forgotPassword);
 
     try {
       final response = await http.get(uri);
@@ -478,6 +478,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         await prefs.setString('investor_code', investor['investor_code'] ?? '');
         await prefs.setString('investor_id', investor['id'].toString());
         await prefs.setString('investor_image', investor['image'] ?? '');
+        await prefs.setString('investor_address', investor['address'] ?? 'Dhaka');
 
 
         // Save dashboard info from the root level of response JSON (siblings of 'user')

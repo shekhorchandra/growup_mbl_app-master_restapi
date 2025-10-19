@@ -59,8 +59,9 @@ class PropertyPackage {
       packageName: json['package_name'],
       slug: json['slug'],
       imageUrl: json['image_url'],
-      propertyId: json['property_id'],
+      propertyId: int.parse(json['property_id'].toString()), // <- fix here
       propertyName: json['property_name'],
     );
   }
+
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,17 +18,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _passwordFormKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
 
-  String fullName = '';
-  String email = '';
-  String phone = '';
   String investorCode = '';
   File? profileImage;
   String? profileImageUrl;
 
-  // Password fields
-  String currentPassword = '';
-  String newPassword = '';
-  String confirmPassword = '';
+  // Controllers for text fields
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+
+  // Password controllers
+  final TextEditingController currentPasswordController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   bool _loading = false;
   bool _updatingProfile = false;
@@ -47,9 +50,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     investorCode = prefs.getString('investor_code') ?? '';
-
+    // final url = Uri.parse("${ApiConstants.investorProfile}?investor_code=$investorCode");
     final response = await http.get(
-      Uri.parse('https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode'),
+      Uri.parse('https://growupagro.tech/api/investor/profile?investor_code=$investorCode'),
+      // url,
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -60,16 +64,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final data = json.decode(response.body);
       final investor = data['data']['investor'];
       setState(() {
-        fullName = investor['name'] ?? '';
-        email = investor['email'] ?? '';
-        phone = investor['phone'] ?? '';
+        fullNameController.text = investor['name'] ?? '';
+        emailController.text = investor['email'] ?? '';
+        phoneController.text = investor['phone'] ?? '';
         profileImageUrl = investor['image'] != null
-            ? 'https://admin-growup.onebitstore.site/storage/${investor['image']}'
+            ? 'https://growupagro.tech/storage/${investor['image']}'
             : null;
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load profile')),
+        const SnackBar(
+          content: Text(
+            'Failed to load profile',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red, // 🔴 red background for error
+        ),
       );
     }
     setState(() => _loading = false);
@@ -86,44 +96,74 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _submitProfile() async {
     if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
 
     setState(() => _updatingProfile = true);
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
 
-    final uri = Uri.parse('https://admin-growup.onebitstore.site/api/investor/profile/investor-info/update');
+    final uri = Uri.parse('https://growupagro.tech/api/investor/profile/investor-info/update');
+    // final uri = Uri.parse(ApiConstants.updateProfileInfo);
     var request = http.MultipartRequest('POST', uri)
-      ..headers['Authorization'] = 'Bearer $token'
-      ..fields['investor_code'] = investorCode
-      ..fields['name'] = fullName
-      ..fields['email'] = email
-      ..fields['phone'] = phone;
+      ..headers['Authorization'] = 'Bearer $token';
+
+    request.fields['investor_code'] = investorCode;
+
+    if (fullNameController.text.trim().isNotEmpty) {
+      request.fields['name'] = fullNameController.text.trim();
+    }
+    if (emailController.text.trim().isNotEmpty) {
+      request.fields['email'] = emailController.text.trim();
+    }
+    if (phoneController.text.trim().isNotEmpty) {
+      request.fields['phone'] = phoneController.text.trim();
+    }
 
     if (profileImage != null) {
       request.files.add(await http.MultipartFile.fromPath('image', profileImage!.path));
     }
 
-    final response = await request.send();
-    final respStr = await response.stream.bytesToString();
+    try {
+      final response = await request.send();
+      final respStr = await response.stream.bytesToString();
 
-    setState(() => _updatingProfile = false);
+      debugPrint('Status: ${response.statusCode}');
+      debugPrint('Body: $respStr');
 
-    if (response.statusCode == 200) {
+      setState(() => _updatingProfile = false);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
+        );
+        // ✅ Refresh latest profile data from server
+        await _loadProfileData();
+
+        // ✅ Save updated name/email/phone in SharedPreferences for dashboard
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('investor_name', fullNameController.text.trim());
+        await prefs.setString('investor_email', emailController.text.trim());
+        await prefs.setString('investor_phone', phoneController.text.trim());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $respStr'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      setState(() => _updatingProfile = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
-      );
-    } else {
-      debugPrint(respStr);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update profile'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     }
   }
 
+
   Future<void> _changePassword() async {
     if (_passwordFormKey.currentState!.validate()) {
       _passwordFormKey.currentState!.save();
+
+      final currentPassword = currentPasswordController.text;
+      final newPassword = newPasswordController.text;
+      final confirmPassword = confirmPasswordController.text;
 
       if (newPassword != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,8 +193,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         return;
       }
 
-      final url = Uri.parse('https://admin-growup.onebitstore.site/api/change-password');
+      final url = Uri.parse(
+          'https://growupagro.tech/api/change-password');
       final response = await http.post(
+        // Uri.parse(ApiConstants.changePassword),
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -175,6 +217,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Password updated successfully'), backgroundColor: Colors.green),
         );
+        currentPasswordController.clear();
+        newPasswordController.clear();
+        confirmPasswordController.clear();
         _passwordFormKey.currentState!.reset();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,22 +231,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Widget _buildTextField({
     required String label,
-    required String initialValue,
-    required void Function(String) onSaved,
+    required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     bool obscure = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextFormField(
-        initialValue: initialValue,
+        controller: controller,
         obscureText: obscure,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        onSaved: (val) => onSaved(val ?? ''),
         validator: (val) =>
         (val == null || val.trim().isEmpty) ? 'This field is required' : null,
       ),
@@ -220,7 +263,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// Profile Card
+            // Profile Form
             Form(
               key: _formKey,
               child: Card(
@@ -249,23 +292,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(
-                        label: 'Full Name',
-                        initialValue: fullName,
-                        onSaved: (val) => fullName = val,
-                      ),
-                      _buildTextField(
-                        label: 'Email Address',
-                        initialValue: email,
-                        onSaved: (val) => email = val,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      _buildTextField(
-                        label: 'Phone Number',
-                        initialValue: phone,
-                        onSaved: (val) => phone = val,
-                        keyboardType: TextInputType.phone,
-                      ),
+                      _buildTextField(label: 'Full Name', controller: fullNameController),
+                      _buildTextField(label: 'Email Address', controller: emailController, keyboardType: TextInputType.emailAddress),
+                      _buildTextField(label: 'Phone Number', controller: phoneController, keyboardType: TextInputType.phone),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _updatingProfile ? null : _submitProfile,
@@ -279,18 +308,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                            : const Text('Update Profile',
-                            style: TextStyle(color: Colors.white, fontSize: 16)),
+                            : const Text('Update Profile', style: TextStyle(color: Colors.white, fontSize: 16)),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            /// Password Change Card
+            // Password Form
             Form(
               key: _passwordFormKey,
               child: Card(
@@ -306,78 +332,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(height: 16),
-                      // Current Password
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: TextFormField(
-                          obscureText: _obscureCurrentPassword,
-                          onSaved: (val) => currentPassword = val ?? '',
-                          validator: (val) =>
-                          (val == null || val.trim().isEmpty) ? 'This field is required' : null,
-                          decoration: InputDecoration(
-                            labelText: 'Current Password',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureCurrentPassword ? Icons.visibility_off : Icons.visibility,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureCurrentPassword = !_obscureCurrentPassword;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      // New Password
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: TextFormField(
-                          obscureText: _obscureNewPassword,
-                          onSaved: (val) => newPassword = val ?? '',
-                          validator: (val) =>
-                          (val == null || val.trim().isEmpty) ? 'This field is required' : null,
-                          decoration: InputDecoration(
-                            labelText: 'New Password',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureNewPassword ? Icons.visibility_off : Icons.visibility,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureNewPassword = !_obscureNewPassword;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Confirm New Password
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: TextFormField(
-                          obscureText: _obscureConfirmPassword,
-                          onSaved: (val) => confirmPassword = val ?? '',
-                          validator: (val) =>
-                          (val == null || val.trim().isEmpty) ? 'This field is required' : null,
-                          decoration: InputDecoration(
-                            labelText: 'Confirm New Password',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureConfirmPassword = !_obscureConfirmPassword;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildPasswordField('Current Password', currentPasswordController, _obscureCurrentPassword, () {
+                        setState(() {
+                          _obscureCurrentPassword = !_obscureCurrentPassword;
+                        });
+                      }),
+                      _buildPasswordField('New Password', newPasswordController, _obscureNewPassword, () {
+                        setState(() {
+                          _obscureNewPassword = !_obscureNewPassword;
+                        });
+                      }),
+                      _buildPasswordField('Confirm New Password', confirmPasswordController, _obscureConfirmPassword, () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      }),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _changingPassword ? null : _changePassword,
@@ -400,6 +369,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(String label, TextEditingController controller, bool obscure, VoidCallback toggle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        validator: (val) => (val == null || val.trim().isEmpty) ? 'This field is required' : null,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          suffixIcon: IconButton(
+            icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+            onPressed: toggle,
+          ),
         ),
       ),
     );

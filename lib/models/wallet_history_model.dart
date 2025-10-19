@@ -1,6 +1,6 @@
 class WalletHistoryModel {
   final int id;
-  final int invoiceNo;
+  final String? invoiceNo;
   final int? projectId;
   final String trxId;
   final int walletId;
@@ -16,10 +16,11 @@ class WalletHistoryModel {
   final String createdAt;
   final String updatedAt;
   final String? status;
+  final String? actionedBy;
 
   WalletHistoryModel({
     required this.id,
-    required this.invoiceNo,
+    this.invoiceNo,
     this.projectId,
     required this.trxId,
     required this.walletId,
@@ -35,27 +36,29 @@ class WalletHistoryModel {
     required this.createdAt,
     required this.updatedAt,
     this.status,
+    this.actionedBy,
   });
 
   factory WalletHistoryModel.fromJson(Map<String, dynamic> json) {
     return WalletHistoryModel(
       id: json['id'] ?? 0,
-      invoiceNo: json['invoice_no'] ?? 0,
-      projectId: json['project_id'],
+      invoiceNo: json['invoice_no']?.toString(),
+      projectId: json['project_id'] != null ? int.tryParse(json['project_id'].toString()) : null,
       trxId: json['trx_id']?.toString() ?? '',
-      walletId: json['wallet_id'] ?? 0,
+      walletId: int.tryParse(json['wallet_id'].toString()) ?? 0,
       type: json['type']?.toString() ?? '',
       amount: double.tryParse(json['amount'].toString()) ?? 0.0,
       direction: json['direction']?.toString() ?? '',
-      creditAccountId: json['credit_account_id'],
-      debitAccountId: json['debit_account_id'],
+      creditAccountId: json['credit_account_id'] != null ? int.tryParse(json['credit_account_id'].toString()) : null,
+      debitAccountId: json['debit_account_id'] != null ? int.tryParse(json['debit_account_id'].toString()) : null,
       note: json['note']?.toString(),
-      rechargeId: json['recharge_id'],
-      depositRequestId: json['deposit_request_id'],
-      withdrawRequestId: json['withdraw_request_id'],
+      rechargeId: json['recharge_id'] != null ? int.tryParse(json['recharge_id'].toString()) : null,
+      depositRequestId: json['deposit_request_id'] != null ? int.tryParse(json['deposit_request_id'].toString()) : null,
+      withdrawRequestId: json['withdraw_request_id'] != null ? int.tryParse(json['withdraw_request_id'].toString()) : null,
       createdAt: json['created_at']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString() ?? '',
       status: json['status']?.toString(),
+      actionedBy: json['actioned_by']?.toString(),
     );
   }
 }

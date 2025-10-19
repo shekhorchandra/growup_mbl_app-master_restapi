@@ -132,9 +132,10 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
       final List data = body['data'];
       return data.map((e) => InvestmentHistoryItem.fromJson(e)).toList();
     } else {
-      throw Exception(
-        'Error ${response.statusCode}: ${json.decode(response.body)['message'] ?? 'Unknown error'}',
-      );
+      // throw Exception(
+      //   'Error ${response.statusCode}: ${json.decode(response.body)['message'] ?? 'Unknown error'}',
+      // );
+      throw Exception('Investment history not found');
     }
   }
 

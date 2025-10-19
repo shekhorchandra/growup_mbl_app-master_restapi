@@ -38,13 +38,14 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       serial: json['serial'],
-      invoiceNo: json['invoice_no'],
+      invoiceNo: int.parse(json['invoice_no'].toString()),
       orderDate: json['order_date'],
       productName: json['product_name'],
       quantity: json['quantity'],
-      totalPayable: json['total_payable'],
+      totalPayable: (double.parse(json['total_payable'].toString())).toInt(),
       paidAmount: json['paid_amount'],
       status: json['status'],
     );
   }
+
 }

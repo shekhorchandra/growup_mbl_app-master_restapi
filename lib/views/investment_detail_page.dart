@@ -9,6 +9,7 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 
@@ -242,28 +243,24 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
                                                 
                                     // Actions (View, Download)
                                     DataCell(
-                                      item['invoice_no'] != null &&
-                                          item['invoice_no'] != 0
-                                          ? (downloadingInvoices.contains(
-                                          item['invoice_no'].toString())
+                                      item['invoice_no'] != null && item['invoice_no'] != 0
+                                          ? (downloadingInvoices.contains(item['invoice_no'].toString())
                                           ? const SizedBox(
                                         width: 24,
                                         height: 24,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
+                                        child: CircularProgressIndicator(strokeWidth: 2),
                                       )
                                           : IconButton(
-                                        icon: const Icon(
-                                            Icons.download, color: Colors.green),
-                                        tooltip: 'Download Invoice',
+                                        icon: const Icon(Icons.download, color: Colors.green),
+                                        tooltip: 'Open Invoice in Browser',
                                         onPressed: () {
-                                          _downloadInvoice(context,
-                                              item['invoice_no'].toString());
+                                          _downloadInvoice(context, item['invoice_no'].toString());
                                         },
                                       ))
                                           : const Text('N/A'),
-                                    ),
-                                                
+                                    )
+
+
                                   ],
                                 );
                               }),
@@ -304,51 +301,59 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
   }
 
 
-  Future<void> _downloadInvoice(BuildContext context, String invoiceNo) async {
+  Future<void> _downloadInvoice(BuildContext context, String? invoiceNo) async {
+    // 🟡 Handle null or empty invoice number
+    if (invoiceNo == null || invoiceNo.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No invoice found for this record. Please contact support if this issue persists.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // Show loader
     setState(() {
       downloadingInvoices.add(invoiceNo);
     });
 
-    final dio = Dio();
-    final url = ApiConstants.invoicePdf(invoiceNo);
+    final url = ApiConstants.invoicePdf(invoiceNo); // e.g., https://growupagro.tech/dashboard/invoice/pdf/{invoiceNo}
+    final uri = Uri.parse(url);
 
     try {
-      // ✅ Get app-specific directory (sandboxed, no storage permission needed)
-      Directory downloadsDir;
-      if (Platform.isAndroid || Platform.isIOS) {
-        downloadsDir = await getApplicationDocumentsDirectory();
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // opens in default browser
+        );
       } else {
-        downloadsDir = Directory.systemTemp;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-
-      final filePath = '${downloadsDir.path}/invoice_$invoiceNo.pdf';
-
-      // ✅ Download invoice
-      await dio.download(url, filePath);
-
-      // ✅ Open the downloaded PDF
-      await OpenFile.open(filePath);
-
-      // ✅ Show success snackbar with share option
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded and opened successfully.'),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
+      debugPrint("Error opening invoice: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: $e'),
+        const SnackBar(
+          content: Text('Failed to open invoice.'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
+      // Hide loader
       setState(() {
         downloadingInvoices.remove(invoiceNo);
       });
     }
   }
+
+
+
 }
 
 

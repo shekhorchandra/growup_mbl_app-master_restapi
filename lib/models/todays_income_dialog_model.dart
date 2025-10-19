@@ -1,19 +1,24 @@
 class RoiDetail {
-  final double totalRoi;
+  final double total_roi;
   final String projectName;
   final String createdAt;
+  final String endedAt;
 
   RoiDetail({
-    required this.totalRoi,
+    required this.total_roi,
     required this.projectName,
     required this.createdAt,
+    required this.endedAt,
   });
 
   factory RoiDetail.fromJson(Map<String, dynamic> json) {
     return RoiDetail(
-      totalRoi: (json['total_roi'] as num).toDouble(),
-      projectName: json['project']['project_name'] ?? 'N/A',
-      createdAt: json['project']['created_at'] ?? '',
+      total_roi: double.tryParse(json['total_roi'].toString()) ?? 0.0,
+      projectName: json['project']?['project_name'] ?? 'N/A',
+      createdAt: json['project']?['project_start_date'] ?? '',
+      endedAt: json['project']?['project_end_date'] ?? '',
     );
   }
+
+
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
+import 'package:growup_agro/views/project_Descriotion_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,11 +76,31 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
       throw Exception('Failed to load Matured projects');
     }
   }
+  String formatAmount(dynamic value) {
+    final number = double.tryParse(value.toString()) ?? 0;
+    final formatted = NumberFormat('#,##0').format(number);
+    return '$formatted Tk';
+  }
 
-  String formatAmount(dynamic amount) {
-    if (amount == null || amount.toString().isEmpty) return '0 Tk';
-    final formatter = NumberFormat('#,##0');
-    return '${formatter.format(int.tryParse(amount.toString()) ?? 0)} Tk';
+  // String formatAmount(dynamic amount) {
+  //   if (amount == null || amount.toString().isEmpty) return '0 Tk';
+  //   final formatter = NumberFormat('#,##0');
+  //   return '${formatter.format(int.tryParse(amount.toString()) ?? 0)} Tk';
+  // }
+  // String formatAmount1(double? value) {
+  //   if (value == null) return '0 Tk';
+  //   final formatter = NumberFormat('#,##0.00');
+  //   return '${formatter.format(value)} Tk';
+  // }
+
+  String formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return 'N/A';
+    try {
+      final date = DateTime.parse(rawDate); // parse "2025-09-24"
+      return DateFormat('dd MMM yyyy').format(date); // → "24 Sep 2025"
+    } catch (_) {
+      return rawDate; // fallback
+    }
   }
 
   TableRow _buildTableRow(String label, String value,
@@ -87,14 +108,14 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           child: Text(
             '$label:',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 8),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           child: Text(
             value,
             style:
@@ -105,104 +126,183 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
     );
   }
 
+
+
   Widget _buildProjectCard({required CompletedProject project}) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 3,
+      elevation: 5,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left: Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 160,
-                height: 220,
-                child: project.imageUrl != null && project.imageUrl!.isNotEmpty
-                    ? Image.network(
-                  project.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Image.asset(
-                    'assets/images/placeholder1.jpg',
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : Image.asset('assets/images/placeholder1.jpg',
-                    fit: BoxFit.cover),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Right: Table
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.projectName,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.green),
-                  ),
-                  Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(4),
-                      1: FlexColumnWidth(4),
-                    },
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    children: [
-                      _buildTableRow('Business Type', project.projectName ?? 'N/A'),
-                      _buildTableRow('Investment Time',
-                          '${project.remainingOpportunityDays ?? 0} days'),
-                      _buildTableRow(
-                          'Investment Goal', formatAmount(project.investmentGoal)),
-                      _buildTableRow('Raised', formatAmount(project.raised)),
-                      _buildTableRow('In Waiting', formatAmount(project.remainingGoal)),
-                      _buildTableRow('Duration',
-                          project.projectDurationViewer?.toString() ?? 'N/A'),
-                      _buildTableRow('Min. Investment',
-                          formatAmount(project.minInvestmentAmount)),
-                      // _buildTableRow('Projected', project.projected ?? 'N/A'),
-                      _buildTableRow(
-                          'ROI',
-                          project.annualRoi != null
-                              ? 'Annually ${project.annualRoi}%'
-                              : 'N/A'),
-                      _buildTableRow(
-                        'Status',
-                        project.status == 1 ? 'Running' : 'Closed',
-                        valueColor:
-                        project.status == 1 ? Colors.green : Colors.red,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 30,
-                    child: ElevatedButton(
-                      onPressed: null, // completed project no action
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade600,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      child: const Text(
-                        'Completed',
-                        style: TextStyle(color: Colors.white, fontSize: 10),
+            // 1. Content Row (Image + Table)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left: Image
+                // Expanded(
+                //   flex: 1,
+                //   child: ClipRRect(
+                //     borderRadius: BorderRadius.circular(8),
+                //     child: Container(
+                //       color: Colors.white,
+                //       child: project.imageUrl != null && project.imageUrl!.isNotEmpty
+                //           ? Image.network(
+                //         project.imageUrl!,
+                //         fit: BoxFit.contain,
+                //         errorBuilder: (_, __, ___) =>
+                //             Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
+                //       )
+                //           : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
+                //     ),
+                //   ),
+                // ),
+                Expanded(
+                  flex: 1,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 🖼️ Image section
+                          project.imageUrl != null && project.imageUrl!.isNotEmpty
+                              ? Image.network(
+                            project.imageUrl!,
+                            fit: BoxFit.contain,
+                            // height: 100, // adjust height as needed
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              'assets/images/placeholder1.jpg',
+                              fit: BoxFit.contain,
+                              // height: 100,
+                            ),
+                          )
+                              : Image.asset(
+                            'assets/images/placeholder1.jpg',
+                            fit: BoxFit.contain,
+                            // height: 100,
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          // 📝 Project name under image
+                          Text(
+                            project.projectName ?? 'N/A',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                // Right: Table Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Text(
+                      //   project.projectName,
+                      //   style: const TextStyle(
+                      //     fontWeight: FontWeight.bold,
+                      //     fontSize: 12,
+                      //     color: Colors.green,
+                      //   ),
+                      // ),
+                      Table(
+                        columnWidths: const {
+                          0: FlexColumnWidth(4),
+                          1: FlexColumnWidth(4),
+                        },
+                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                        children: [
+                          _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
+                          _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
+                          _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
+                          _buildTableRow('Start Date', formatDate(project.project_start_date)),
+                          _buildTableRow('Mature Date', formatDate(project.project_end_date)),
+                          _buildTableRow('Investment Goal', formatAmount(project.investmentGoal)),
+                          _buildTableRow('Min. Investment', formatAmount(project.min_investment_amount ?? 0)),
+                          _buildTableRow('Raised', formatAmount(project.raised)),
+                          _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
+                          _buildTableRow('ROI', project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A'),
+                          _buildTableRow(
+                            'Status',
+                            project.status == 1 ? 'Running' : 'Closed',
+                            valueColor: project.status == 1 ? Colors.green : Colors.red,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+
+            const SizedBox(height: 8), // spacing before button
+
+            // 2. Full-Width "Details" Button
+            // SizedBox(
+            //   width: double.infinity,
+            //   height: 35,
+            //   child: ElevatedButton(
+            //     onPressed: () async {
+            //       final projectId = project.id;
+            //       if (projectId == null) {
+            //         ScaffoldMessenger.of(context).showSnackBar(
+            //           const SnackBar(content: Text('Project ID is missing')),
+            //         );
+            //         return;
+            //       }
+            //
+            //       final prefs = await SharedPreferences.getInstance();
+            //       final investorCode = prefs.getString('investor_code');
+            //       if (investorCode == null || investorCode.isEmpty) {
+            //         ScaffoldMessenger.of(context).showSnackBar(
+            //           const SnackBar(content: Text('Investor code not found.')),
+            //         );
+            //         return;
+            //       }
+            //
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (_) => ProjectDescriptionPage(
+            //             projectId: projectId,
+            //             investorCode: investorCode,
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.blueGrey,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //       padding: const EdgeInsets.symmetric(vertical: 4),
+            //       minimumSize: const Size(double.infinity, 35),
+            //     ),
+            //     child: const Text(
+            //       'Details',
+            //       style: TextStyle(color: Colors.white, fontSize: 14),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
     );
   }
+
 
   void _scrollToTop() {
     _scrollController.animateTo(0,

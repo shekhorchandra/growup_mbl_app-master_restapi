@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,8 +35,10 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
       final token = prefs.getString('auth_token') ?? '';
       final investorCode = prefs.getString('investor_code') ?? '';
 
+      final url = Uri.parse(ApiConstants.todaysIncome(investorCode));
       final response = await http.get(
-        Uri.parse('https://admin-growup.onebitstore.site/api/investor/pop-up/todays-income?investor_code=$investorCode'),
+        // Uri.parse('https://growupagro.tech/api/investor/pop-up/todays-income?investor_code=$investorCode'),
+        url,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -147,9 +150,16 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
                       final item = currentPageItems[index];
                       return DataRow(cells: [
                         DataCell(Text('${(currentPage - 1) * rowsPerPage + index + 1}')),
-                        DataCell(Text(_formatDate(item.createdAt))),
+                        // DataCell(Text(_formatDate(item.createdAt))),
+
+                        DataCell(
+                          Text(
+                            'Start Date: ${_formatDate(item.createdAt)}\nEnd Date: ${_formatDate(item.endedAt)}',
+                          ),
+                        ),
+
                         DataCell(Text(item.projectName)),
-                        DataCell(Text('৳${item.totalRoi.toStringAsFixed(2)}')),
+                        DataCell(Text('৳${item.total_roi.toStringAsFixed(2)}')),
                       ]);
                     }),
                   ),

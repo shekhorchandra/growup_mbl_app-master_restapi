@@ -93,22 +93,12 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
     final token = prefs.getString('auth_token') ?? '';
     investorCode = prefs.getString('investor_code') ?? '';
 
-    // final url = Uri.parse(
-    //   'https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode',
-    // );
     final url = Uri.parse(ApiConstants.investorProfile(investorCode));
 
     try {
       setState(() => isLoading = true);
       print('Sending investor_code: $investorCode');
 
-      // final response = await http.get(
-      //   url,
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Accept': 'application/json',
-      //   },
-      // );
       final response = await http.get(url, headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -124,35 +114,45 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           allUpazilas = data['dropdown_data']['upazilas'] ?? [];
           relations = data['dropdown_data']['relations'] ?? [];
 
-          // Read investor data
-          final investor = data['investor'];
+          // Investor Info
+          final investor = data['investor'] ?? {};
           profileImageUrl = investor['image'] != null
-              ? 'https://admin-growup.onebitstore.site/storage/${investor['image']}'
+              ? 'https://growupagro.tech/storage/${investor['image']}'
               : null;
 
           phone = investor['phone'] ?? '';
           email = investor['email'] ?? '';
           nid = investor['nid'] ?? '';
           address = investor['address'] ?? '';
-          selectedDistrictId = investor['district_id'];
-          selectedUpazilaId = investor['upazila_id'];
+
+          // Convert district_id to int safely
+          selectedDistrictId = investor['district_id'] != null
+              ? int.tryParse(investor['district_id'].toString())
+              : null;
 
           // Default district if null
           if (selectedDistrictId == null && districts.isNotEmpty) {
-            selectedDistrictId = districts.first['id'];
+            selectedDistrictId = int.tryParse(districts.first['id'].toString());
           }
 
-          // Filter upazilas based on selected district
+          // Filter upazilas based on selected district (String -> int safe)
           filteredUpazilas = allUpazilas
-              .where((u) => u['district_id'] == selectedDistrictId)
+              .where((u) => u['district_id'].toString() == selectedDistrictId.toString())
               .toList();
 
-          // Default upazila if null
-          if (selectedUpazilaId == null && filteredUpazilas.isNotEmpty) {
-            selectedUpazilaId = filteredUpazilas.first['id'];
+
+          // Set selectedUpazilaId safely
+          selectedUpazilaId = investor['upazila_id'] != null
+              ? int.tryParse(investor['upazila_id'].toString())
+              : null;
+
+          if (selectedUpazilaId == null ||
+              !filteredUpazilas.any((u) => u['id'] == selectedUpazilaId)) {
+            selectedUpazilaId =
+            filteredUpazilas.isNotEmpty ? filteredUpazilas.first['id'] : null;
           }
 
-          // Read nominee data (null safe)
+          // Nominee Info
           final nominee = data['nominee_information'] ?? {};
           nomineeId = nominee['id'];
           nomineeName = nominee['name'] ?? '';
@@ -160,15 +160,14 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           nomineeNid = nominee['nid'] ?? '';
           nomineeAddress = nominee['address'] ?? '';
           selectedRelationId = nominee['relation'] != null
-              ? nominee['relation']['id']
+              ? int.tryParse(nominee['relation']['id'].toString())
               : null;
 
-          // Default relation if null
           if (selectedRelationId == null && relations.isNotEmpty) {
-            selectedRelationId = relations.first['id'];
+            selectedRelationId = int.tryParse(relations.first['id'].toString());
           }
 
-          // Read bank info (null safe)
+          // Bank Info
           final bankInfo = data['banking_information'] ?? {};
           bankHolder = bankInfo['bank_account_name'] ?? '';
           bankName = bankInfo['bank_name'] ?? '';
@@ -179,9 +178,8 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           nagad = bankInfo['nagad_number'] ?? 'N/A';
           rocket = bankInfo['rocket_number'] ?? 'N/A';
 
-          // Profile completion (null safe)
+          // Profile completion
           final profileCompletionData = data['profile_completion'];
-
           profileCompletion = profileCompletionData != null
               ? profileCompletionData['percentage'] ?? 0
               : 0;
@@ -205,6 +203,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
     }
   }
 
+
   Future<void> updateInvestorInfo() async {
     if (!_formKeyInvestor.currentState!.validate()) return;
     setState(() => isUpdatingInvestor = true);
@@ -217,8 +216,8 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         'investor_code': investorCode,
         'phone': phone,
         'email': email,
-        'district_id': selectedDistrictId.toString(),
-        'upazila_id': selectedUpazilaId.toString(),
+        'district_id': selectedDistrictId?.toString() ?? '',
+        'upazila_id': selectedUpazilaId?.toString() ?? '', // <-- null-safe
         'nid': nid,
         'address': address,
       };
@@ -272,9 +271,16 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         'address': nomineeAddress,
       };
 
-      final url = nomineeId == null
-          ? Uri.parse('https://admin-growup.onebitstore.site/api/investor/nominee/info/create')
-          : Uri.parse(ApiConstants.updateNomineeInfo);
+      // final url = nomineeId == null
+      //     ? Uri.parse('https://growupagro.tech/api/investor/nominee/info/create')
+      //     : Uri.parse(ApiConstants.updateNomineeInfo);
+
+      // Determine URL: create or update
+      final url = Uri.parse(
+        nomineeId == null
+            ? ApiConstants.createNomineeInfo()
+            : ApiConstants.updateNomineeInfo,
+      );
 
       // If updating, include nominee_id
       if (nomineeId != null) {
@@ -286,8 +292,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
+          'Content-Type': 'application/json', // ✅ important for JSON
         },
-        body: body,
+        body: jsonEncode(body), // ✅ send as JSON
       );
 
       final result = json.decode(response.body);
@@ -753,67 +760,60 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                           keyboardType: TextInputType.emailAddress,
                           validator: emailValidator,
                         ),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'District',
-                          ),
-                          value:
-                              (districts.any(
-                                (d) => d['id'] == selectedDistrictId,
-                              ))
-                              ? selectedDistrictId
-                              : null,
+                        // District dropdown
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(labelText: 'District'),
+                    value: selectedDistrictId,
+                    items: districts.map((d) {
+                      return DropdownMenuItem<int>(
+                        value: int.tryParse(d['id'].toString()),
+                        child: Text(d['name']),
+                      );
+                    }).toList(),
+                    onChanged: isEditingInvestor
+                        ? (val) {
+                      setState(() {
+                        selectedDistrictId = val;
 
-                          items: districts.map<DropdownMenuItem<int>>((d) {
-                            return DropdownMenuItem<int>(
-                              value: d['id'],
-                              child: Text(d['name']),
-                            );
-                          }).toList(),
-                          onChanged: isEditingInvestor
-                              ? (val) {
-                                  setState(() {
-                                    selectedDistrictId = val;
-                                    // Update upazila list
-                                    filteredUpazilas = allUpazilas
-                                        .where((u) => u['district_id'] == val)
-                                        .toList();
-                                    // Reset selected upazila if it's not in the filtered list
-                                    selectedUpazilaId = null;
-                                  });
-                                }
-                              : null,
-                          validator: (value) =>
-                              value == null ? 'Please select a district' : null,
-                        ),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Upazila',
-                          ),
-                          value:
-                              (filteredUpazilas.any(
-                                (u) => u['id'] == selectedUpazilaId,
-                              ))
-                              ? selectedUpazilaId
-                              : null,
+                        // Filter upazilas for this district
+                        filteredUpazilas = allUpazilas
+                            .where((u) =>
+                        u['district_id'].toString() == val.toString())
+                            .toList();
 
-                          items: filteredUpazilas.map<DropdownMenuItem<int>>((
-                            u,
-                          ) {
-                            return DropdownMenuItem<int>(
-                              value: u['id'],
-                              child: Text(u['name']),
-                            );
-                          }).toList(),
-                          onChanged: isEditingInvestor
-                              ? (val) => setState(() => selectedUpazilaId = val)
-                              : null,
-                          validator: (value) =>
-                              value == null ? 'Please select an upazila' : null,
-                        ),
+                        // Select first upazila automatically if available
+                        selectedUpazilaId = filteredUpazilas.isNotEmpty
+                            ? filteredUpazilas.first['id']
+                            : null;
+                      });
+                    }
+                        : null,
+                  ),
 
-                        buildEditableField(
-                          'NID',
+
+// Upazila dropdown
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(labelText: 'Upazila'),
+                  value: selectedUpazilaId,
+                  items: filteredUpazilas.map((u) {
+                    return DropdownMenuItem<int>(
+                      value: u['id'],
+                      child: Text(u['name']),
+                    );
+                  }).toList(),
+                  onChanged: isEditingInvestor
+                      ? (val) => setState(() => selectedUpazilaId = val)
+                      : null,
+                  validator: null, // <- no validation if optional
+                ),
+
+
+
+
+
+
+                buildEditableField(
+                          'NID Number',
                           nid,
                           (val) => setState(() => nid = val),
                           isEditingInvestor,
@@ -972,7 +972,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                           validator: phoneValidator,
                         ),
                         buildEditableField(
-                          'NID',
+                          'NID Number',
                           nomineeNid,
                           (val) => setState(() => nomineeNid = val),
                           isEditingNominee,

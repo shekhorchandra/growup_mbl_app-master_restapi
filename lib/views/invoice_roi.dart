@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Directory, File;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,11 +85,16 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    final url = "https://admin-growup.onebitstore.site/api/rois?investor_code=$investorCode";
+    // final url =
+    //     "https://growupagro.tech/api/rois?investor_code=$investorCode";
+
+    if (token.isEmpty || investorCode.isEmpty) return [];
+
+    final url = Uri.parse(ApiConstants.roiListinvoice(investorCode)); // ✅ use constant and Uri.parse
 
     try {
       final response = await http.get(
-        Uri.parse(url),
+        url,
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
@@ -97,20 +103,27 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['status'] == true) {
-          final List<dynamic> list = data['data'];
-          return list.map((e) => RoiInvoice.fromJson(e)).toList();
-        } else {
-          return [];
+        if (data['status'] == true && data['data'] != null) {
+          final list = (data['data'] as List)
+              .map((e) => RoiInvoice.fromJson(e))
+              .toList();
+
+          // Assign fullList and filteredList here
+          setState(() {
+            fullList = list;
+            filteredList = list;
+          });
+
+          return list;
         }
-      } else {
-        return [];
       }
+      return [];
     } catch (e) {
       debugPrint("Error fetching ROI invoices: $e");
       return [];
     }
   }
+
 
   Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
     try {
@@ -127,7 +140,10 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
         return;
       }
 
-      final url = "https://admin-growup.onebitstore.site/api/roi-invoice-download/$invoiceNo";
+      // final url = "https://growupagro.tech/api/roi-invoice-download/$invoiceNo";
+
+      final url = ApiConstants.roiInvoiceDownload(invoiceNo);
+
 
       final Directory dir = await getApplicationDocumentsDirectory();
       final String filePath = '${dir.path}/Invoice-$invoiceNo.pdf';
@@ -159,7 +175,7 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
       debugPrint("Download error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Download failed: $e'),
+          content: Text('Download failed: something went wrong'),
           backgroundColor: Colors.red,
         ),
       );
@@ -185,16 +201,14 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          }
+          if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          }
+          if (fullList.isEmpty) {
             return const Center(child: Text("No ROI invoices found."));
           }
 
-          if (fullList.isEmpty) {
-            fullList = snapshot.data!;
-            filteredList = fullList;
-          }
 
           return Column(
             children: [
@@ -258,7 +272,9 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
                                   Text("Code: ${item.projectCode}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                 ],
                               )),
-                              DataCell(Text("${item.totalRoi} ${item.currency}")),
+                              DataCell(Text('৳${double.parse(item.totalRoi).toStringAsFixed(2)}')),
+
+
                               DataCell(Text(item.invoiceNo)),
                               DataCell(
                                 _isDownloading[item.invoiceNo] == true

@@ -1,9 +1,11 @@
 
 import 'package:flutter/material.dart';
+import 'package:growup_agro/views/Total_projects.dart';
 import 'package:growup_agro/views/long_duration.dart';
-import 'package:growup_agro/views/shariah.dart';
+import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
 import 'package:growup_agro/views/upcoming_projects.dart';
+import 'package:growup_agro/views/projects_page.dart';
 
 import 'completed_projects.dart';
 
@@ -73,11 +75,14 @@ class _AllProjectsPageState extends State<AllProjectsPage> with SingleTickerProv
           unselectedLabelColor: Colors.white70,
           tabs: const [
 
+            // Tab(text: 'All',),
             Tab(text: 'Live'),
             Tab(text: 'Long'),
             Tab(text: 'Short'),
-            Tab(text: 'Coming'),
-            Tab(text: 'Closed'),
+            Tab(text: 'Matured'),
+            Tab(text: 'All'),
+
+            // Tab(text: 'Coming'),
           ],
         )
 
@@ -86,11 +91,14 @@ class _AllProjectsPageState extends State<AllProjectsPage> with SingleTickerProv
       body: TabBarView(
         controller: _tabController,
         children: [
-          const ShariahProjectsPage(hideAppBar: true), // Your existing Shariah projects page widget
+          // const ProjectsPage(hideAppBar: true),
+          const LiveProjectsPage(hideAppBar: true), // Your existing Shariah projects page widget
           const LongProjectsPage(hideAppBar: true),    // Your existing Long projects page widget
           const ShortProjectsPage(hideAppBar: true),   // Your existing Short projects page widget
-          const UpcomingProjectsPage(hideAppBar: true),
           const CompletedProjectsPage(hideAppBar: true),
+          const TotalProjectsPage(hideAppBar: true),
+
+          // const UpcomingProjectsPage(hideAppBar: true),
         ],
       ),
     );

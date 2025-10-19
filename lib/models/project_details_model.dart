@@ -3,7 +3,7 @@ class ProjectDetailsModel {
   final String projectCode;
   final String projectCategoryName;
   final String businessTypeName;
-  final String investmentGoal;
+  final double investmentGoal;
   final int? minInvestmentAmount;
   final String annualRoi;
   final String projectDurationViewer;
@@ -18,6 +18,9 @@ class ProjectDetailsModel {
   final int in_waiting;
   final List<Map<String, dynamic>> keyPointsData;
   final List<Map<String, dynamic>> securityInformation;
+  final String? project_start_date;
+  final String? project_end_date;
+  final int? can_invest;
 
   ProjectDetailsModel({
     required this.projectName,
@@ -39,6 +42,9 @@ class ProjectDetailsModel {
     required this.overviewHtml,
     required this.keyPointsData,
     required this.securityInformation,
+    required this.can_invest,
+    this.project_start_date,
+    this.project_end_date,
   });
 
   factory ProjectDetailsModel.fromJson(Map<String, dynamic> data) {
@@ -50,7 +56,11 @@ class ProjectDetailsModel {
       projectCode: project['project_code']?.toString() ?? 'N/A',
       projectCategoryName: project['projectCategory_name']?.toString() ?? 'N/A',
       businessTypeName: project['businessType_name']?.toString() ?? 'N/A',
-      investmentGoal: project['investment_goal']?.toString() ?? 'N/A',
+      investmentGoal: double.tryParse(project['investment_goal'].toString()) ?? 0,
+      // investmentGoal: double.tryParse(
+      //     project['investment_goal']?.toString().replaceAll(',', '').split('.').first ?? ''
+      // ) ?? 0,
+
       minInvestmentAmount: double.tryParse(
           project['min_investment_amount']?.toString().replaceAll(',', '') ?? ''
       )?.toInt() ?? 0,
@@ -64,7 +74,7 @@ class ProjectDetailsModel {
       rasied: int.tryParse(
           data['rasied']?.toString().replaceAll(',', '').split('.').first ?? ''
       ) ?? 0,
-
+      can_invest: int.tryParse(project['can_invest']?.toString() ?? '') ?? 0,
       status: int.tryParse(project['status']?.toString() ?? '') ?? 0,
       investment_time: int.tryParse(data['investment_time']?.toString() ?? '') ?? 0,
       in_waiting: int.tryParse(
@@ -73,6 +83,8 @@ class ProjectDetailsModel {
 
       keyPointsData: List<Map<String, dynamic>>.from(data['keyPointsData'] ?? []),
       securityInformation: List<Map<String, dynamic>>.from(data['security_information'] ?? []),
+      project_start_date: project['project_start_date'],
+      project_end_date: project['project_end_date'],
     );
   }
 }

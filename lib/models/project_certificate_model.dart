@@ -49,11 +49,12 @@ class ProjectCertificate {
       investmentAmount: json['investment_amount'],
       startDate: json['start_date'],
       endDate: json['end_date'],
-      annualRoi: (json['annual_roi'] as num).toDouble(),
+      annualRoi: double.parse(json['annual_roi'].toString()),
       issuedOn: json['issued_on'],
       shareLink: json['share_link'],
       whatsappUrl: json['whatsapp_url'],
       facebookUrl: json['facebook_url'],
     );
   }
+
 }

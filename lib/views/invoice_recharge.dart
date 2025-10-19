@@ -1,7 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/recharge_model.dart';
 
 class InvoiceRechargePage extends StatefulWidget {
@@ -18,6 +24,7 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
   List<Recharge> filteredList = [];
   int currentPage = 1;
   final int rowsPerPage = 10;
+  Map<String, bool> _isDownloading = {};
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -81,8 +88,10 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
 
-    final url = Uri.parse(
-        'https://admin-growup.onebitstore.site/api/recharges?investor_code=$investorCode');
+    // final url = Uri.parse(
+    //     'https://growupagro.tech/api/recharges?investor_code=$investorCode');
+
+    final url = Uri.parse(ApiConstants.recharges(investorCode));
 
     try {
       final response = await http.get(
@@ -110,12 +119,47 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
     }
   }
 
+  Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() => _isDownloading[invoiceNo] = true); // start loader
+
+    try {
+      final url = ApiConstants.rechargeInvoicePdf(invoiceNo); // e.g., https://growupagro.tech/dashboard/invoice/pdf/{invoiceNo}
+      final uri = Uri.parse(url);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // opens in default browser
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error opening invoice: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to open invoice.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isDownloading[invoiceNo] = false); // stop loader
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Recharge History',
+          'Recharge History Invoices',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -145,7 +189,7 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search...',
+                    hintText: 'Search by date or amount or method or status...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Colors.grey[100],
@@ -197,7 +241,31 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
                             DataCell(Text(item.method)),
                             DataCell(Text(item.status)),
                             DataCell(Text(item.note)),
-                            DataCell(const Text('-')), // Action empty
+                            DataCell(
+                              (item.invoiceDownloadUrl != null && item.invoiceNo != "N/A")
+                                  ? (_isDownloading[item.invoiceNo] == true
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                                  : IconButton(
+                                icon: const Icon(Icons.download, color: Colors.green),
+                                onPressed: () async {
+                                  await downloadInvoicePdf(context, item.invoiceNo);
+                                },
+                              ))
+                                  : const Icon(
+                                Icons.block,
+                                color: Colors.green,
+                                size: 24,
+                              ),
+                            )
+
+
+
+
+                            // DataCell(const Text('-')), // Action empty
                           ]);
                         }).toList(),
                       ),

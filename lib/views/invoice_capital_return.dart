@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/models/invoice_capital_return_model.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
@@ -76,8 +77,10 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    final String url =
-        "https://admin-growup.onebitstore.site/api/capital-returns?investor_code=$investorCode";
+    // final String url =
+    //     "https://growupagro.tech/api/capital-returns?investor_code=$investorCode";
+
+    final String url = ApiConstants.capitalReturns(investorCode); // use constant
 
     try {
       final response = await Dio().get(
@@ -115,7 +118,9 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
         setState(() => _isDownloading[invoiceNo] = false);
         return;
       }
-      final url = "https://admin-growup.onebitstore.site/api/capital-return-invoice-download/$invoiceNo";
+      // final url = "https://growupagro.tech/api/capital-return-invoice-download/$invoiceNo";
+
+      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo); // use constant
 
       final Directory dir = await getApplicationDocumentsDirectory();
       final String filePath = '${dir.path}/Invoice-$invoiceNo.pdf';
@@ -147,7 +152,7 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
       debugPrint("Download error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Download failed: $e'),
+          content: Text('Download failed: something went wrong'),
           backgroundColor: Colors.red,
         ),
       );
@@ -160,7 +165,7 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capital Returns', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        title: const Text('Capital Returns Invoices', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: const Color(0xFF2E7D32),
       ),

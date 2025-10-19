@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -21,24 +22,24 @@ class CustomBottomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed, // Ensure all items are visible
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(Icons.menu),
+          icon: Icon(FontAwesomeIcons.bars),
           label: 'Menu',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.spa),
+          icon: Icon(FontAwesomeIcons.leaf),
           label: 'Growup',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.home) ,
+          icon: Icon(FontAwesomeIcons.houseChimney) ,
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.inventory_2),
+          icon: Icon(FontAwesomeIcons.shoppingCart),
           label: 'Products',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.language),
-          label: 'Web',
+          icon: Icon(FontAwesomeIcons.building),
+          label: 'Properties',
         ),
       ],
     );

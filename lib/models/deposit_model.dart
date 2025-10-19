@@ -44,25 +44,62 @@ class DepositResponseModel {
   }
 }
 
+
+// class DepositHistory {
+//   final int? invoiceNo;
+//   final String amount;
+//   final String paymentMethod;
+//   final String status;
+//   final String? note;
+//   final DateTime? updatedAt;
+//
+//   DepositHistory({
+//     this.invoiceNo,
+//     required this.amount,
+//     required this.paymentMethod,
+//     required this.status,
+//     this.note,
+//     this.updatedAt,
+//   });
+//
+//   factory DepositHistory.fromJson(Map<String, dynamic> json) {
+//     return DepositHistory(
+//       invoiceNo: json['invoice_no'] != null
+//           ? int.tryParse(json['invoice_no'].toString())
+//           : null,
+//       amount: json['amount']?.toString() ?? '0',
+//       paymentMethod: json['payment_method']?.toString() ?? 'N/A',
+//       status: json['status']?.toString() ?? 'Unknown',
+//       note: json['note']?.toString(),
+//       updatedAt: json['updated_at'] != null
+//           ? DateTime.tryParse(json['updated_at'].toString())
+//           : null,
+//     );
+//   }
+// }
+
+
+
+
 class DepositHistory {
   final int? id;
   final int? investorId;
-  final int invoiceNo;
-  final String amount;
-  final String paymentMethod;
+  final String? invoiceNo;
+  final String amount; //
+  final String paymentMethod; //
   final String? bankName;
   final String? bankPaymentSlip;
   final String? mobileNumber;
   final String? mobileTransactionId;
-  final String status;
-  final String? note;
+  final String status; //
+  final String? note; //
   final DateTime? createdAt;
-  final DateTime? updatedAt;
+  final DateTime? updatedAt; //
 
   DepositHistory({
     this.id,
     this.investorId,
-    required this.invoiceNo,
+    this.invoiceNo,
     required this.amount,
     required this.paymentMethod,
     this.bankName,
@@ -77,23 +114,30 @@ class DepositHistory {
 
   factory DepositHistory.fromJson(Map<String, dynamic> json) {
     return DepositHistory(
-      id: json['id'],
-      investorId: json['investor_id'],
-      invoiceNo: json['invoice_no'] ?? 0,
+      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      investorId: json['investor_id'] != null ? int.tryParse(json['investor_id'].toString()) : null,
+      // invoiceNo: json['invoice_no'] != null ? int.tryParse(json['invoice_no'].toString()) : null,
+      invoiceNo: json['invoice_no']?.toString(),
       amount: json['amount']?.toString() ?? '0',
-      paymentMethod: json['payment_method'] ?? '',
-      bankName: json['bank_name'],
-      bankPaymentSlip: json['bank_payment_slip'],
-      mobileNumber: json['mobile_number'],
-      mobileTransactionId: json['mobile_transaction_id'],
-      status: json['status'] ?? '',
-      note: json['note'],
+      paymentMethod: json['payment_method']?.toString() ?? 'N/A',
+      bankName: json['bank_name']?.toString(),
+      bankPaymentSlip: json['bank_payment_slip']?.toString(),
+      mobileNumber: json['mobile_number']?.toString(),
+      mobileTransactionId: json['mobile_transaction_id']?.toString(),
+      status: json['status']?.toString() ?? 'unknown',
+      note: json['note']?.toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
       updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'])
+          ? DateTime.tryParse(json['updated_at'].toString())
           : null,
     );
   }
 }
+
+
+
+
+
+

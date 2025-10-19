@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:growup_agro/views/fullscreen_image_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -35,12 +36,15 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
       final token = prefs.getString('auth_token') ?? '';
       final investorCode = prefs.getString('investor_code') ?? '';
 
-      final url = Uri.parse(
-        'https://admin-growup.onebitstore.site/api/project-certificates',
-      );
+      // final url = Uri.parse(
+      //   'https://growupagro.tech/api/project-certificates',
+      final url = Uri.parse(ApiConstants.projectCertificates())
+          .replace(queryParameters: {"investor_code": investorCode}); // ✅ append query params
+
 
       final response = await http.get(
-        url.replace(queryParameters: {"investor_code": investorCode}),
+        // url.replace(queryParameters: {"investor_code": investorCode}),
+        url,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -59,11 +63,11 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
 
         return projects;
       } else {
-        throw Exception('Failed to load project certificates');
+        throw Exception('No certificates available.');
       }
     } catch (e) {
       print('Error: $e');
-      throw Exception('Failed to fetch certificates');
+      throw Exception('No certificates available.');
     }
   }
 
@@ -72,7 +76,7 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "All Investment Certificate",
+          "All Investment Certificates",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
@@ -291,7 +295,7 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
                       icon: const Icon(FontAwesomeIcons.share, color: Colors.white, size: 14),
                       label: const Text(
                         "Copy Link",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: TextStyle(fontSize: 10, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black87,
@@ -311,7 +315,7 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
                       icon: const Icon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 14),
                       label: const Text(
                         "WhatsApp",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: TextStyle(fontSize: 10, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
@@ -331,7 +335,7 @@ class _ProjectCertificatePageState extends State<ProjectCertificatePage> {
                       icon: const Icon(FontAwesomeIcons.facebookF, color: Colors.white, size: 14),
                       label: const Text(
                         "Facebook",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: TextStyle(fontSize: 10, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,

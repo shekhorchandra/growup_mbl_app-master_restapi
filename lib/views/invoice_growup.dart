@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import '../models/invoice_growup_model.dart';
 
 class InvoiceGrowupPage extends StatefulWidget {
@@ -83,7 +85,8 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    final url = "https://admin-growup.onebitstore.site/api/invoices?investor_code=$investorCode";
+    // final url = "https://growupagro.tech/api/invoices?investor_code=$investorCode";
+    final url = ApiConstants.invoices(investorCode); // ✅ use constant
 
     try {
       final response = await http.get(
@@ -113,67 +116,45 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
 
 
   Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() => _isDownloading[invoiceNo] = true); // show loader
+
     try {
-      setState(() => _isDownloading[invoiceNo] = true); // start loading
+      final url = ApiConstants.invoicePdf(invoiceNo); // e.g., https://growupagro.tech/api/invoice/pdf/{invoiceNo}
+      final uri = Uri.parse(url);
 
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication token missing.')),
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // opens in default browser
         );
-        setState(() => _isDownloading[invoiceNo] = false);
-        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-
-      final url = "http://admin-growup.onebitstore.site/api/invoice/pdf/$invoiceNo";
-
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/Invoice-$invoiceNo.pdf';
-
-      final dio = Dio();
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
-        ),
-      );
-
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
-
-      await OpenFile.open(filePath);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded to $filePath'),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
-      debugPrint("Download error: $e");
+      debugPrint("Error opening invoice: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: $e'),
+        const SnackBar(
+          content: Text('Failed to open invoice.'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      setState(() => _isDownloading[invoiceNo] = false); // stop loading
+      setState(() => _isDownloading[invoiceNo] = false); // hide loader
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Invoices',
+          'Investment History Invoices',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -267,20 +248,48 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                                 ],
                               )),
                               DataCell(Text(item.invoiceNo)),
+                              // DataCell(
+                              //   _isDownloading[item.invoiceNo] == true
+                              //       ? const SizedBox(
+                              //     width: 24,
+                              //     height: 24,
+                              //     child: CircularProgressIndicator(strokeWidth: 2),
+                              //   )
+                              //       : IconButton(
+                              //     icon: const Icon(Icons.download, color: Colors.green),
+                              //     onPressed: () async {
+                              //       await downloadInvoicePdf(context, item.invoiceNo);
+                              //     },
+                              //   ),
+                              // ),
                               DataCell(
-                                _isDownloading[item.invoiceNo] == true
+                                (item.invoiceNo == null || item.invoiceNo.isEmpty)
+                                    ? IconButton(
+                                  icon: const Icon(Icons.block, color: Colors.green, size: 24),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("No invoice available"),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                )
+                                    : (_isDownloading[item.invoiceNo] == true
                                     ? const SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                                     : IconButton(
-                                  icon: const Icon(Icons.download, color: Colors.green),
-                                  onPressed: () async {
-                                    await downloadInvoicePdf(context, item.invoiceNo);
-                                  },
-                                ),
-                              ),
+                                  icon: const Icon(Icons.download, color: Colors.green, size: 20),
+                                  onPressed: () => downloadInvoicePdf(context, item.invoiceNo),
+                                )),
+                              )
+
+
+
 
                             ],
                           );

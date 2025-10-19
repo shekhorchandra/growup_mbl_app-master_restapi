@@ -23,15 +23,16 @@ class CapitalReturn {
 
   factory CapitalReturn.fromJson(Map<String, dynamic> json) {
     return CapitalReturn(
-      projectName: json['project_name'] ?? '',
-      projectCode: json['project_code'] ?? '',
-      projectCategory: json['project_category'] ?? '',
-      invoiceNo: json['invoice_no'] ?? '',
-      amountInvested: json['amount_invested'] ?? '0',
-      capitalReturn: json['capital_return'] ?? '0',
-      currency: json['currency'] ?? 'BDT',
-      viewInvoiceUrl: json['view_invoice_url'] ?? '',
-      downloadInvoiceUrl: json['download_invoice_url'] ?? '',
+      projectName: json['project_name']?.toString() ?? '',
+      projectCode: json['project_code']?.toString() ?? '',
+      projectCategory: json['project_category']?.toString() ?? '',
+      invoiceNo: json['invoice_no']?.toString() ?? '',
+      amountInvested: json['amount_invested']?.toString() ?? '0',
+      capitalReturn: json['capital_return']?.toString() ?? '0',
+      currency: json['currency']?.toString() ?? 'BDT',
+      viewInvoiceUrl: json['view_invoice_url']?.toString() ?? '',
+      downloadInvoiceUrl: json['download_invoice_url']?.toString() ?? '',
     );
   }
+
 }

@@ -7,7 +7,7 @@ class totalRoiDetail {
   factory totalRoiDetail.fromJson(Map<String, dynamic> json) {
     return totalRoiDetail(
       projectName: json['project_name'] ?? 'N/A',
-      totalRoi: (json['total_roi'] as num).toDouble(),
+      totalRoi: double.tryParse(json['total_roi'].toString()) ?? 0.0,
     );
   }
 }

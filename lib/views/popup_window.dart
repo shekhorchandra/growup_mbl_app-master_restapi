@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -96,7 +97,8 @@ class InvestNowButton extends StatelessWidget {
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    final url = Uri.parse('https://admin-growup.onebitstore.site/api/investor/invest-now');
+    // final url = Uri.parse('https://growupagro.tech/api/investor/invest-now');
+    final url = Uri.parse(ApiConstants.investNow()); // ✅ use constant
     final response = await http.post(
       url,
       headers: {

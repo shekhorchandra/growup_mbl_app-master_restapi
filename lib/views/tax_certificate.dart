@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -41,9 +42,12 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
       final token = prefs.getString('auth_token') ?? '';
       final investorCode = prefs.getString('investor_code') ?? '';
 
-      final url = Uri.parse(
-        'https://admin-growup.onebitstore.site/api/tax-certificates?investor_code=$investorCode',
-      );
+      // final url = Uri.parse(
+      //   'https://growupagro.tech/api/tax-certificates?investor_code=$investorCode',
+      // );
+
+
+      final url = Uri.parse(ApiConstants.taxCertificates(investorCode));
 
       final response = await http.get(
         url,
@@ -68,14 +72,68 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
       } else {
         print('Status code: ${response.statusCode}');
         print('Body: ${response.body}');
-        throw Exception('Failed to load tax certificates');
+        throw Exception('No certificates available.');
       }
     } catch (e) {
       print('Error: $e');
-      throw Exception('Failed to fetch certificates');
+      throw Exception('No certificates available.');
     }
   }
 
+  // Future<void> downloadTaxCertificate(BuildContext context, String startFiscalYear) async {
+  //   try {
+  //     setState(() => _isDownloading[startFiscalYear] = true); // start loading
+  //
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final token = prefs.getString('auth_token');
+  //     final investorCode = prefs.getString('investor_code');
+  //
+  //     if (token == null || investorCode == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Auth token or Investor Code missing. Please log in again.')),
+  //       );
+  //       setState(() => _isDownloading[startFiscalYear] = false);
+  //       return;
+  //     }
+  //
+  //     final url = "https://growupagro.tech/api/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
+  //     final Directory dir = await getApplicationDocumentsDirectory();
+  //     final String filePath = '${dir.path}/TaxCertificate-$startFiscalYear.pdf';
+  //
+  //     final dio = Dio();
+  //     final response = await dio.get(
+  //       url,
+  //       options: Options(
+  //         headers: {
+  //           "Authorization": "Bearer $token",
+  //           "Accept": "application/pdf",
+  //         },
+  //         responseType: ResponseType.bytes,
+  //       ),
+  //     );
+  //
+  //     final file = File(filePath);
+  //     await file.writeAsBytes(response.data);
+  //     await OpenFile.open(filePath);
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Tax Certificate saved to $filePath'),
+  //         backgroundColor: Colors.green,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     debugPrint("Download error: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Download failed: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   } finally {
+  //     setState(() => _isDownloading[startFiscalYear] = false); // stop loading
+  //   }
+  // }
   Future<void> downloadTaxCertificate(BuildContext context, String startFiscalYear) async {
     try {
       setState(() => _isDownloading[startFiscalYear] = true); // start loading
@@ -86,13 +144,16 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
 
       if (token == null || investorCode == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Auth token or Investor Code missing. Please log in again.')),
+          const SnackBar(
+            content: Text('Login required. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
         );
-        setState(() => _isDownloading[startFiscalYear] = false);
         return;
       }
 
-      final url = "https://admin-growup.onebitstore.site/api/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
+      // final url = "https://growupagro.tech/api/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
+      final url = ApiConstants.taxCertificateDownload(startFiscalYear, investorCode);
       final Directory dir = await getApplicationDocumentsDirectory();
       final String filePath = '${dir.path}/TaxCertificate-$startFiscalYear.pdf';
 
@@ -114,15 +175,15 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Tax Certificate saved to $filePath'),
+          content: Text('Tax Certificate downloaded successfully.'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      debugPrint("Download error: $e");
+      debugPrint("Download error: $e"); // keep detailed info for debugging
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: $e'),
+        const SnackBar(
+          content: Text('Failed to download certificate. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );

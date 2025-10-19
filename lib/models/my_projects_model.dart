@@ -11,6 +11,8 @@ class MyProjectsModel {
   final String? projected;
   final int? investmentOpportunityDays;
   final String? businessTypeName;
+  final String? project_start_date;
+  final String? project_end_date;
 
   MyProjectsModel({
     this.id,
@@ -25,6 +27,8 @@ class MyProjectsModel {
     this.projected,
     this.investmentOpportunityDays,
     this.businessTypeName,
+    this.project_start_date,
+    this.project_end_date,
   });
 
   factory MyProjectsModel.fromJson(Map<String, dynamic> json) {
@@ -32,15 +36,18 @@ class MyProjectsModel {
       id: json['id'],
       projectName: json['project_name'],
       projectDurationViewer: json['project_duration_viewer'],
-      minInvestmentAmount: json['min_investment_amount'],
-      investmentGoal: json['investment_goal'],
-      totalInvestment: json['total_investment'],
-      annualRoi: json['annual_roi'],
-      status: json['status'],
+      minInvestmentAmount: json['min_investment_amount']?.toString(),
+      investmentGoal: json['investment_goal']?.toString(),
+      totalInvestment: json['total_investment']?.toString(),
+      annualRoi: json['annual_roi'] != null ? int.parse(json['annual_roi'].toString()) : null,
+      status: json['status'] != null ? int.parse(json['status'].toString()) : null,
       image: json['image_url'],
       projected: json['projected'],
-      investmentOpportunityDays: json['investment_opportunity_days'],
-      businessTypeName: json['business_type']?['name'], // nested object
+      investmentOpportunityDays: json['investment_opportunity_days'] != null ? int.parse(json['investment_opportunity_days'].toString()) : null,
+      businessTypeName: json['businessType_name'],
+      project_start_date: json['project_start_date'],
+      project_end_date: json['project_end_date'],
     );
   }
+
 }
