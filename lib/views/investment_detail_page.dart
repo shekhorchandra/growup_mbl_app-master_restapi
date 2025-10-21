@@ -231,8 +231,11 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
                                         Text('৳${item['amount']}',
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold)),
-                                        Text(formatDate(item['updated_at']),
-                                            style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(
+                                'Investment Date:\n${formatDate(item['investment_date'])}',
+                                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+
+
 
                                       ],
                                     )),

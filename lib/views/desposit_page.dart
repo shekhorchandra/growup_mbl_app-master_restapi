@@ -167,15 +167,14 @@ class _DepositPageState extends State<DepositPage> {
       _filteredDepositHistory = query.isEmpty
           ? List.from(_depositHistory)
           : _depositHistory.where((d) {
-        return (d['amount'].toString().toLowerCase().contains(query)) ||
-            (d['payment_method'].toString().toLowerCase().contains(
-              query,
-            )) ||
-            (d['status'].toString().toLowerCase().contains(query));
+        return (d.amount.toString().toLowerCase().contains(query)) ||
+            (d.paymentMethod.toString().toLowerCase().contains(query)) ||
+            (d.status.toString().toLowerCase().contains(query));
       }).toList();
       _currentPage = 0;
     });
   }
+
 
   List<dynamic> get _paginatedDepositHistory {
     final start = _currentPage * _itemsPerPage;

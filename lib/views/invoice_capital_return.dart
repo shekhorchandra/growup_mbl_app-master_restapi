@@ -232,7 +232,16 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
 
                           return DataRow(cells: [
                             DataCell(Text('$slNumber')),
-                            DataCell(Text(item.projectName)),
+                            // DataCell(Text(item.projectName)),
+                            DataCell(Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(item.projectName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text("Category: ${item.projectCategory}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text("Project ID: ${item.projectCode}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              ],
+                            )),
                             DataCell(Text(currencyFormatter.format(double.tryParse(item.capitalReturn) ?? 0))),
                             DataCell(Text(item.invoiceNo)),
                             DataCell(

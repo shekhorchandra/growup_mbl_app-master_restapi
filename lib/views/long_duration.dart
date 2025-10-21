@@ -583,7 +583,7 @@ class _LongProjectsPageState extends State<LongProjectsPage> {
                 Row(
                   children: [
                     if (showUpcoming) ...[
-                      const SizedBox(width: 8),
+                      // const SizedBox(width: 8),
                       Expanded(
                         child: Container(
                           height: 35,
@@ -606,7 +606,7 @@ class _LongProjectsPageState extends State<LongProjectsPage> {
                     ],
 
                     if (showInvestNow) ...[
-                      const SizedBox(width: 8),
+                      // const SizedBox(width: 8),
                       Expanded(
                         child: SizedBox(
                           height: 35,

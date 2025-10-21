@@ -726,7 +726,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                 Row(
                   children: [
                     if (showUpcoming) ...[
-                      const SizedBox(width: 8),
+                      // const SizedBox(width: 8),
                       Expanded(
                         child: Container(
                           height: 35,
@@ -749,7 +749,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                     ],
 
                     if (showInvestNow) ...[
-                      const SizedBox(width: 8),
+                      // const SizedBox(width: 8),
                       Expanded(
                         child: SizedBox(
                           height: 35,

@@ -154,7 +154,7 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
 
                         DataCell(
                           Text(
-                            'Start Date: ${_formatDate(item.createdAt)}\nEnd Date: ${_formatDate(item.endedAt)}',
+                            'Start Date: ${_formatDate(item.createdAt)}\nMature Date: ${_formatDate(item.endedAt)}',
                           ),
                         ),
 

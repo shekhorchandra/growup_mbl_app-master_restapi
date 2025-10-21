@@ -2891,7 +2891,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               icon = Icons.arrow_upward;
                             } else if (type == 'investment') {
                               icon = Icons.bar_chart;
-                            } else {
+                            } else if (type == 'recharge') {
+                              icon = Icons.bolt;
+                            }
+                            else {
                               icon = Icons.help_outline;
                             }
 
@@ -4000,7 +4003,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     horizontal: screenWidth * 0.01,
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    // mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title
@@ -4111,8 +4114,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 //         onPressed: () async {
                 //           final parsedProjectId = int.tryParse(projectId);
                 //           final prefs = await SharedPreferences.getInstance();
-                //           final investorCode =
-                //               prefs.getString('investor_code') ?? '';
+                //           final investorCode = prefs.getString('investor_code') ?? '';
                 //
                 //           if (parsedProjectId != null &&
                 //               investorCode.isNotEmpty) {
@@ -4142,7 +4144,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 //           ),
                 //         ),
                 //         child: Text(
-                //           'Invest Now',
+                //           'Details',
                 //           style: TextStyle(
                 //             fontSize: isTablet
                 //                 ? screenWidth * 0.022
