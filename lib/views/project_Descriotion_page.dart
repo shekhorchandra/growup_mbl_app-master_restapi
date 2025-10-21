@@ -547,17 +547,17 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 'Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%'),
             InfoRow(
               title: 'Project Duration',
-              value: '${project.projectDurationViewer} Months',
+              value: '${project.projectDurationViewer}',
             ),
 
-            InfoRow(
-              title: 'Project Status',
-              value: project.status == 1 ? 'Running' : 'Closed',
-              style: TextStyle(
-                color: project.status == 1 ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            // InfoRow(
+            //   title: 'Project Status',
+            //   value: project.status == 1 ? 'Running' : 'Closed',
+            //   style: TextStyle(
+            //     color: project.status == 1 ? Colors.green : Colors.red,
+            //     fontWeight: FontWeight.bold,
+            //   ),
+            // ),
             const SizedBox(height: 12),
 
             // ---- conditional buttons ----

@@ -763,7 +763,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                         // District dropdown
                   DropdownButtonFormField<int>(
                     decoration: const InputDecoration(labelText: 'District'),
-                    value: selectedDistrictId,
+                    value: districts.any((d) => int.tryParse(d['id'].toString()) == selectedDistrictId)
+                        ? selectedDistrictId
+                        : null,
                     items: districts.map((d) {
                       return DropdownMenuItem<int>(
                         value: int.tryParse(d['id'].toString()),
@@ -794,7 +796,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
 // Upazila dropdown
                 DropdownButtonFormField<int>(
                   decoration: const InputDecoration(labelText: 'Upazila'),
-                  value: selectedUpazilaId,
+                  value: filteredUpazilas.any((u) => u['id'] == selectedUpazilaId)
+                      ? selectedUpazilaId
+                      : null,
                   items: filteredUpazilas.map((u) {
                     return DropdownMenuItem<int>(
                       value: u['id'],
@@ -982,7 +986,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                           decoration: const InputDecoration(
                             labelText: 'Relation',
                           ),
-                          value: (relations.any((r) => r['id'] == selectedRelationId))
+                          value: relations.any((r) => r['id'] == selectedRelationId)
                               ? selectedRelationId
                               : null,
                           items: relations

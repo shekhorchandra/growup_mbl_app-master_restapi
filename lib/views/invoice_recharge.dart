@@ -152,6 +152,19 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
     }
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
 
 
   @override
@@ -239,7 +252,25 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
                             DataCell(Text(item.date)),
                             DataCell(Text(item.amount)),
                             DataCell(Text(item.method)),
-                            DataCell(Text(item.status)),
+                            // DataCell(Text(item.status)),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(item.status),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  item.status.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
                             DataCell(Text(item.note)),
                             DataCell(
                               (item.invoiceDownloadUrl != null && item.invoiceNo != "N/A")
