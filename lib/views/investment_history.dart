@@ -261,16 +261,54 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                       children: [
                                         Text(
                                           item.projectTitle ?? 'N/A',
-                                          style: const TextStyle(fontSize: 14, color: Colors.black),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                        Text(
-                                          "Category: ${item.projectCategory ?? 'N/A'}",
-                                          style: const TextStyle(fontSize: 10, color: Colors.black),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Category: ',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: item.projectCategory ?? 'N/A',
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        Text(
-                                          "Project ID: ${item.project_id.toString()}",
-                                          style: const TextStyle(fontSize: 10, color: Colors.black),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Project ID: ',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: item.project_id.toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+
                                       ],
                                     ),
                                   ],
@@ -296,18 +334,46 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(item.status),
-                                    const SizedBox(height: 4),
-                                    LinearProgressIndicator(
-                                      value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
-                                      backgroundColor: Colors.grey[300],
-                                      color: _getProgressColor(item.projectProgress ?? 0),
-                                      minHeight: 6,
+                                    // Status text
+                                    Text(
+                                      item.status,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: (item.projectProgress ?? 0) >= 100 ? Colors.green : Colors.blue,
+                                      ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text('${(item.projectProgress ?? 0).toStringAsFixed(2)}%'),
+                                    const SizedBox(height: 4),
+
+                                    // Show different design based on progress
+                                    (item.projectProgress ?? 0) >= 100
+                                        ? Column(
+                                      children: [
+                                        Icon(Icons.check_circle, color: Colors.green, size: 30),
+                                        const SizedBox(height: 2),
+                                        // Text(
+                                        //   'Completed',
+                                        //   style: const TextStyle(fontSize: 12, color: Colors.green),
+                                        // ),
+                                      ],
+                                    )
+                                        : Column(
+                                      children: [
+                                        LinearProgressIndicator(
+                                          value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
+                                          backgroundColor: Colors.grey[300],
+                                          color: Colors.blue,
+                                          minHeight: 6,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
+
                               ),
                               DataCell(
                                 Column(

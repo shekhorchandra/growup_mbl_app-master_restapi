@@ -288,7 +288,7 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
                               ))
                                   : const Icon(
                                 Icons.block,
-                                color: Colors.green,
+                                color: Colors.red,
                                 size: 24,
                               ),
                             )

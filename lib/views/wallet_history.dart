@@ -321,16 +321,67 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                   mainAxisAlignment:
                                   MainAxisAlignment.center,
                                   children: [
-                                    Text('Transaction ID: ${item.trxId}',
-                                        style:
-                                        const TextStyle(fontSize: 12)),
-                                    Text('Transaction Type: ${item.type}',
-                                        style:
-                                        const TextStyle(fontSize: 12)),
-                                    Text(
-                                        'Date & Time: ${_formatDateTime(item.createdAt)}',
-                                        style:
-                                        const TextStyle(fontSize: 12)),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Transaction ID: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '${item.trxId}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Transaction Type: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '${item.type}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Date & Time: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: _formatDateTime(item.createdAt),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
                                   ],
                                 )),
                                 DataCell(Column(
@@ -339,15 +390,49 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                   mainAxisAlignment:
                                   MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      'Direction: ${item.direction == 'in' ? 'Credit' : item.direction == 'out' ? 'Debit' : 'N/A'}',
-                                      style:
-                                      const TextStyle(fontSize: 12),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Direction: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: item.direction == 'in'
+                                                ? 'Credit'
+                                                : item.direction == 'out'
+                                                ? 'Debit'
+                                                : 'N/A',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    Text(
-                                        'Amount: ৳${item.amount.toStringAsFixed(2)}',
-                                        style:
-                                        const TextStyle(fontSize: 12)),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Amount: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '৳${item.amount.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
                                   ],
                                 )),
                                 DataCell(_getStatusChip(item.status)),

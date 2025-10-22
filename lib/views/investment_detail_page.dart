@@ -212,12 +212,34 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Text(widget.projectTitle,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                        Text('Category: ${widget.projectCategory}',
-                                            style: const TextStyle(fontSize: 12)),
-                                                
+                                        Text(
+                                          widget.projectTitle,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14, // optional, adjust as needed
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Category: ',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: widget.projectCategory,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
                                         Text('Project ID: ${widget.projectId}',
                                             style: const TextStyle(fontSize: 12)),
                                       ],
@@ -231,9 +253,29 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
                                         Text('৳${item['amount']}',
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold)),
-                                Text(
-                                'Investment Date:\n${formatDate(item['investment_date'])}',
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Investment Date:\n',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: formatDate(item['investment_date']),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
 
 
 

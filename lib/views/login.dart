@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
@@ -310,7 +311,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("Invalid email or password"),
+                  content: Text("Login Failed"),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -442,8 +443,9 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
   }
   Future<String> login(BuildContext context, String email, String password) async {
     try {
-      final response = await http.post(
-        // Uri.parse('https://admin-growup.onebitstore.site/api/investor/login'),
+      // 🕒 Add timeout to handle slow / unstable internet
+      final response = await http
+          .post(
         Uri.parse(ApiConstants.login),
         headers: {
           'Content-Type': 'application/json',
@@ -453,24 +455,20 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           'phone_email': email,
           'password': password,
         }),
-      );
+      )
+          .timeout(const Duration(seconds: 15)); // ⏰ timeout safety
 
       print("Status Code: ${response.statusCode}");
       print("Raw Response: ${response.body}");
 
+      // 🟢 Success: Login OK
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-
-        // If your response has a "data" wrapper, uncomment the next line and replace 'json' with 'data' below
-        // final data = json['data'];
-
-        // If no "data" wrapper, just use json directly:
         final data = json;
         final token = data['token'];
         final investor = data['user'];
         final prefs = await SharedPreferences.getInstance();
 
-        // Save token and user info
         await prefs.setString('auth_token', token);
         await prefs.setString('investor_name', investor['name'] ?? '');
         await prefs.setString('investor_email', investor['email'] ?? '');
@@ -480,34 +478,75 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         await prefs.setString('investor_image', investor['image'] ?? '');
         await prefs.setString('investor_address', investor['address'] ?? 'Dhaka');
 
-
-        // Save dashboard info from the root level of response JSON (siblings of 'user')
         await prefs.setString('wallet_balance', data['wallet_balance']?.toString() ?? '0');
         await prefs.setString('total_transation', data['total_transation']?.toString() ?? '0');
         await prefs.setString('total_investment', data['total_investment']?.toString() ?? '0');
-        await prefs.setString('total_income', data['total_income']?.toString() ?? '0'); // changed
-        await prefs.setString('todays_income', data['todays_income']?.toString() ?? '0'); // changed
-        await prefs.setString('total_projects', data['total_projects']?.toString() ?? '0'); // changed
-
-        // print("Investor ID: ${investor['id']}");
-        // print("Investor Name: ${investor['name']}");
-        // print("Investor Code: ${investor['investor_code']}");
-        // print("Token and investor info saved!");
-        // print("wallet_balance: ${data['wallet_balance']}");
-        // print("total_transation: ${data['total_transation']}");
-        // print("total_investment: ${data['total_investment']}");
-        // print("total_income: ${data['total_income']}");
-        // print("todays_income: ${data['todays_income']}");
-        // print("total_projects: ${data['total_projects']}");
+        await prefs.setString('total_income', data['total_income']?.toString() ?? '0');
+        await prefs.setString('todays_income', data['todays_income']?.toString() ?? '0');
+        await prefs.setString('total_projects', data['total_projects']?.toString() ?? '0');
 
         return token;
-      } else {
-        final error = jsonDecode(response.body)['message'] ?? 'Login failed';
-        throw Exception(error);
       }
+
+      // 🔴 Invalid credentials (email/password)
+      else if (response.statusCode == 401 || response.statusCode == 400) {
+        final json = jsonDecode(response.body);
+        final message = json['message'] ?? 'Invalid email or password.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+        throw Exception(message);
+      }
+
+      // 🟡 Other backend error (500 etc.)
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid Email or Phone no. Please enter your valid email or phone no.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        throw Exception('Invalid email or password');
+      }
+
+    } on SocketException {
+      // ❌ No internet connection or unstable network
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection. Please check your network.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      // ❌ Network slow / unstable
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connection timed out. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      throw Exception('Connection timeout');
+    } on HttpException {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server error. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      throw Exception('Server error');
     } catch (e) {
+      // ❌ Unknown error
       print("Login error: $e");
-      throw Exception("An error occurred during login.");
+      // ScaffoldMessenger.of(context).showSnackBar
+      //   const SnackBar(
+      //     content: Text('An unexpected error occurred. Please try again.'),
+      //     backgroundColor: Colors.red,
+      //   ),
+      // );
+      throw Exception("Unexpected login error");
     }
   }
+
+
 }
