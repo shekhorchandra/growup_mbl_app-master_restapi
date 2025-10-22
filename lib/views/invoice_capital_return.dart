@@ -259,27 +259,27 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                                     ],
                                   ),
                                 ),
-                                Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      const TextSpan(
-                                        text: 'Project ID: ',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: item.projectCode,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                // Text.rich(
+                                //   TextSpan(
+                                //     children: [
+                                //       const TextSpan(
+                                //         text: 'Project ID: ',
+                                //         style: TextStyle(
+                                //           fontSize: 12,
+                                //           fontWeight: FontWeight.bold,
+                                //           color: Colors.grey,
+                                //         ),
+                                //       ),
+                                //       TextSpan(
+                                //         text: item.projectCode,
+                                //         style: const TextStyle(
+                                //           fontSize: 12,
+                                //           color: Colors.grey,
+                                //         ),
+                                //       ),
+                                //     ],
+                                //   ),
+                                // ),
 
                               ],
                             )),

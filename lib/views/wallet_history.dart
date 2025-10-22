@@ -398,6 +398,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
+                                              color: Colors.black, // label color
                                             ),
                                           ),
                                           TextSpan(
@@ -406,13 +407,20 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                                 : item.direction == 'out'
                                                 ? 'Debit'
                                                 : 'N/A',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: item.direction == 'in'
+                                                  ? Colors.green // Credit color
+                                                  : item.direction == 'out'
+                                                  ? Colors.red // Debit color
+                                                  : Colors.grey, // N/A color
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
+
                                     Text.rich(
                                       TextSpan(
                                         children: [
