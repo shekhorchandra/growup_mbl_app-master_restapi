@@ -292,8 +292,8 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                     scrollDirection: Axis.horizontal,
                     child: Card(
                       child: DataTable(
-                        columnSpacing: 24,
-                        dataRowHeight: 62,
+                        columnSpacing: 14,
+                        dataRowHeight: 70,
                         headingRowColor: MaterialStateProperty.all(
                             const Color(0xFF388E3C)),
                         headingTextStyle: const TextStyle(
@@ -303,7 +303,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                         columns: const [
                           DataColumn(label: Text('SL')),
                           DataColumn(label: Text('Transaction Info')),
-                          DataColumn(label: Text('Date')),
+                          // DataColumn(label: Text('Date')),
                           DataColumn(label: Text('Amount')),
                           DataColumn(label: Text('Status')),
                           //DataColumn(label: Text('Actioned By')),
@@ -348,32 +348,44 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                         ],
                                       ),
                                     ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: '${item.date}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
 
                                   ],
                                 )),
 
-                                DataCell(
-                                    Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                      children: [
-                                        Text.rich(
-                                          TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: '${item.date}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-
-                                      ],
-                                    )),
+                                // DataCell(
+                                //     Column(
+                                //       crossAxisAlignment:
+                                //       CrossAxisAlignment.start,
+                                //       mainAxisAlignment:
+                                //       MainAxisAlignment.center,
+                                //       children: [
+                                //         Text.rich(
+                                //           TextSpan(
+                                //             children: [
+                                //               TextSpan(
+                                //                 text: '${item.date}',
+                                //                 style: const TextStyle(
+                                //                   fontSize: 12,
+                                //                 ),
+                                //               ),
+                                //             ],
+                                //           ),
+                                //         ),
+                                //
+                                //       ],
+                                //     )),
 
                                 DataCell(
                                     Column(

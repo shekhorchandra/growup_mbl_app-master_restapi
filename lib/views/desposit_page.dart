@@ -792,6 +792,7 @@ class _DepositPageState extends State<DepositPage> {
 
           // Bank Transfer Fields (New Bank Details Widget Included)
           if (method == 'banktransfer') ...[
+
             // --- NEW: Multiple Bank Account Details ---
             // const SizedBox(height: 10),
             // _buildBankDetailsList(),
@@ -820,6 +821,14 @@ class _DepositPageState extends State<DepositPage> {
                 label: const Text(""),
               ),
             ),
+            bankTransferText(),
+            _buildBankDetailsList(),
+            const SizedBox(height: 12),
+            // const SizedBox(height: 10),
+
+            // --- NEW: Multiple Bank Account Details ---
+            //  bankTransferText(),
+            // _buildBankDetailsList(),
           ],
 
           // Shurjo Pay Field
@@ -847,7 +856,7 @@ class _DepositPageState extends State<DepositPage> {
                 onPressed: _handleShurjoPay,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 child: const Text(
                   'Pay with ShurjoPay',
@@ -858,16 +867,18 @@ class _DepositPageState extends State<DepositPage> {
                 onPressed: _submitDeposit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 child: const Text(
                   'Deposit',
                   style: TextStyle(color: Colors.white),
                 ),
+
               ),
+
             ),
           const SizedBox(height: 12),
-          _buildBankDetailsList(),
+          // _buildBankDetailsList(),
           // const SizedBox(height: 12),
 
           // Deposit History Section
@@ -1015,6 +1026,32 @@ class _DepositPageState extends State<DepositPage> {
     );
   }
 
+  Widget bankTransferText() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'ব্যাংক ট্রান্সফার ও ডিপোজিটের মাধ্যমে ওয়ালেট রিচার্জ\n'
+              'আপনার ব্যাংকের ইন্টারনেট ব্যাংকিং (iBanking), মোবাইল অ্যাপ ব্যাবহার করে '
+              'যেকোনো একটি (NPSB, BEFTN বা RTGS) পদ্ধতি ব্যবহার করে করে আপনার ব্যাংক অ্যাকাউন্ট '
+              'থেকে সরাসরি আমাদের কোম্পানি / প্রতিষ্ঠানের নিন্মোক্ত যেকোনো ব্যাংক অ্যাকাউন্টে টাকা ট্রান্সফার করতে পারবেন। '
+              'এছাড়াও, সরাসরি আমাদের তালিকাভুক্ত যেকোনো ব্যাংকের শাখায় গিয়ে ক্যাশ ডিপোজিট করেও '
+              'আপনার ওয়ালেট রিচার্জ করার সুযোগ রয়েছে।\n\n'
+              'টাকা ট্রান্সফার বা ডিপোজিট করার পর, যাচাইকরণের জন্য অনুগ্রহ করে রশিদের ছবি আপলোড করুন।',
+          textAlign: TextAlign.justify,
+          style: TextStyle(
+            fontSize: 16,
+            height: 1.6,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
 
   Widget _buildCashPaymentInstructions() {
     return Card(
@@ -1023,7 +1060,7 @@ class _DepositPageState extends State<DepositPage> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'ক্যাশ পেমেন্ট এর মাধ্যমে ওয়ালেট রিচার্জ',
@@ -1034,9 +1071,11 @@ class _DepositPageState extends State<DepositPage> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'এই পদ্ধতিতে আপনি সরাসরি অফিস গিয়ে কাউন্টারে টাকা জমা দিয়ে আপনার ওয়ালেট রিচার্জ করতে পারবেন।',
-              style: TextStyle(fontSize: 14),
+            Center(
+              child: const Text(
+                'এই পদ্ধতিতে আপনি সরাসরি অফিস গিয়ে কাউন্টারে টাকা জমা দিয়ে আপনার ওয়ালেট রিচার্জ করতে পারবেন।',
+                style: TextStyle(fontSize: 14),
+              ),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -1058,7 +1097,7 @@ class _DepositPageState extends State<DepositPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF948BF3),
                 padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1077,15 +1116,30 @@ class _DepositPageState extends State<DepositPage> {
       color: Color(0xFFE8F5E9), // Light green background for visibility
       child: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
+        child:Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: const [
             Text(
-              'যে কোন রকমের অনলাইন পেমেন্টের ক্ষেত্রে, যেকোনো ধরনের ব্যাংক কার্ডের মাধ্যমে পেমেন্ট করতে পারবেন এবং ক্রেডিট কার্ডের মাধ্যমে  ব্যাংকের EMI তে পেমেন্ট করতে পারবেন',
-              style: TextStyle(fontSize: 14),
+              'সুরক্ষিত অনলাইন পেমেন্ট এর মাধ্যমে ওয়ালেট রিচার্জ',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E7D32), // green tone for heading
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'আমাদের সুরক্ষিত পেমেন্ট গেটওয়ে (ShurjoPay)-এর মাধ্যমে যেকোনো মোবাইল ওয়ালেট (MFS) যেমন: বিকাশ, নগদ, রকেট, ব্যাংক কার্ড (ডেবিট, ক্রেডিট, প্রিপেইড) ব্যবহার করে সহজেই আপনার ওয়ালেট রিচার্জ করতে পারবেন। '
+                  'এছাড়াও, নির্দিষ্ট ব্যাংকের ক্রেডিট কার্ড ব্যবহারকারীরা সহজ মাসিক কিস্তি (EMI) সুবিধা ব্যবহার করে ওয়ালেট রিচার্জ করতে পারবেন।',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                height: 1.5, // for better line spacing
+              ),
             ),
           ],
-        ),
+        )
+
       ),
     );
   }
