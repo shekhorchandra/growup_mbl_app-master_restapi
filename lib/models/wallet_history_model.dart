@@ -3,6 +3,7 @@ class WalletHistoryModel {
   final String? invoiceNo;
   final int? projectId;
   final String trxId;
+  final String? context;
   final int walletId;
   final String type;
   final double amount;
@@ -14,6 +15,7 @@ class WalletHistoryModel {
   final int? depositRequestId;
   final int? withdrawRequestId;
   final String createdAt;
+  final String date;
   final String updatedAt;
   final String? status;
   final String? actionedBy;
@@ -22,6 +24,7 @@ class WalletHistoryModel {
     required this.id,
     this.invoiceNo,
     this.projectId,
+    this.context,
     required this.trxId,
     required this.walletId,
     required this.type,
@@ -34,6 +37,7 @@ class WalletHistoryModel {
     this.depositRequestId,
     this.withdrawRequestId,
     required this.createdAt,
+    required this.date,
     required this.updatedAt,
     this.status,
     this.actionedBy,
@@ -44,6 +48,7 @@ class WalletHistoryModel {
       id: json['id'] ?? 0,
       invoiceNo: json['invoice_no']?.toString(),
       projectId: json['project_id'] != null ? int.tryParse(json['project_id'].toString()) : null,
+      context: json['context']?.toString(),
       trxId: json['trx_id']?.toString() ?? '',
       walletId: int.tryParse(json['wallet_id'].toString()) ?? 0,
       type: json['type']?.toString() ?? '',
@@ -56,6 +61,7 @@ class WalletHistoryModel {
       depositRequestId: json['deposit_request_id'] != null ? int.tryParse(json['deposit_request_id'].toString()) : null,
       withdrawRequestId: json['withdraw_request_id'] != null ? int.tryParse(json['withdraw_request_id'].toString()) : null,
       createdAt: json['created_at']?.toString() ?? '',
+      date: json['date']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString() ?? '',
       status: json['status']?.toString(),
       actionedBy: json['actioned_by']?.toString(),

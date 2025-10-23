@@ -211,7 +211,7 @@ class ApiConstants {
 //   static String updateNomineeInfo = "$baseUrl/investor/profile/nominee-info/update";
 
 // Project certificates endpoint
-  static String projectCertificates() => "$baseUrl/project-certificates";
+  static String projectCertificates() => "$baseUrl/investor/project-certificates";
 
   // Tax certificate download endpoint
   static String taxCertificateDownload(String startFiscalYear, String investorCode) =>

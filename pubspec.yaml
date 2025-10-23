@@ -44,7 +44,7 @@ dependencies:
   get: ^4.6.6 # You used Get.context
   flutter_secure_storage: ^9.0.0 # check for latest version
   package_info_plus: ^8.3.0
-  webview_flutter: ^4.4.2
+  webview_flutter: ^4.9.0
   open_file: ^3.2.1
   font_awesome_flutter: ^10.10.0
   flutter_pdfview: ^1.2.3

@@ -487,7 +487,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
 
                                     // --- Bottom Buttons with no spacing ---
                                     Tooltip(
-                                      message: 'View All Investments',
+                                      message: 'All Investments',
                                       child: TextButton(
                                         style: TextButton.styleFrom(
                                           padding: EdgeInsets.zero,       // remove internal padding
@@ -508,7 +508,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                           );
                                         },
                                         child: const Text(
-                                          'View All Investments',
+                                          'All Investments',
                                           style: TextStyle(fontSize: 12, color: Colors.green),
                                         ),
                                       ),
@@ -516,7 +516,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                     const SizedBox(height: 12),
                                     if (investorCode != null)
                                       Tooltip(
-                                        message: 'View Total ROI Details',
+                                        message: 'Total ROI',
                                         child: TextButton(
                                           style: TextButton.styleFrom(
                                             padding: EdgeInsets.zero,
@@ -536,7 +536,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                             );
                                           },
                                           child: const Text(
-                                            'View Total ROI Details',
+                                            'Total ROI',
                                             style: TextStyle(fontSize: 12, color: Colors.blue),
                                           ),
                                         ),

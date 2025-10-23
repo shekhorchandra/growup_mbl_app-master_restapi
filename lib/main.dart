@@ -98,7 +98,7 @@ class MyApp extends StatelessWidget {
         '/capital_return': (context) => const CapitalReturnPage(),
 
         '/tax_certificate': (context) => const TaxCertificatePage(),
-        '/project_certificate': (context) => const ProjectCertificatePage(),
+        '/project_certificate': (context) => const ProjectCertificatesPage(),
       },
 
       theme: ThemeData(

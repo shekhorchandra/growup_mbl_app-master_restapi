@@ -1,60 +1,34 @@
-class Investor {
+class ProjectCertificate {
   final int id;
   final String name;
   final String code;
-
-  Investor({required this.id, required this.name, required this.code});
-
-  factory Investor.fromJson(Map<String, dynamic> json) {
-    return Investor(
-      id: json['id'],
-      name: json['name'],
-      code: json['code'],
-    );
-  }
-}
-
-class ProjectCertificate {
-  final int projectId;
-  final String projectName;
-  final String businessType;
-  final String investmentAmount;
-  final String startDate;
+  final String roi;
   final String endDate;
-  final double annualRoi;
-  final String issuedOn;
-  final String shareLink;
-  final String whatsappUrl;
-  final String facebookUrl;
+  final String previewUrl;
+  final String viewUrl;
+  final String downloadUrl;
 
   ProjectCertificate({
-    required this.projectId,
-    required this.projectName,
-    required this.businessType,
-    required this.investmentAmount,
-    required this.startDate,
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.roi,
     required this.endDate,
-    required this.annualRoi,
-    required this.issuedOn,
-    required this.shareLink,
-    required this.whatsappUrl,
-    required this.facebookUrl,
+    required this.previewUrl,
+    required this.viewUrl,
+    required this.downloadUrl,
   });
 
   factory ProjectCertificate.fromJson(Map<String, dynamic> json) {
     return ProjectCertificate(
-      projectId: json['project_id'],
-      projectName: json['project_name'],
-      businessType: json['business_type'],
-      investmentAmount: json['investment_amount'],
-      startDate: json['start_date'],
+      id: json['id'],
+      name: json['name'],
+      code: json['code'].toString(),
+      roi: json['roi'].toString(),
       endDate: json['end_date'],
-      annualRoi: double.parse(json['annual_roi'].toString()),
-      issuedOn: json['issued_on'],
-      shareLink: json['share_link'],
-      whatsappUrl: json['whatsapp_url'],
-      facebookUrl: json['facebook_url'],
+      previewUrl: json['preview_url'] ?? '',
+      viewUrl: json['view_url'] ?? '',
+      downloadUrl: json['download_url'] ?? '',
     );
   }
-
 }

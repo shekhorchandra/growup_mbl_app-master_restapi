@@ -160,7 +160,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
       downloadingInvoices.add(invoiceNo);
     });
 
-    final url = 'https://growupagro.tech/api/invoice/pdf/$invoiceNo';
+    final url = 'https://growupagro.tech/dashboard/invoice/pdf/$invoiceNo';
 
     try {
       final uri = Uri.parse(url);
@@ -293,7 +293,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                     child: Card(
                       child: DataTable(
                         columnSpacing: 24,
-                        dataRowHeight: 72,
+                        dataRowHeight: 62,
                         headingRowColor: MaterialStateProperty.all(
                             const Color(0xFF388E3C)),
                         headingTextStyle: const TextStyle(
@@ -303,10 +303,11 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                         columns: const [
                           DataColumn(label: Text('SL')),
                           DataColumn(label: Text('Transaction Info')),
+                          DataColumn(label: Text('Date')),
                           DataColumn(label: Text('Amount')),
                           DataColumn(label: Text('Status')),
                           //DataColumn(label: Text('Actioned By')),
-                          DataColumn(label: Text('Note')),
+
                           DataColumn(label: Text('Invoice')),
                         ],
                         rows: List.generate(currentPageItems.length,
@@ -324,39 +325,12 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                     Text.rich(
                                       TextSpan(
                                         children: [
-                                          const TextSpan(
-                                            text: 'Transaction ID: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: '${item.trxId}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.normal,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          const TextSpan(
-                                            text: 'Transaction Type: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
                                           TextSpan(
                                             text: '${item.type}',
                                             style: const TextStyle(
                                               fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black
                                             ),
                                           ),
                                         ],
@@ -365,15 +339,8 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                     Text.rich(
                                       TextSpan(
                                         children: [
-                                          const TextSpan(
-                                            text: 'Date & Time: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
                                           TextSpan(
-                                            text: _formatDateTime(item.createdAt),
+                                            text: (item.context),
                                             style: const TextStyle(
                                               fontSize: 12,
                                             ),
@@ -384,7 +351,32 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
 
                                   ],
                                 )),
-                                DataCell(Column(
+
+                                DataCell(
+                                    Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                      children: [
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: '${item.date}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                      ],
+                                    )),
+
+                                DataCell(
+                                    Column(
                                   crossAxisAlignment:
                                   CrossAxisAlignment.start,
                                   mainAxisAlignment:
@@ -393,48 +385,12 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                     Text.rich(
                                       TextSpan(
                                         children: [
-                                          const TextSpan(
-                                            text: 'Direction: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black, // label color
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: item.direction == 'in'
-                                                ? 'Credit'
-                                                : item.direction == 'out'
-                                                ? 'Debit'
-                                                : 'N/A',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: item.direction == 'in'
-                                                  ? Colors.green // Credit color
-                                                  : item.direction == 'out'
-                                                  ? Colors.red // Debit color
-                                                  : Colors.grey, // N/A color
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          const TextSpan(
-                                            text: 'Amount: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
                                           TextSpan(
                                             text: '৳${item.amount.toStringAsFixed(2)}',
                                             style: const TextStyle(
                                               fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ],
@@ -445,9 +401,9 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                 )),
                                 DataCell(_getStatusChip(item.status)),
                                 // const DataCell(Text('N/A')),
-                                DataCell(Text(item.note ?? 'N/A')),
+                                // DataCell(Text(item.note ?? 'N/A')),
                                 DataCell(
-                                  item.status == "approved"
+                                  item.status == "Approved"
                                       ? (downloadingInvoices.contains(item.invoiceNo.toString())
                                       ? const SizedBox(
                                     width: 24,
