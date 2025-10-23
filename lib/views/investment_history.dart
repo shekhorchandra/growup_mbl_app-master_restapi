@@ -43,12 +43,13 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
     if (rawDate == null) return 'N/A';
     try {
       final date = DateTime.parse(rawDate);
-      return DateFormat('dd MMM yyyy').format(date); // e.g., 16 Jul 2025, 02:30 PM
+      return DateFormat(
+        'dd MMM yyyy',
+      ).format(date); // e.g., 16 Jul 2025, 02:30 PM
     } catch (e) {
       return rawDate;
     }
   }
-
 
   Future<void> _initialize() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -120,8 +121,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
 
     final response = await http.get(
       url,
-      headers: {'Accept': 'application/json',
-        'Authorization': 'Bearer $token'},
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
     print("Status Code: ${response.statusCode}");
@@ -159,7 +159,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
         ),
         centerTitle: true, // <-- This centers the title on all phones
         backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,// or your preferred color
+        foregroundColor: Colors.white, // or your preferred color
       ),
 
       body: FutureBuilder<List<InvestmentHistoryItem>>(
@@ -205,8 +205,8 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                     scrollDirection: Axis.horizontal,
                     child: Card(
                       child: DataTable(
-                        columnSpacing: 24,
-                        dataRowHeight: 100,
+                        columnSpacing: 10,
+                        dataRowHeight: 130,
                         headingRowHeight: 60,
                         headingRowColor: MaterialStateProperty.all(
                           const Color(0xFF388E3C),
@@ -219,101 +219,108 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                           DataColumn(label: Text('SL')),
                           DataColumn(label: Text('Project')),
                           DataColumn(label: Text('Investment')),
-                          DataColumn(label: Text('ROI')),
-                          DataColumn(label: Text('Capital Return')),
+                          // DataColumn(label: Text('ROI')),
+                          // DataColumn(label: Text('Capital Return')),
                           DataColumn(label: Text('Status')),
-                          DataColumn(label: Text('Actions')),
+                          // DataColumn(label: Text('Actions')),
                         ],
                         rows: currentPageItems.asMap().entries.map((entry) {
                           final index = entry.key;
                           final item = entry.value;
 
                           final roiAmount = item.roiDetails ?? 0;
-                          final capitalReturnAmount = item.capitalReturnDetails ?? 0;
+                          final capitalReturnAmount =
+                              item.capitalReturnDetails ?? 0;
 
                           // Pagination-aware SL
-                          final slNumber = ((currentPage - 1) * itemsPerPage) + index + 1;
+                          // final slNumber =
+                          //     ((currentPage - 1) * itemsPerPage) + index + 1;
 
                           return DataRow(
                             cells: [
-                              DataCell(Text('$slNumber')), // SL column with pagination
                               DataCell(
-                                Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: (item.projectImage != null && item.projectImage!.isNotEmpty)
-                                          ? Image.network(
-                                        '${ApiConstants.imgBaseUrl}${item.projectImage}',
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.broken_image, size: 50),
-                                      )
-                                          : const Icon(Icons.broken_image, size: 50),
-
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          item.projectTitle ?? 'N/A',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        Text.rich(
-                                          TextSpan(
-                                            children: [
-                                              const TextSpan(
-                                                text: 'Category: ',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: item.projectCategory ?? 'N/A',
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text.rich(
-                                          TextSpan(
-                                            children: [
-                                              const TextSpan(
-                                                text: 'Project ID: ',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: item.project_id.toString(),
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-
-                                      ],
-                                    ),
-                                  ],
+                                Text(
+                                  '${item.sl}', // <-- use item.sl, not just sl
+                                  style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ),
+                             // SL column with pagination
+                              DataCell(
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // --- Main Content ---
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: (item.projectImage != null && item.projectImage!.isNotEmpty)
+                                            ? Image.network(
+                                          '${ApiConstants.imgBaseUrl}${item.projectImage}',
+                                          width: 100,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, size: 50),
+                                        )
+                                            : const Icon(Icons.broken_image, size: 50),
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.projectTitle ?? 'N/A',
+                                            style: const TextStyle(fontSize: 14, color: Colors.black),
+                                          ),
+                                          // Text.rich(
+                                          //   TextSpan(
+                                          //     children: [
+                                          //       const TextSpan(
+                                          //         text: 'Category: ',
+                                          //         style: TextStyle(
+                                          //           fontSize: 10,
+                                          //           fontWeight: FontWeight.bold,
+                                          //           color: Colors.black,
+                                          //         ),
+                                          //       ),
+                                          //       TextSpan(
+                                          //         text: item.projectCategory ?? 'N/A',
+                                          //         style: const TextStyle(fontSize: 10, color: Colors.black),
+                                          //       ),
+                                          //     ],
+                                          //   ),
+                                          // ),
+                                          Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                const TextSpan(
+                                                  text: 'Project ID: ',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: item.project_id.toString(),
+                                                  style: const TextStyle(fontSize: 10, color: Colors.black),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+
                               DataCell(
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -324,22 +331,115 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                       formatDate(item.firstInvestmentDate),
                                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                                     ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'ROI: ',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: currencyFormatter.format(roiAmount),
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Capital Returns: ',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: currencyFormatter.format(capitalReturnAmount),
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // (Text(currencyFormatter.format(roiAmount))),
+                                    // (Text(currencyFormatter.format(capitalReturnAmount))),
+                                    // Column(
+                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                    //   children: [
+                                    //     // Status text
+                                    //     Text(
+                                    //       item.status,
+                                    //       style: TextStyle(
+                                    //         fontWeight: FontWeight.bold,
+                                    //         color: (item.projectProgress ?? 0) >= 100 ? Colors.green : Colors.blue,
+                                    //       ),
+                                    //     ),
+                                    //     const SizedBox(height: 4),
+                                    //
+                                    //     // Show different design based on progress
+                                    //     (item.projectProgress ?? 0) >= 100
+                                    //         ? Column(
+                                    //       children: [
+                                    //         Icon(Icons.check_circle, color: Colors.green, size: 30),
+                                    //         const SizedBox(height: 2),
+                                    //         // Text(
+                                    //         //   'Completed',
+                                    //         //   style: const TextStyle(fontSize: 12, color: Colors.green),
+                                    //         // ),
+                                    //       ],
+                                    //     )
+                                    //         : Column(
+                                    //       children: [
+                                    //         LinearProgressIndicator(
+                                    //           value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
+                                    //           backgroundColor: Colors.grey[300],
+                                    //           color: Colors.blue,
+                                    //           minHeight: 6,
+                                    //         ),
+                                    //         const SizedBox(height: 2),
+                                    //         Text(
+                                    //           '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
+                                    //           style: const TextStyle(fontSize: 12),
+                                    //         ),
+                                    //       ],
+                                    //     ),
+                                    //   ],
+                                    // ),
+
                                   ],
                                 ),
                               ),
 
-                              DataCell(Text(currencyFormatter.format(roiAmount))),
-                              DataCell(Text(currencyFormatter.format(capitalReturnAmount))),
+                              // DataCell(Text(currencyFormatter.format(roiAmount))),
+                              // DataCell(Text(currencyFormatter.format(capitalReturnAmount))),
                               DataCell(
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     // Status text
                                     Text(
                                       item.status,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: (item.projectProgress ?? 0) >= 100 ? Colors.green : Colors.blue,
+                                        color:
+                                            (item.projectProgress ?? 0) >= 100
+                                            ? Colors.green
+                                            : Colors.blue,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -347,41 +447,54 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                     // Show different design based on progress
                                     (item.projectProgress ?? 0) >= 100
                                         ? Column(
-                                      children: [
-                                        Icon(Icons.check_circle, color: Colors.green, size: 30),
-                                        const SizedBox(height: 2),
-                                        // Text(
-                                        //   'Completed',
-                                        //   style: const TextStyle(fontSize: 12, color: Colors.green),
-                                        // ),
-                                      ],
-                                    )
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle,
+                                                color: Colors.green,
+                                                size: 30,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              // Text(
+                                              //   'Completed',
+                                              //   style: const TextStyle(fontSize: 12, color: Colors.green),
+                                              // ),
+                                            ],
+                                          )
                                         : Column(
-                                      children: [
-                                        LinearProgressIndicator(
-                                          value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
-                                          backgroundColor: Colors.grey[300],
-                                          color: Colors.blue,
-                                          minHeight: 6,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                            children: [
+                                              LinearProgressIndicator(
+                                                value:
+                                                    ((item.projectProgress ??
+                                                                0) /
+                                                            100)
+                                                        .clamp(0.0, 1.0),
+                                                backgroundColor:
+                                                    Colors.grey[300],
+                                                color: Colors.blue,
+                                                minHeight: 6,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
 
-                              ),
-                              DataCell(
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                                          ),
+                                    const SizedBox(height: 12),
+
+                                    // --- Bottom Buttons with no spacing ---
                                     Tooltip(
                                       message: 'View All Investments',
                                       child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,       // remove internal padding
+                                          minimumSize: const Size(0, 0),  // remove default min size
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+                                        ),
                                         onPressed: () {
                                           Navigator.push(
                                             context,
@@ -400,10 +513,17 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(height: 12),
                                     if (investorCode != null)
                                       Tooltip(
                                         message: 'View Total ROI Details',
                                         child: TextButton(
+                                          style: TextButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: const Size(0, 0),
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+                                          ),
                                           onPressed: () {
                                             Navigator.push(
                                               context,
@@ -424,11 +544,69 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                   ],
                                 ),
                               ),
+                              // DataCell(
+                              //   Column(
+                              //     crossAxisAlignment: CrossAxisAlignment.center,
+                              //     children: [
+                              //       Tooltip(
+                              //         message: 'View All Investments',
+                              //         child: TextButton(
+                              //           onPressed: () {
+                              //             Navigator.push(
+                              //               context,
+                              //               MaterialPageRoute(
+                              //                 builder: (context) =>
+                              //                     ProjectInvestmentDetailPage(
+                              //                       projectId: item.project_id,
+                              //                       projectTitle:
+                              //                           item.projectTitle ??
+                              //                           'N/A',
+                              //                       projectCategory:
+                              //                           item.projectCategory ??
+                              //                           'N/A',
+                              //                     ),
+                              //               ),
+                              //             );
+                              //           },
+                              //           child: const Text(
+                              //             'View All Investments',
+                              //             style: TextStyle(
+                              //               fontSize: 12,
+                              //               color: Colors.green,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ),
+                              //       if (investorCode != null)
+                              //         Tooltip(
+                              //           message: 'View Total ROI Details',
+                              //           child: TextButton(
+                              //             onPressed: () {
+                              //               Navigator.push(
+                              //                 context,
+                              //                 MaterialPageRoute(
+                              //                   builder: (_) => RoiDetailsPage(
+                              //                     investorCode: investorCode!,
+                              //                     projectId: item.project_id,
+                              //                   ),
+                              //                 ),
+                              //               );
+                              //             },
+                              //             child: const Text(
+                              //               'View Total ROI Details',
+                              //               style: TextStyle(
+                              //                 fontSize: 12,
+                              //                 color: Colors.blue,
+                              //               ),
+                              //             ),
+                              //           ),
+                              //         ),
+                              //     ],
+                              //   ),
+                              // ),
                             ],
                           );
                         }).toList(),
-
-
                       ),
                     ),
                   ),
@@ -454,7 +632,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed:
-                      currentPage * rowsPerPage < filteredHistory.length
+                          currentPage * rowsPerPage < filteredHistory.length
                           ? _nextPage
                           : null,
                       child: const Text('Next'),

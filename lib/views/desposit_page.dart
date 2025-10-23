@@ -759,25 +759,27 @@ class _DepositPageState extends State<DepositPage> {
           if (method != 'cashpayment')
             const SizedBox(height: 12),
 
+
+
           // Mobile Banking Fields
-          if (['bkash', 'nagad', 'rocket'].contains(method)) ...[
-            // ... (Your existing mobile banking fields) ...
-            TextField(
-              controller: _transactionIdController,
-              decoration: const InputDecoration(
-                labelText: 'Transaction ID',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _mobileNumberController,
-              decoration: const InputDecoration(
-                labelText: 'Mobile Number',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
+          // if (['bkash', 'nagad', 'rocket'].contains(method)) ...[
+          //   // ... (Your existing mobile banking fields) ...
+          //   TextField(
+          //     controller: _transactionIdController,
+          //     decoration: const InputDecoration(
+          //       labelText: 'Transaction ID',
+          //       border: OutlineInputBorder(),
+          //     ),
+          //   ),
+          //   const SizedBox(height: 8),
+          //   TextField(
+          //     controller: _mobileNumberController,
+          //     decoration: const InputDecoration(
+          //       labelText: 'Mobile Number',
+          //       border: OutlineInputBorder(),
+          //     ),
+          //   ),
+          // ],
           // Cash Payment Logic (UPDATED)
           if (method == 'cashpayment') ...[
             _buildCashPaymentInstructions(), // <-- Your new widget
@@ -791,9 +793,9 @@ class _DepositPageState extends State<DepositPage> {
           // Bank Transfer Fields (New Bank Details Widget Included)
           if (method == 'banktransfer') ...[
             // --- NEW: Multiple Bank Account Details ---
-            const SizedBox(height: 12),
-            _buildBankDetailsList(),
-            const SizedBox(height: 12),
+            // const SizedBox(height: 10),
+            // _buildBankDetailsList(),
+            // const SizedBox(height: 12),
             // ----------------------------------------
 
             // User's Bank Information (for your record)
@@ -859,11 +861,14 @@ class _DepositPageState extends State<DepositPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text(
-                  'Submit Deposit',
+                  'Deposit',
                   style: TextStyle(color: Colors.white),
                 ),
               ),
             ),
+          const SizedBox(height: 12),
+          _buildBankDetailsList(),
+          // const SizedBox(height: 12),
 
           // Deposit History Section
           const SizedBox(height: 20),
@@ -999,27 +1004,28 @@ class _DepositPageState extends State<DepositPage> {
               );
             }),
 
-            const SizedBox(height: 8),
-            const Text(
-              '⚠️ এই পদ্ধতিতে ব্যাংকের NPSB, BFTEN,  RTGS, Fund Transfer, অথবা সরাসরি গ্র-আপের একাউন্ট এ ব্যাংক ডিপোজিট এর মাধ্যমে আপনার ওয়ালেট রিচার্জ করতে পারবেন। (ডিপোজিটের পর স্লিপটি সাবমিট করুন)',
-              style: TextStyle(fontSize: 12, color: Colors.orange),
-            ),
+            // const SizedBox(height: 8),
+            // const Text(
+            //   '⚠️ এই পদ্ধতিতে ব্যাংকের NPSB, BFTEN,  RTGS, Fund Transfer, অথবা সরাসরি গ্র-আপের একাউন্ট এ ব্যাংক ডিপোজিট এর মাধ্যমে আপনার ওয়ালেট রিচার্জ করতে পারবেন। (ডিপোজিটের পর স্লিপটি সাবমিট করুন)',
+            //   style: TextStyle(fontSize: 12, color: Colors.orange),
+            // ),
           ],
         ),
       ),
     );
   }
 
+
   Widget _buildCashPaymentInstructions() {
-    return const Card(
+    return Card(
       elevation: 2,
-      color: Color(0xFFE8F5E9), // Light green background for visibility
+      color: const Color(0xFFE8F5E9), // Light green background for visibility
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'ক্যাশ পেমেন্ট এর মাধ্যমে ওয়ালেট রিচার্জ',
               style: TextStyle(
                 fontSize: 16,
@@ -1027,21 +1033,43 @@ class _DepositPageState extends State<DepositPage> {
                 color: Color(0xFF2E7D32), // Dark green text
               ),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'এই পদ্ধতিতে আপনি সরাসরি অফিস গিয়ে কাউন্টারে টাকা জমা দিয়ে আপনার ওয়ালেট রিচার্জ করতে পারবেন।',
               style: TextStyle(fontSize: 14),
             ),
-            SizedBox(height: 8),
-            Text(
-              '⚠️ অফিসে টাকা জমা দেওয়ার আগে অবশ্যই যোগাযোগ করুন।',
-              style: TextStyle(fontSize: 12, color: Colors.red),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final Uri mapUrl = Uri.parse(
+                  'https://www.google.com/maps/place/Qbit+Tech/@23.743227,90.4181383,639m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3755b998ed9235f1:0xedb5992f595ad41f!8m2!3d23.7432221!4d90.4207132!16s%2Fg%2F11v0c2mm9j!5m1!1e2?entry=ttu&g_ep=EgoyMDI1MTAyMC4wIKXMDSoASAFQAw%3D%3D',
+                );
+                if (await canLaunchUrl(mapUrl)) {
+                  await launchUrl(mapUrl, mode: LaunchMode.externalApplication);
+                } else {
+                  throw 'Could not launch Google Maps';
+                }
+              },
+              icon: const Icon(Icons.location_on, color: Colors.white),
+              label: const Text(
+                'Find us on Google Maps',
+                style: TextStyle(fontSize: 14, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF948BF3),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
 
   Widget _buildShurjopayInstructions() {
     return const Card(

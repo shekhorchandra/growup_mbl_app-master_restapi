@@ -1,4 +1,5 @@
 class InvestmentHistoryItem {
+  final int sl;
   final int project_id;
   final String? projectTitle;
   final String? projectCategory;
@@ -13,6 +14,7 @@ class InvestmentHistoryItem {
 
 
   InvestmentHistoryItem({
+    required this.sl,
     required this.project_id,
     this.projectTitle,
     this.projectCategory,
@@ -28,6 +30,7 @@ class InvestmentHistoryItem {
 
   factory InvestmentHistoryItem.fromJson(Map<String, dynamic> json) {
     return InvestmentHistoryItem(
+      sl: json['sl'] ?? 0,
       projectImage: json['project_image'],
       project_id: json['project_id'],
       projectTitle: json['project_title'],
