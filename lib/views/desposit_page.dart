@@ -1042,7 +1042,7 @@ class _DepositPageState extends State<DepositPage> {
             ElevatedButton.icon(
               onPressed: () async {
                 final Uri mapUrl = Uri.parse(
-                  'https://www.google.com/maps/place/Qbit+Tech/@23.743227,90.4181383,639m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3755b998ed9235f1:0xedb5992f595ad41f!8m2!3d23.7432221!4d90.4207132!16s%2Fg%2F11v0c2mm9j!5m1!1e2?entry=ttu&g_ep=EgoyMDI1MTAyMC4wIKXMDSoASAFQAw%3D%3D',
+                  'https://maps.app.goo.gl/r6zt5tHFVKxVviE19',
                 );
                 if (await canLaunchUrl(mapUrl)) {
                   await launchUrl(mapUrl, mode: LaunchMode.externalApplication);
