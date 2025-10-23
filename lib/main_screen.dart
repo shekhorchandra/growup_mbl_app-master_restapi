@@ -191,7 +191,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.wallet,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('My Wallet'),
@@ -214,7 +214,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.moneyCheck,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Deposit'),
@@ -235,7 +235,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.arrowDown,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Withdraw'),
@@ -265,7 +265,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.folderOpen,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Projects'),
@@ -285,7 +285,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.projectDiagram,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Invested Projects'),
@@ -316,7 +316,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.fileInvoice,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Growup'),
@@ -332,7 +332,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.warehouse,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Property'),
@@ -348,7 +348,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.fileInvoiceDollar,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Recharge'),
@@ -365,7 +365,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.coins,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('ROI'),
@@ -382,7 +382,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.handHoldingDollar,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Capital Return'),
@@ -418,7 +418,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.building,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Package Details'),
@@ -434,7 +434,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.shoppingBag,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Ordered Properties'),
@@ -459,7 +459,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.box,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('All Products'),
@@ -479,7 +479,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.shoppingCart,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('My Cart'),
@@ -495,7 +495,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.boxOpen ,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('My Orders'),
@@ -512,7 +512,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.truck,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Track My Orders'),
@@ -545,7 +545,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.fileAlt,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('TAX Certificate'),
@@ -565,7 +565,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.coins,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Investment Certificate'),
@@ -594,7 +594,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.infoCircle ,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('About Us'),
@@ -612,7 +612,7 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: Icon(
                 FontAwesomeIcons.fileAlt,
-                size: 28,
+                size: 18,
                 color: Colors.green,
               ), // Bullet point
               title: Text('Certificates'),

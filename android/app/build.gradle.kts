@@ -44,8 +44,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 29
-        versionName = "1.1.12"
+        versionCode = 30
+        versionName = "1.1.13"
     }
 
     splits {

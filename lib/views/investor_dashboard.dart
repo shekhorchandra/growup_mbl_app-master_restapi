@@ -814,7 +814,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.wallet,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('My Wallet'),
@@ -837,7 +837,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.moneyCheck,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Deposit'),
@@ -859,7 +859,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.arrowDown,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Withdraw'),
@@ -892,7 +892,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.folderOpen,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Projects'),
@@ -913,7 +913,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.projectDiagram,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Invested Projects'),
@@ -948,7 +948,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.fileInvoice,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Growup'),
@@ -965,7 +965,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.warehouse,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Property'),
@@ -981,7 +981,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.fileInvoiceDollar,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Recharge'),
@@ -1001,7 +1001,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.coins,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('ROI'),
@@ -1019,7 +1019,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.handHoldingDollar,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Capital Return'),
@@ -1056,7 +1056,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.building,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Package Details'),
@@ -1073,7 +1073,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.shoppingBag,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Ordered Properties'),
@@ -1100,7 +1100,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.box,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('All Products'),
@@ -1121,7 +1121,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.shoppingCart,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('My Cart'),
@@ -1137,7 +1137,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.boxOpen,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('My Orders'),
@@ -1155,7 +1155,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.truck,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Track My Orders'),
@@ -1194,7 +1194,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.fileAlt,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('TAX Certificate'),
@@ -1217,7 +1217,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: Icon(
                               FontAwesomeIcons.coins,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ), // Bullet point
                             title: Text('Investment Certificate'),
@@ -1252,7 +1252,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ListTile(
                             leading: const Icon(
                               FontAwesomeIcons.infoCircle,
-                              size: 28,
+                              size: 18,
                               color: Colors.green,
                             ),
                             title: const Text('About Us'),
@@ -1772,205 +1772,205 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                   ),
 
-                const CertificationsSection(),
+                // const CertificationsSection(),
 
-                IndexedStack(index: _selectedIndex, children: _pages),
+                // IndexedStack(index: _selectedIndex, children: _pages),
 
                 // The single container holding all four counter items.
                 // The new parent Container adds the margin.
-                Container(
-                  // This adds left and right margin.
-                  margin: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Column(
-                      children: [
-                        // First Row
-                        IntrinsicHeight(
-                          // Added to make the VerticalDivider visible
-                          child: Row(
-                            children: [
-                              // Card 1: Fund Disburse
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.handHoldingDollar,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "৳ 1Billion++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Fund Disburse",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // NEW: Vertical line separator
-                              const VerticalDivider(width: 1, thickness: 1),
-                              // Card 2: Fund Reimburse
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.moneyBillTransfer,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "৳ 1Billion++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Fund Reimburse",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // NEW: Horizontal line separator
-                        const Divider(height: 1, thickness: 1),
-                        // Second Row
-                        IntrinsicHeight(
-                          // Added to make the VerticalDivider visible
-                          child: Row(
-                            children: [
-                              // Card 3: Farmers Engaged
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.wheatAwn,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "12K+",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Farmers Engaged",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // NEW: Vertical line separator
-                              const VerticalDivider(width: 1, thickness: 1),
-                              // Card 4: Active Projects
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.seedling,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "100k Ton++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Farm Produce Sold",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                // Container(
+                //   // This adds left and right margin.
+                //   margin: const EdgeInsets.symmetric(horizontal: 12.0),
+                //   child: Container(
+                //     padding: const EdgeInsets.all(10.0),
+                //     decoration: BoxDecoration(
+                //       color: Colors.green.shade50,
+                //       border: Border.all(
+                //         color: Colors.grey.shade300,
+                //         width: 1,
+                //       ),
+                //       borderRadius: BorderRadius.circular(12.0),
+                //     ),
+                //     child: Column(
+                //       children: [
+                //         // First Row
+                //         IntrinsicHeight(
+                //           // Added to make the VerticalDivider visible
+                //           child: Row(
+                //             children: [
+                //               // Card 1: Fund Disburse
+                //               Expanded(
+                //                 child: Padding(
+                //                   padding: const EdgeInsets.symmetric(
+                //                     vertical: 8.0,
+                //                   ),
+                //                   child: Column(
+                //                     mainAxisAlignment:
+                //                     MainAxisAlignment.center,
+                //                     children: [
+                //                       const Icon(
+                //                         FontAwesomeIcons.handHoldingDollar,
+                //                         size: 20,
+                //                         color: Colors.green,
+                //                       ),
+                //                       const SizedBox(height: 6),
+                //                       const Text(
+                //                         "৳ 1Billion++",
+                //                         style: TextStyle(
+                //                           fontSize: 16,
+                //                           fontWeight: FontWeight.bold,
+                //                           color: Colors.black87,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 1),
+                //                       const Text(
+                //                         "Fund Disburse",
+                //                         style: TextStyle(
+                //                           fontSize: 12,
+                //                           color: Colors.black,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                         textAlign: TextAlign.center,
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               ),
+                //               // NEW: Vertical line separator
+                //               const VerticalDivider(width: 1, thickness: 1),
+                //               // Card 2: Fund Reimburse
+                //               Expanded(
+                //                 child: Padding(
+                //                   padding: const EdgeInsets.symmetric(
+                //                     vertical: 8.0,
+                //                   ),
+                //                   child: Column(
+                //                     mainAxisAlignment:
+                //                     MainAxisAlignment.center,
+                //                     children: [
+                //                       const Icon(
+                //                         FontAwesomeIcons.moneyBillTransfer,
+                //                         size: 20,
+                //                         color: Colors.green,
+                //                       ),
+                //                       const SizedBox(height: 6),
+                //                       const Text(
+                //                         "৳ 1Billion++",
+                //                         style: TextStyle(
+                //                           fontSize: 16,
+                //                           fontWeight: FontWeight.bold,
+                //                           color: Colors.black87,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 1),
+                //                       const Text(
+                //                         "Fund Reimburse",
+                //                         style: TextStyle(
+                //                           fontSize: 12,
+                //                           color: Colors.black,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                         textAlign: TextAlign.center,
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               ),
+                //             ],
+                //           ),
+                //         ),
+                //         // NEW: Horizontal line separator
+                //         const Divider(height: 1, thickness: 1),
+                //         // Second Row
+                //         IntrinsicHeight(
+                //           // Added to make the VerticalDivider visible
+                //           child: Row(
+                //             children: [
+                //               // Card 3: Farmers Engaged
+                //               Expanded(
+                //                 child: Padding(
+                //                   padding: const EdgeInsets.symmetric(
+                //                     vertical: 8.0,
+                //                   ),
+                //                   child: Column(
+                //                     mainAxisAlignment:
+                //                     MainAxisAlignment.center,
+                //                     children: [
+                //                       const Icon(
+                //                         FontAwesomeIcons.wheatAwn,
+                //                         size: 20,
+                //                         color: Colors.green,
+                //                       ),
+                //                       const SizedBox(height: 6),
+                //                       const Text(
+                //                         "12K+",
+                //                         style: TextStyle(
+                //                           fontSize: 16,
+                //                           fontWeight: FontWeight.bold,
+                //                           color: Colors.black87,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 1),
+                //                       const Text(
+                //                         "Farmers Engaged",
+                //                         style: TextStyle(
+                //                           fontSize: 12,
+                //                           color: Colors.black,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                         textAlign: TextAlign.center,
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               ),
+                //               // NEW: Vertical line separator
+                //               const VerticalDivider(width: 1, thickness: 1),
+                //               // Card 4: Active Projects
+                //               Expanded(
+                //                 child: Padding(
+                //                   padding: const EdgeInsets.symmetric(
+                //                     vertical: 8.0,
+                //                   ),
+                //                   child: Column(
+                //                     mainAxisAlignment:
+                //                     MainAxisAlignment.center,
+                //                     children: [
+                //                       const Icon(
+                //                         FontAwesomeIcons.seedling,
+                //                         size: 20,
+                //                         color: Colors.green,
+                //                       ),
+                //                       const SizedBox(height: 6),
+                //                       const Text(
+                //                         "100k Ton++",
+                //                         style: TextStyle(
+                //                           fontSize: 16,
+                //                           fontWeight: FontWeight.bold,
+                //                           color: Colors.black87,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 1),
+                //                       const Text(
+                //                         "Farm Produce Sold",
+                //                         style: TextStyle(
+                //                           fontSize: 12,
+                //                           color: Colors.black,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                         textAlign: TextAlign.center,
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               ),
+                //             ],
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
 
                 // Total Counting cards
                 Padding(
@@ -2317,6 +2317,206 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         ],
                       );
                     },
+                  ),
+                ),
+
+                const CertificationsSection(),
+
+                IndexedStack(index: _selectedIndex, children: _pages),
+
+                // The single container holding all four counter items.
+                // The new parent Container adds the margin.
+                Container(
+                  // This adds left and right margin.
+                  margin: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Column(
+                      children: [
+                        // First Row
+                        IntrinsicHeight(
+                          // Added to make the VerticalDivider visible
+                          child: Row(
+                            children: [
+                              // Card 1: Fund Disburse
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        FontAwesomeIcons.handHoldingDollar,
+                                        size: 20,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        "৳ 1Billion++",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      const Text(
+                                        "Fund Disburse",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // NEW: Vertical line separator
+                              const VerticalDivider(width: 1, thickness: 1),
+                              // Card 2: Fund Reimburse
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        FontAwesomeIcons.moneyBillTransfer,
+                                        size: 20,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        "৳ 1Billion++",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      const Text(
+                                        "Fund Reimburse",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // NEW: Horizontal line separator
+                        const Divider(height: 1, thickness: 1),
+                        // Second Row
+                        IntrinsicHeight(
+                          // Added to make the VerticalDivider visible
+                          child: Row(
+                            children: [
+                              // Card 3: Farmers Engaged
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        FontAwesomeIcons.wheatAwn,
+                                        size: 20,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        "12K+",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      const Text(
+                                        "Farmers Engaged",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // NEW: Vertical line separator
+                              const VerticalDivider(width: 1, thickness: 1),
+                              // Card 4: Active Projects
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        FontAwesomeIcons.seedling,
+                                        size: 20,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        "100k Ton++",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      const Text(
+                                        "Farm Produce Sold",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
