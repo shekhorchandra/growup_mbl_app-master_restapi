@@ -139,15 +139,56 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     height: height * 0.13,
                                     fit: BoxFit.contain,
                                   ),
-                                  Text(
-                                    "Welcome to GrowUP Agro Tech",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20 * textScale,
+                                  // Text(
+                                  //   "Welcome to GrowUP Agro Tech",
+                                  //   style: TextStyle(
+                                  //     color: Colors.white,
+                                  //     fontWeight: FontWeight.bold,
+                                  //     fontSize: 20 * textScale,
+                                  //   ),
+                                  //   textAlign: TextAlign.center,
+                                  // ),
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Welcome ',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 26 * textScale, // Bigger
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '\nto ',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 20 * textScale, // Smaller
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '\nGrowUP ',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 30 * textScale, // Same as Welcome
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '\nAGROTECH LIMITED',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 25 * textScale, // Same as Welcome
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     textAlign: TextAlign.center,
-                                  ),
+                                  )
+
                                 ],
                               ),
                             ),
@@ -166,7 +207,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.65),
+                                color: Colors.black.withOpacity(0.65),
                                 borderRadius: const BorderRadius.only(
                                   bottomLeft: Radius.circular(16),
                                   bottomRight: Radius.circular(16),

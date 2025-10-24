@@ -12,6 +12,7 @@ import 'package:growup_agro/views/NotificationPage.dart';
 import 'package:growup_agro/views/Total_projects.dart';
 import 'package:growup_agro/views/all_projects.dart';
 import 'package:growup_agro/views/all_properties.dart';
+import 'package:growup_agro/views/auto_slider_card.dart';
 import 'package:growup_agro/views/certificates_web.dart';
 import 'package:growup_agro/views/commercial_city.dart';
 import 'package:growup_agro/views/desposit_page.dart';
@@ -4678,142 +4679,148 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   }
 }
 
-class CertificationsSection extends StatelessWidget {
-  const CertificationsSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Text(
-            'Company Certifications & Affiliations',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 10),
-
-          // --- ROSA Certifications (Using structured data now) ---
-          _buildCompanyCertificationCard(
-            context,
-            companyName: 'GrowUp Agrotech Limited',
-            logoIcon: Icons.grass,
-            // 1. UPDATED DATA TO LIST OF MAPS
-            certifications: const [
-              {'name': 'Certificate of Incorporation', 'number': 'C-195903'},
-              {'name': 'DCCI Registration', 'number': 'ECNGRO202507001532'},
-              {'name': 'BIDA Registration', 'number': 'L-202508060017189-H'},
-              {'name': 'Trade License', 'number': 'TRAD/DNCC/006823'},
-              {'name': 'D&B D-U-N-S', 'number': '77-411-5707'},
-            ],
-            color: Colors.green.shade50,
-            iconColor: Colors.green.shade800,
-          ),
-
-          const SizedBox(height: 12),
-
-          // --- GROWUP Certifications (Using simple list of strings) ---
-          _buildCompanyCertificationCard(
-            context,
-            companyName: 'Rural Organisations for Social Affairs(ROSA)',
-            logoIcon: Icons.business,
-            // 2. KEEPING THE OLD SIMPLE STRING LIST
-            certifications: const [
-              {'name': 'Established in', 'number': '1992'},
-              {'name': 'Reg No of (DSS)', 'number': 'DSS NAT-152'},
-              {'name': 'MRA No', 'number': '017330010400726'},
-              {'name': 'NGO Bureau No', 'number': '1091'},
-              {'name': 'Received financial support from PKSF ', 'number': ''}
-            ],
-            color: Colors.blue.shade50,
-            iconColor: Colors.blue.shade800,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // UPDATED SIGNATURE: certifications is now List<dynamic>
-  Widget _buildCompanyCertificationCard(
-      BuildContext context, {
-        required String companyName,
-        required IconData logoIcon,
-        required List<dynamic> certifications, // Changed to dynamic
-        required Color color,
-        required Color iconColor,
-      }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade300, width: 0.8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(logoIcon, size: 18, color: iconColor),
-              const SizedBox(width: 8),
-              Text(
-                companyName,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: iconColor,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 12, thickness: 0.5),
-
-          // Use Column and Padding for the list of certifications
-          ...certifications.map((cert) {
-            // Check if the item is a Map (Structured Data) or a String (Simple Data)
-            final bool isStructured = cert is Map<String, String>;
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.check_circle_outline, size: 14, color: iconColor.withOpacity(0.7)),
-                  const SizedBox(width: 8),
-
-                  if (isStructured) ...[
-                    // STRUCTURED FORMAT (GrowUp Agrotech Limited)
-                    Text(
-                      '${cert['name']}:',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        height: 1.2,
-                        fontWeight: FontWeight.w600, // Name bolded for emphasis
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        cert['number']!,
-                        style: const TextStyle(fontSize: 10, height: 1.2, color: Colors.black87),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ] else
-                  // SIMPLE STRING FORMAT (Rural Organisations for Social Affairs)
-                    Expanded(
-                      child: Text(
-                        cert.toString(),
-                        style: const TextStyle(fontSize: 10, height: 1.2),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-}
+// class CertificationsSection extends StatelessWidget {
+//   const CertificationsSection({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: const EdgeInsets.all(10.0),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: <Widget>[
+//           const Text(
+//             'Company Certifications & Affiliations',
+//             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+//           ),
+//           const SizedBox(height: 10),
+//
+//           // --- ROSA Certifications (Using structured data now) ---
+//           SizedBox(
+//             height: 150, // adjust height based on your card size
+//             child: PageView(
+//               controller: PageController(viewportFraction: 0.9),
+//               children: [
+//                 _buildCompanyCertificationCard(
+//                   context,
+//                   companyName: 'GrowUp Agrotech Limited',
+//                   logoIcon: Icons.grass,
+//                   certifications: const [
+//                     {'name': 'Certificate of Incorporation', 'number': 'C-195903'},
+//                     {'name': 'DCCI Registration', 'number': 'ECNGRO202507001532'},
+//                     {'name': 'BIDA Registration', 'number': 'L-202508060017189-H'},
+//                     {'name': 'Trade License', 'number': 'TRAD/DNCC/006823'},
+//                     {'name': 'D&B D-U-N-S', 'number': '77-411-5707'},
+//                   ],
+//                   color: Colors.green.shade50,
+//                   iconColor: Colors.green.shade800,
+//                 ),
+//
+//                 // const SizedBox(width: 2),
+//
+//                 _buildCompanyCertificationCard(
+//                   context,
+//                   companyName: 'Rural Organisations for Social Affairs (ROSA)',
+//                   logoIcon: Icons.business,
+//                   certifications: const [
+//                     {'name': 'Established in', 'number': '1992'},
+//                     {'name': 'Reg No of (DSS)', 'number': 'DSS NAT-152'},
+//                     {'name': 'MRA No', 'number': '017330010400726'},
+//                     {'name': 'NGO Bureau No', 'number': '1091'},
+//                     {'name': 'Received financial support from PKSF', 'number': ''},
+//                   ],
+//                   color: Colors.blue.shade50,
+//                   iconColor: Colors.blue.shade800,
+//                 ),
+//               ],
+//             ),
+//           )
+//
+//         ],
+//       ),
+//     );
+//   }
+//
+//   // UPDATED SIGNATURE: certifications is now List<dynamic>
+//   Widget _buildCompanyCertificationCard(
+//       BuildContext context, {
+//         required String companyName,
+//         required IconData logoIcon,
+//         required List<dynamic> certifications, // Changed to dynamic
+//         required Color color,
+//         required Color iconColor,
+//       }) {
+//     return Container(
+//       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+//       decoration: BoxDecoration(
+//         color: color,
+//         borderRadius: BorderRadius.circular(10.0),
+//         border: Border.all(color: Colors.grey.shade300, width: 0.8),
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Row(
+//             children: [
+//               Icon(logoIcon, size: 18, color: iconColor),
+//               const SizedBox(width: 8),
+//               Text(
+//                 companyName,
+//                 style: TextStyle(
+//                   fontSize: 12,
+//                   fontWeight: FontWeight.bold,
+//                   color: iconColor,
+//                 ),
+//               ),
+//             ],
+//           ),
+//           const Divider(height: 12, thickness: 0.5),
+//
+//           // Use Column and Padding for the list of certifications
+//           ...certifications.map((cert) {
+//             // Check if the item is a Map (Structured Data) or a String (Simple Data)
+//             final bool isStructured = cert is Map<String, String>;
+//
+//             return Padding(
+//               padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
+//               child: Row(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Icon(Icons.check_circle_outline, size: 14, color: iconColor.withOpacity(0.7)),
+//                   const SizedBox(width: 8),
+//
+//                   if (isStructured) ...[
+//                     // STRUCTURED FORMAT (GrowUp Agrotech Limited)
+//                     Text(
+//                       '${cert['name']}:',
+//                       style: const TextStyle(
+//                         fontSize: 10,
+//                         height: 1.2,
+//                         fontWeight: FontWeight.w600, // Name bolded for emphasis
+//                       ),
+//                     ),
+//                     const SizedBox(width: 4),
+//                     Expanded(
+//                       child: Text(
+//                         cert['number']!,
+//                         style: const TextStyle(fontSize: 10, height: 1.2, color: Colors.black87),
+//                         overflow: TextOverflow.ellipsis,
+//                       ),
+//                     ),
+//                   ] else
+//                   // SIMPLE STRING FORMAT (Rural Organisations for Social Affairs)
+//                     Expanded(
+//                       child: Text(
+//                         cert.toString(),
+//                         style: const TextStyle(fontSize: 10, height: 1.2),
+//                       ),
+//                     ),
+//                 ],
+//               ),
+//             );
+//           }).toList(),
+//         ],
+//       ),
+//     );
+//   }
+// }

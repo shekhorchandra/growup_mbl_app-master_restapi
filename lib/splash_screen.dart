@@ -512,9 +512,10 @@ class _SplashScreenState extends State<SplashScreen>
                     width: MediaQuery.of(context).size.width * 0.85,
                     fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
                   const Text(
                     "Welcome to GrowUp Agrotech Limited,\nAn Affiliate of The ROSA (NGO)",
+                    // "Welcome \nto \nGrowUp \nAgrotech LTD",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,

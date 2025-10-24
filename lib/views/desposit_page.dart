@@ -823,7 +823,7 @@ class _DepositPageState extends State<DepositPage> {
             ),
             bankTransferText(),
             _buildBankDetailsList(),
-            const SizedBox(height: 12),
+            // const SizedBox(height: 12),
             // const SizedBox(height: 10),
 
             // --- NEW: Multiple Bank Account Details ---
@@ -1028,22 +1028,24 @@ class _DepositPageState extends State<DepositPage> {
 
   Widget bankTransferText() {
     return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'ব্যাংক ট্রান্সফার ও ডিপোজিটের মাধ্যমে ওয়ালেট রিচার্জ\n'
-              'আপনার ব্যাংকের ইন্টারনেট ব্যাংকিং (iBanking), মোবাইল অ্যাপ ব্যাবহার করে '
-              'যেকোনো একটি (NPSB, BEFTN বা RTGS) পদ্ধতি ব্যবহার করে করে আপনার ব্যাংক অ্যাকাউন্ট '
-              'থেকে সরাসরি আমাদের কোম্পানি / প্রতিষ্ঠানের নিন্মোক্ত যেকোনো ব্যাংক অ্যাকাউন্টে টাকা ট্রান্সফার করতে পারবেন। '
-              'এছাড়াও, সরাসরি আমাদের তালিকাভুক্ত যেকোনো ব্যাংকের শাখায় গিয়ে ক্যাশ ডিপোজিট করেও '
-              'আপনার ওয়ালেট রিচার্জ করার সুযোগ রয়েছে।\n\n'
-              'টাকা ট্রান্সফার বা ডিপোজিট করার পর, যাচাইকরণের জন্য অনুগ্রহ করে রশিদের ছবি আপলোড করুন।',
-          textAlign: TextAlign.justify,
-          style: TextStyle(
-            fontSize: 16,
-            height: 1.6,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            'ব্যাংক ট্রান্সফার ও ডিপোজিটের মাধ্যমে ওয়ালেট রিচার্জ\n'
+                'আপনার ব্যাংকের ইন্টারনেট ব্যাংকিং (iBanking), মোবাইল অ্যাপ ব্যাবহার করে '
+                'যেকোনো একটি (NPSB, BEFTN বা RTGS) পদ্ধতি ব্যবহার করে করে আপনার ব্যাংক অ্যাকাউন্ট '
+                'থেকে সরাসরি আমাদের কোম্পানি / প্রতিষ্ঠানের নিন্মোক্ত যেকোনো ব্যাংক অ্যাকাউন্টে টাকা ট্রান্সফার করতে পারবেন। '
+                'এছাড়াও, সরাসরি আমাদের তালিকাভুক্ত যেকোনো ব্যাংকের শাখায় গিয়ে ক্যাশ ডিপোজিট করেও '
+                'আপনার ওয়ালেট রিচার্জ করার সুযোগ রয়েছে।\n\n'
+                'টাকা ট্রান্সফার বা ডিপোজিট করার পর, যাচাইকরণের জন্য অনুগ্রহ করে রশিদের ছবি আপলোড করুন।',
+            textAlign: TextAlign.justify,
+            style: TextStyle(
+              fontSize: 16,
+              height: 1.6,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ),

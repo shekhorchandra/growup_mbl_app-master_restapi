@@ -200,32 +200,32 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
     if (status == null) return const Text('N/A');
 
     final lowerStatus = status.toLowerCase();
-    late Color backgroundColor;
+    // late Color backgroundColor;
     late Color textColor;
 
     switch (lowerStatus) {
       case 'approved':
-        backgroundColor = Colors.green;
-        textColor = Colors.white;
+        // backgroundColor = Colors.green;
+        textColor = Colors.green;
         break;
       case 'rejected':
-        backgroundColor = Colors.red;
-        textColor = Colors.white;
+        // backgroundColor = Colors.red;
+        textColor = Colors.red;
         break;
       case 'pending':
-        backgroundColor = Colors.orange;
-        textColor = Colors.white;
+        // backgroundColor = Colors.orange;
+        textColor = Colors.orange;
         break;
       case 'completed':
-        backgroundColor = Colors.lightGreen;
-        textColor = Colors.white;
+        // backgroundColor = Colors.lightGreen;
+        textColor = Colors.greenAccent;
         break;
       case 'failed':
-        backgroundColor = Colors.redAccent;
-        textColor = Colors.white;
+        // backgroundColor = Colors.redAccent;
+        textColor = Colors.redAccent;
         break;
       default:
-        backgroundColor = Colors.grey;
+        // backgroundColor = Colors.grey;
         textColor = Colors.white;
         break;
     }
@@ -233,7 +233,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        // color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -293,7 +293,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                     child: Card(
                       child: DataTable(
                         columnSpacing: 14,
-                        dataRowHeight: 70,
+                        dataRowHeight: 80,
                         headingRowColor: MaterialStateProperty.all(
                             const Color(0xFF388E3C)),
                         headingTextStyle: const TextStyle(
@@ -304,11 +304,11 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                           DataColumn(label: Text('SL')),
                           DataColumn(label: Text('Transaction Info')),
                           // DataColumn(label: Text('Date')),
-                          DataColumn(label: Text('Amount')),
-                          DataColumn(label: Text('Status')),
+                          // DataColumn(label: Text('Amount')),
+                          // DataColumn(label: Text('Status')),
                           //DataColumn(label: Text('Actioned By')),
 
-                          DataColumn(label: Text('Invoice')),
+                          DataColumn(label: Text('Actions')), // download button
                         ],
                         rows: List.generate(currentPageItems.length,
                                 (index) {
@@ -316,26 +316,63 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                               return DataRow(cells: [
                                 DataCell(Text(
                                     '${(currentPage - 1) * rowsPerPage + index + 1}')),
-                                DataCell(Column(
+                                DataCell(
+                                    Column(
                                   crossAxisAlignment:
                                   CrossAxisAlignment.start,
                                   mainAxisAlignment:
                                   MainAxisAlignment.center,
                                   children: [
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: '${item.type}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: '${item.type}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        // Text.rich(
+                                        //   TextSpan(
+                                        //     children: [
+                                        //       TextSpan(
+                                        //         text: '${item.date}',
+                                        //         style: const TextStyle(
+                                        //           fontSize: 12,
+                                        //           color: Colors.black54,
+                                        //         ),
+                                        //       ),
+                                        //     ],
+                                        //   ),
+                                        // ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: '৳${item.amount.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
+
+
                                     Text.rich(
                                       TextSpan(
                                         children: [
@@ -348,18 +385,25 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                         ],
                                       ),
                                     ),
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: '${item.date}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Text.rich(
+                                            TextSpan(
+                                              text: '${item.date}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black87,
+                                              ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
+                                        ),
+                                        _getStatusChip(item.status),
+                                      ],
+                                    )
+
 
                                   ],
                                 )),
@@ -387,31 +431,31 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                 //       ],
                                 //     )),
 
-                                DataCell(
-                                    Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                                  children: [
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: '৳${item.amount.toStringAsFixed(2)}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                  ],
-                                )),
-                                DataCell(_getStatusChip(item.status)),
+                                // DataCell(
+                                //     Column(
+                                //   crossAxisAlignment:
+                                //   CrossAxisAlignment.start,
+                                //   mainAxisAlignment:
+                                //   MainAxisAlignment.center,
+                                //   children: [
+                                //     Text.rich(
+                                //       TextSpan(
+                                //         children: [
+                                //           TextSpan(
+                                //             text: '৳${item.amount.toStringAsFixed(2)}',
+                                //             style: const TextStyle(
+                                //               fontSize: 12,
+                                //               fontWeight: FontWeight.bold,
+                                //               color: Colors.black,
+                                //             ),
+                                //           ),
+                                //         ],
+                                //       ),
+                                //     ),
+                                //
+                                //   ],
+                                // )),
+                                // DataCell(_getStatusChip(item.status)),
                                 // const DataCell(Text('N/A')),
                                 // DataCell(Text(item.note ?? 'N/A')),
                                 DataCell(
