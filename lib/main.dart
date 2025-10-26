@@ -120,7 +120,7 @@ class MyApp extends StatelessWidget {
             color: Colors.white,
             fontSize: 20,
             // fontWeight: FontWeight.bold,
-            //fontFamily: 'Fontappbar',
+            // fontFamily: 'Fontappbar',
           ),
           iconTheme: IconThemeData(
             color: Colors.white, // for back button & icons

@@ -115,7 +115,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(height: height * 0.12),
+                        SizedBox(height: height * 0.10),
 
                         // Logo and Welcome text animation
                         SlideTransition(
@@ -134,63 +134,53 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                               ),
                               child: Column(
                                 children: [
+                                  RichText(
+                                    textAlign: TextAlign.center, // Center all text lines
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        // fontFamily: 'Fontappbar',
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: 'WELCOME\n',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 32 * textScale,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: 'to',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 32 * textScale,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                   Image.asset(
                                     'assets/images/GrowupLogo.png',
                                     height: height * 0.13,
                                     fit: BoxFit.contain,
                                   ),
-                                  // Text(
-                                  //   "Welcome to GrowUP Agro Tech",
-                                  //   style: TextStyle(
-                                  //     color: Colors.white,
-                                  //     fontWeight: FontWeight.bold,
-                                  //     fontSize: 20 * textScale,
-                                  //   ),
-                                  //   textAlign: TextAlign.center,
-                                  // ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: 'Welcome ',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 26 * textScale, // Bigger
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: '\nto ',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 20 * textScale, // Smaller
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: '\nGrowUP ',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 30 * textScale, // Same as Welcome
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: '\nAGROTECH LIMITED',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 25 * textScale, // Same as Welcome
-                                            letterSpacing: 1.2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  SizedBox(height: 0), // reduce gap (default is usually ~8)
+                                  Text(
+                                    'AGROTECH LIMITED',
                                     textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 32 * textScale,
+                                      letterSpacing: 1.2,
+                                      height: 0.9, // reduce vertical space
+                                    ),
                                   )
 
                                 ],
-                              ),
+                              )
+
+
                             ),
                           ),
                         ),

@@ -16,32 +16,39 @@ class ProjectCertificatesPage extends StatefulWidget {
 
 class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
   late String token;
+  late Future<List<ProjectCertificate>> _certificatesFuture;
 
-  void _checkCertificates() async {
-    final certificates = await fetchCertificates();
-    for (var cert in certificates) {
-      print('Preview URL: ${cert.previewUrl}');
-    }
-  }
+  List<ProjectCertificate> _allCertificates = [];
+  List<ProjectCertificate> _filteredCertificates = [];
+
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadToken();
-    _checkCertificates(); // Call it here to debug URLs
+    _loadTokenAndFetch();
   }
 
-
-  Future<void> _loadToken() async {
+  Future<void> _loadTokenAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      token = prefs.getString('auth_token') ?? '';
+    token = prefs.getString('auth_token') ?? '';
+    _certificatesFuture = fetchCertificates();
+    _certificatesFuture.then((list) {
+      setState(() {
+        _allCertificates = list;
+        _filteredCertificates = list;
+      });
     });
   }
 
   Future<List<ProjectCertificate>> fetchCertificates() async {
     final prefs = await SharedPreferences.getInstance();
     final investorCode = prefs.getString('investor_code') ?? '';
+
+    if (investorCode.isEmpty || token.isEmpty) {
+      throw Exception('Missing token or investor code.');
+    }
+
     final url = Uri.parse(
         "https://growupagro.tech/api/investor/project-certificates?investor_code=$investorCode");
 
@@ -56,161 +63,157 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       if (jsonResponse['status'] == true) {
-        final certificates = (jsonResponse['data'] as List)
+        return (jsonResponse['data'] as List)
             .map((e) => ProjectCertificate.fromJson(e))
             .toList();
-
-        // --- DEBUGGING: check URLs ---
-        for (var cert in certificates) {
-          print('Preview URL: ${cert.previewUrl}');
-          print('View URL: ${cert.viewUrl}');
-          print('Download URL: ${cert.downloadUrl}');
-        }
-
-        return certificates;
       } else {
-        throw Exception('Failed to load certificates');
+        throw Exception('No certificates found.');
       }
     } else {
-      throw Exception('Failed to load certificates');
+      throw Exception('Failed to load certificates.');
     }
   }
 
+  void _filterCertificates(String query) {
+    setState(() {
+      _filteredCertificates = _allCertificates.where((cert) {
+        final name = cert.name.toLowerCase();
+        final code = cert.code.toLowerCase();
+        final roi = cert.roi.toString().toLowerCase();
+        final search = query.toLowerCase();
+        return name.contains(search) ||
+            code.contains(search) ||
+            roi.contains(search);
+      }).toList();
+    });
+  }
 
   void _launchURL(String url) async {
-    if (!await launchUrl(Uri.parse(url))) {
-      throw 'Could not launch $url';
+    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open link')),
+      );
     }
   }
-
-  Future<Uint8List> _fetchImageBytes(String url) async {
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
-    } else {
-      throw Exception('Failed to load image');
-    }
-  }
-
-  // Widget _buildPreviewImage(String url) {
-  //   return FutureBuilder<Uint8List>(
-  //     future: _fetchImageBytes(url),
-  //     builder: (context, snapshot) {
-  //       if (snapshot.connectionState == ConnectionState.waiting) {
-  //         return const SizedBox(
-  //             height: 200,
-  //             child: Center(child: CircularProgressIndicator()));
-  //       } else if (snapshot.hasError || snapshot.data == null) {
-  //         return const SizedBox(
-  //             height: 200,
-  //             child: Center(child: Icon(Icons.broken_image, size: 50)));
-  //       }
-  //       return ClipRRect(
-  //         borderRadius: BorderRadius.circular(8),
-  //         child: Image.memory(
-  //           snapshot.data!,
-  //           height: 200,
-  //           width: double.infinity,
-  //           fit: BoxFit.cover,
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Project Certificates'),
+        title: const Text(
+          'Project Certificates',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color(0xFF2E7D32),
+        foregroundColor: Colors.white,
+        centerTitle: true,
       ),
-      body: FutureBuilder<List<ProjectCertificate>>(
-        future: fetchCertificates(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No certificates found'));
-          }
-
-          final data = snapshot.data!;
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final item = data[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 3,
-                shape: RoundedRectangleBorder(
+      body: Column(
+        children: [
+          // 🔍 Search Bar
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _filterCertificates,
+              decoration: InputDecoration(
+                hintText: 'Search by project name, code, or ROI',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.green),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Preview image
-                      // if (item.previewUrl.isNotEmpty)
-                      //   _buildPreviewImage(item.previewUrl),
-                      const SizedBox(height: 12),
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text("Code: ${item.code}"),
-                      Text("ROI: ${item.roi}%"),
-                      Text("Ends: ${item.endDate}"),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          // ElevatedButton.icon(
-                          //   onPressed: () {
-                          //     _launchURL(item.viewUrl);
-                          //   },
-                          //   icon: const Icon(Icons.remove_red_eye),
-                          //   label: const Text('View'),
-                          //   style: ElevatedButton.styleFrom(
-                          //     backgroundColor: Colors.grey[700],
-                          //   ),
-                          // ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _launchURL(item.downloadUrl);
-                            },
-                            icon: const Icon(Icons.download),
-                            label: const Text('Download'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green, // button background
-                              foregroundColor: Colors.white, // icon & text color
-                            ),
-                          )
+              ),
+            ),
+          ),
 
-                        ],
+          // 📜 Certificates List
+          Expanded(
+            child: FutureBuilder<List<ProjectCertificate>>(
+              future: _certificatesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (_filteredCertificates.isEmpty) {
+                  return const Center(child: Text('No matching certificates'));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(10),
+                  itemCount: _filteredCertificates.length,
+                  itemBuilder: (context, index) {
+                    final item = _filteredCertificates[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text("Code: ${item.code}"),
+                            Text("ROI: ${item.roi}%"),
+                            Text("Ends: ${item.endDate}"),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _launchURL(item.viewUrl);
+                                  },
+                                  icon: const Icon(Icons.remove_red_eye),
+                                  label: const Text('View'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                                const Spacer(),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _launchURL(item.downloadUrl);
+                                  },
+                                  icon: const Icon(Icons.download),
+                                  label: const Text('Download'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-
-

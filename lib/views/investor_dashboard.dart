@@ -146,7 +146,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             .map(
               (e) => {
             'type': e.type,
-            'created_at': e.createdAt,
+            'date': e.date ?? '',
             'amount': e.amount,
             'status': e.status ?? 'N/A',
             'trx_id': e.trxId,
@@ -2206,8 +2206,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                       return Column(
                         children: [
-
-                          const SizedBox(height: 8),
+                          // const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
@@ -2321,7 +2320,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
-                const CertificationsSection(),
+                const CompanyCertificationsCarousel(),
 
                 IndexedStack(index: _selectedIndex, children: _pages),
 
@@ -3102,7 +3101,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             return _buildTransactionItem(
                               icon,
                               tx['type'].toString().toUpperCase(),
-                              tx['created_at'] ?? '',
+                              tx['date'] ?? '',  // <- use 'date' not 'created_at'
                               '${tx['amount']} Tk',
                               tx['status'] ?? 'N/A',
                             );
@@ -4509,19 +4508,24 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   Widget _buildTransactionItem(
       IconData icon,
       String title,
-      String rawDate,
+      String date,
       String amount,
       String status,
       )
   {
     // Parse and format date
-    String formattedDate = '';
-    try {
-      DateTime parsedDate = DateTime.parse(rawDate);
-      formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(parsedDate);
-    } catch (e) {
-      formattedDate = rawDate; // fallback in case of invalid format
+    String formattedDate = 'N/A';
+    if (date.trim().isNotEmpty) {
+      try {
+        final cleanedDate = date.trim(); // remove leading/trailing spaces
+        DateTime parsedDate = DateFormat('dd MMM, yyyy').parse(cleanedDate);
+        formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+      } catch (_) {
+        formattedDate = date; // fallback to raw string
+      }
     }
+
+
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -4615,7 +4619,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           .map(
             (e) => {
           'type': e.type,
-          'created_at': e.createdAt,
+              'date': e.date ?? '',
           'amount': e.amount,
           'status': e.status ?? 'N/A',
           'trx_id': e.trxId,

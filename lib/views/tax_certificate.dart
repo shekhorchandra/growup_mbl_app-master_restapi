@@ -2,14 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/tax_certificate_model.dart';
 
 class TaxCertificatePage extends StatefulWidget {
   const TaxCertificatePage({super.key});
@@ -19,35 +16,31 @@ class TaxCertificatePage extends StatefulWidget {
 }
 
 class _TaxCertificatePageState extends State<TaxCertificatePage> {
-  late Future<List<TaxCertificate>> certificatesFuture;
-  Map<String, bool> _isDownloading = {};
+  late Future<List<dynamic>> certificatesFuture;
+  List<dynamic> _allCertificates = [];
+  List<dynamic> _filteredCertificates = [];
 
+  final Map<String, bool> _isDownloading = {};
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     certificatesFuture = fetchCertificates();
-
-    certificatesFuture.then((certificates) {
-      for (var cert in certificates) {
-        _isDownloading[cert.startFiscalYear] = false;
-      }
-    });
-
   }
 
-  Future<List<TaxCertificate>> fetchCertificates() async {
+  Future<List<dynamic>> fetchCertificates() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
       final investorCode = prefs.getString('investor_code') ?? '';
 
-      // final url = Uri.parse(
-      //   'https://growupagro.tech/api/tax-certificates?investor_code=$investorCode',
-      // );
+      if (investorCode.isEmpty || token.isEmpty) {
+        throw Exception('Missing token or investor code. Please log in again.');
+      }
 
-
-      final url = Uri.parse(ApiConstants.taxCertificates(investorCode));
+      // ✅ GET API with query parameter
+      final url = Uri.parse('https://growupagro.tech/api/tax-certificates?investor_code=$investorCode');
 
       final response = await http.get(
         url,
@@ -58,115 +51,50 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Extract investor name
-        final investorName = data['investor']['name'] as String;
-
-        final certificates = data['certificates'] as List;
-
-        // Pass investorName to fromJson
-        return certificates
-            .map((e) => TaxCertificate.fromJson(e, investorName))
-            .toList();
+        final decoded = jsonDecode(response.body);
+        if (decoded['status'] == true && decoded['data'] != null) {
+          _allCertificates = decoded['data'];
+          _filteredCertificates = List.from(_allCertificates);
+          return _filteredCertificates;
+        } else {
+          throw Exception('No certificates found.');
+        }
       } else {
-        print('Status code: ${response.statusCode}');
-        print('Body: ${response.body}');
-        throw Exception('No certificates available.');
+        throw Exception('Failed to fetch data (Status: ${response.statusCode})');
       }
     } catch (e) {
-      print('Error: $e');
-      throw Exception('No certificates available.');
+      debugPrint('Fetch error: $e');
+      rethrow;
     }
   }
 
-  // Future<void> downloadTaxCertificate(BuildContext context, String startFiscalYear) async {
-  //   try {
-  //     setState(() => _isDownloading[startFiscalYear] = true); // start loading
-  //
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final token = prefs.getString('auth_token');
-  //     final investorCode = prefs.getString('investor_code');
-  //
-  //     if (token == null || investorCode == null) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Auth token or Investor Code missing. Please log in again.')),
-  //       );
-  //       setState(() => _isDownloading[startFiscalYear] = false);
-  //       return;
-  //     }
-  //
-  //     final url = "https://growupagro.tech/api/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
-  //     final Directory dir = await getApplicationDocumentsDirectory();
-  //     final String filePath = '${dir.path}/TaxCertificate-$startFiscalYear.pdf';
-  //
-  //     final dio = Dio();
-  //     final response = await dio.get(
-  //       url,
-  //       options: Options(
-  //         headers: {
-  //           "Authorization": "Bearer $token",
-  //           "Accept": "application/pdf",
-  //         },
-  //         responseType: ResponseType.bytes,
-  //       ),
-  //     );
-  //
-  //     final file = File(filePath);
-  //     await file.writeAsBytes(response.data);
-  //     await OpenFile.open(filePath);
-  //
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Tax Certificate saved to $filePath'),
-  //         backgroundColor: Colors.green,
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     debugPrint("Download error: $e");
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Download failed: $e'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   } finally {
-  //     setState(() => _isDownloading[startFiscalYear] = false); // stop loading
-  //   }
-  // }
-  Future<void> downloadTaxCertificate(BuildContext context, String startFiscalYear) async {
-    try {
-      setState(() => _isDownloading[startFiscalYear] = true); // start loading
-
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-      final investorCode = prefs.getString('investor_code');
-
-      if (token == null || investorCode == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login required. Please log in again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
+  void _filterCertificates(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredCertificates = List.from(_allCertificates);
+      } else {
+        _filteredCertificates = _allCertificates.where((cert) {
+          final fiscal = cert['fiscal_year'];
+          final projects = cert['projects'] as List;
+          final fiscalText = '${fiscal['start']} - ${fiscal['end']}'.toLowerCase();
+          final projectNames = projects.map((p) => (p['name'] ?? '').toLowerCase()).join(' ');
+          return fiscalText.contains(query.toLowerCase()) || projectNames.contains(query.toLowerCase());
+        }).toList();
       }
+    });
+  }
 
-      // final url = "https://growupagro.tech/api/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
-      final url = ApiConstants.taxCertificateDownload(startFiscalYear, investorCode);
+  Future<void> downloadCertificate(BuildContext context, String url, String fileName) async {
+    try {
+      setState(() => _isDownloading[url] = true);
+
       final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/TaxCertificate-$startFiscalYear.pdf';
+      final String filePath = '${dir.path}/$fileName.pdf';
 
       final dio = Dio();
       final response = await dio.get(
         url,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       final file = File(filePath);
@@ -175,33 +103,47 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Tax Certificate downloaded successfully.'),
+          content: Text('Downloaded successfully: $fileName.pdf'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      debugPrint("Download error: $e"); // keep detailed info for debugging
+      debugPrint('Download error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Failed to download certificate. Please try again.'),
+          content: Text('Failed to download'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      setState(() => _isDownloading[startFiscalYear] = false); // stop loading
+      setState(() => _isDownloading[url] = false);
     }
   }
 
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the link.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tax Certificates', style: TextStyle(
-          fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+      appBar: AppBar(
+        title: const Text(
+          'Tax Certificates',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,),
-      body: FutureBuilder<List<TaxCertificate>>(
+        foregroundColor: Colors.white,
+      ),
+      body: FutureBuilder<List<dynamic>>(
         future: certificatesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -212,182 +154,108 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
             return const Center(child: Text('No certificates found.'));
           }
 
-          final certificates = snapshot.data!;
-          return ListView.builder(
-            itemCount: certificates.length,
-            itemBuilder: (context, index) {
-              final certificate = certificates[index];
-              return Card(
-                color: Colors.white, // sets the card background to white
-                margin: const EdgeInsets.all(8),
-                child: ExpansionTile(
-                  title: Text(
-                      'Tax Certificate for Fiscal Year: ${certificate.startFiscalYear} - ${certificate.endFiscalYear}'),
-                  subtitle: Text('Issued on: ${certificate.issuedOn}\nAuthorized by: Growup Agro'),
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ✅ Table heading
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Text(
-                                "Tax Deduction Certificate",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Center(
-                                child: Text(
-                                  "Growup Agro",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                              // const SizedBox(height: 4),
-                              Center(
-                                child: Text(
-                                  "Fiscal Year: ${certificate.startFiscalYear} – ${certificate.endFiscalYear}",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text.rich(
-                                TextSpan(
-                                  children: [
-                                    const TextSpan(
-                                      text: "This is to certify that\n",
-                                      style: TextStyle(fontSize: 14, color: Colors.black),
-                                    ),
-                                    TextSpan(
-                                      text: certificate.investorName, // investor name
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const TextSpan(
-                                      text: "\nhas earned ROI from the projects completed during the fiscal year:",
-                                      style: TextStyle(fontSize: 14, color: Colors.black),
-                                    ),
-
-                                  ],
-                                ),
-                                textAlign: TextAlign.center,
-                              )
-
-                            ],
-                          ),
-                        ),
-
-                        // ✅ Scrollable DataTable
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            headingRowColor: MaterialStateProperty.all(Colors.green),
-                            headingTextStyle: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            columns: const [
-                              DataColumn(label: Text('Project Name')),
-                              DataColumn(label: Text('Project Mature Date')),
-                              DataColumn(label: Text('ROI (BDT)')),
-                              DataColumn(label: Text('Tax (15%)')),
-                              DataColumn(label: Text('Net ROI')),
-                            ],
-                            rows: certificate.projectDetails
-                                .map(
-                                  (project) => DataRow(cells: [
-                                DataCell(Text(project.name)),
-                                DataCell(Text(project.matureDate)),
-                                DataCell(Text(project.roiAmount.toStringAsFixed(2))),
-                                DataCell(Text(project.tax.toStringAsFixed(2))),
-                                DataCell(Text(project.netRoi.toStringAsFixed(2))),
-                              ]),
-                            )
-                                .toList(),
-                          ),
-                        ),
-                      ],
+          return Column(
+            children: [
+              // 🔍 Search Bar
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _filterCertificates,
+                  decoration: InputDecoration(
+                    hintText: 'Search by fiscal year or project name...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Total ROI: ${certificate.roiTotal.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.black, fontWeight:FontWeight.bold,),
-                          ),
-                          Text(
-                            'Total Tax: ${certificate.tax.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.black, fontWeight:FontWeight.bold),
-                          ),
-                          Text(
-                            'Net ROI: ${certificate.netRoi.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.black, fontWeight:FontWeight.bold),
-                          ),
-                          const SizedBox(height: 5),
-                          Text('Issued on: ${certificate.issuedOn}'),
-                          Text('Authorized by: Growup Agro'),
-                          const SizedBox(height: 5),
-                          OutlinedButton.icon(
-                            onPressed: _isDownloading[certificate.startFiscalYear] == true
-                                ? null // disable button while downloading
-                                : () async {
-                              await downloadTaxCertificate(context, certificate.startFiscalYear);
-                            },
-                            icon: _isDownloading[certificate.startFiscalYear] == true
-                                ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                                : const Icon(
-                              Icons.download,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              _isDownloading[certificate.startFiscalYear] == true
-                                  ? 'Downloading...'
-                                  : 'Download Certificate',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.green),
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-
-                  ],
+                  ),
                 ),
-              );
-            },
+              ),
+
+              // 📋 Certificate List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(10),
+                  itemCount: _filteredCertificates.length,
+                  itemBuilder: (context, index) {
+                    final cert = _filteredCertificates[index];
+                    final fiscal = cert['fiscal_year'];
+                    final projects = cert['projects'] as List;
+                    final previewUrl = cert['preview_url'];
+                    final downloadUrl = cert['download_url'];
+
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Fiscal Year: ${fiscal['start']} - ${fiscal['end']}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ...projects.map((proj) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16)),
+                                  Text('Investment: ${proj['total_investment']} BDT'),
+                                  Text('ROI: ${proj['roi_amount']} BDT'),
+                                  Text('Invoice: ${proj['invoice_no']}'),
+                                ],
+                              ),
+                            )),
+                            const Divider(height: 20, thickness: 1),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () => _launchURL(previewUrl),
+                                  icon: const Icon(Icons.visibility),
+                                  label: const Text('View'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: _isDownloading[downloadUrl] == true
+                                      ? null
+                                      : () async {
+                                    await downloadCertificate(context, downloadUrl, fiscal['start']);
+                                  },
+                                  icon: _isDownloading[downloadUrl] == true
+                                      ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                      : const Icon(Icons.download),
+                                  label: Text(_isDownloading[downloadUrl] == true ? 'Downloading...' : 'Download'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
