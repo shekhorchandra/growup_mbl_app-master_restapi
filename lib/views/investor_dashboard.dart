@@ -4566,8 +4566,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: status.toLowerCase() == 'approved'
-                      ? Colors.green.shade100
-                      : Colors.orange.shade100,
+                      ? Colors.green
+                      : Colors.orange,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -4583,8 +4583,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   style: TextStyle(
                     fontSize: 10,
                     color: status.toLowerCase() == 'approved'
-                        ? Colors.green
-                        : Colors.orange,
+                        ? Colors.black
+                        : Colors.black,
                   ),
                 ),
               ),
