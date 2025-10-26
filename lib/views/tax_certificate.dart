@@ -21,6 +21,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
   List<dynamic> _filteredCertificates = [];
 
   final Map<String, bool> _isDownloading = {};
+  final Map<int, bool> _isExpanded = {}; // Track expanded state by index
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,7 +40,6 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
         throw Exception('Missing token or investor code. Please log in again.');
       }
 
-      // ✅ GET API with query parameter
       final url = Uri.parse('https://growupagro.tech/api/tax-certificates?investor_code=$investorCode');
 
       final response = await http.get(
@@ -68,6 +68,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     }
   }
 
+
   void _filterCertificates(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -81,6 +82,12 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
           return fiscalText.contains(query.toLowerCase()) || projectNames.contains(query.toLowerCase());
         }).toList();
       }
+    });
+  }
+
+  void _toggleExpand(int index) {
+    setState(() {
+      _isExpanded[index] = !(_isExpanded[index] ?? false);
     });
   }
 
@@ -141,7 +148,6 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
       ),
       body: FutureBuilder<List<dynamic>>(
         future: certificatesFuture,
@@ -156,7 +162,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
 
           return Column(
             children: [
-              // 🔍 Search Bar
+              // Search Bar
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: TextField(
@@ -165,14 +171,12 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                   decoration: InputDecoration(
                     hintText: 'Search by fiscal year or project name...',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
 
-              // 📋 Certificate List
+              // Certificate List
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(10),
@@ -183,16 +187,30 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                     final projects = cert['projects'] as List;
                     final previewUrl = cert['preview_url'];
                     final downloadUrl = cert['download_url'];
+                    final expanded = _isExpanded[index] ?? false;
 
-                    return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 4,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
+                    return GestureDetector(
+                      onTap: () => _toggleExpand(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
                         padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Always visible part
                             Text(
                               'Fiscal Year: ${fiscal['start']} - ${fiscal['end']}',
                               style: const TextStyle(
@@ -201,52 +219,66 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                                 color: Colors.green,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            ...projects.map((proj) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6.0),
-                              child: Column(
+
+                            // Expandable part
+                            AnimatedCrossFade(
+                              firstChild: const SizedBox.shrink(),
+                              secondChild: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16)),
-                                  Text('Investment: ${proj['total_investment']} BDT'),
-                                  Text('ROI: ${proj['roi_amount']} BDT'),
-                                  Text('Invoice: ${proj['invoice_no']}'),
+                                  const SizedBox(height: 10),
+                                  ...projects.map((proj) => Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16)),
+                                        Text('Investment: ${proj['total_investment']} BDT'),
+                                        Text('ROI: ${proj['roi_amount']} BDT'),
+                                        Text('Invoice: ${proj['invoice_no']}'),
+                                      ],
+                                    ),
+                                  )),
+                                  const Divider(height: 20, thickness: 1),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      ElevatedButton.icon(
+                                        onPressed: () => _launchURL(previewUrl),
+                                        icon: const Icon(Icons.visibility),
+                                        label: const Text('View'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                      ),
+                                      ElevatedButton.icon(
+                                        onPressed: _isDownloading[downloadUrl] == true
+                                            ? null
+                                            : () async {
+                                          await downloadCertificate(context, downloadUrl, fiscal['start']);
+                                        },
+                                        icon: _isDownloading[downloadUrl] == true
+                                            ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        )
+                                            : const Icon(Icons.download),
+                                        label: Text(_isDownloading[downloadUrl] == true ? 'Downloading...' : 'Download'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blue,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
-                            )),
-                            const Divider(height: 20, thickness: 1),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: () => _launchURL(previewUrl),
-                                  icon: const Icon(Icons.visibility),
-                                  label: const Text('View'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                                ElevatedButton.icon(
-                                  onPressed: _isDownloading[downloadUrl] == true
-                                      ? null
-                                      : () async {
-                                    await downloadCertificate(context, downloadUrl, fiscal['start']);
-                                  },
-                                  icon: _isDownloading[downloadUrl] == true
-                                      ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                      : const Icon(Icons.download),
-                                  label: Text(_isDownloading[downloadUrl] == true ? 'Downloading...' : 'Download'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ],
+                              crossFadeState: expanded
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              duration: const Duration(milliseconds: 300),
                             ),
                           ],
                         ),
@@ -262,3 +294,4 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     );
   }
 }
+
