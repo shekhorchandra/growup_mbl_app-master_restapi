@@ -142,7 +142,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: 'WELCOME\n',
+                                          text: '\nWELCOME\n',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 32 * textScale,
@@ -175,6 +175,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 32 * textScale,
                                       letterSpacing: 1.2,
+
                                       height: 0.9, // reduce vertical space
                                     ),
                                   )
@@ -209,11 +210,12 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    "MAKE INVESTING\nA HABIT",
+                                    "MAKE INVESTING A HABIT",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
-                                      fontSize: 22 * textScale,
+                                      fontSize: 15 * textScale,
+                                      fontFamily: 'Fontappbar',
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

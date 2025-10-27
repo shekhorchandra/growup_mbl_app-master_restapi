@@ -391,26 +391,48 @@ class _WithdrawPageState extends State<WithdrawPage> {
         const SizedBox(height: 8),
         TextField(
           controller: _amountController,
-          decoration: const InputDecoration(
-              labelText: 'Amount', border: OutlineInputBorder()),
           keyboardType: TextInputType.number,
           enabled: !_isSubmitting,
+          style: TextStyle(fontSize: 14), // smaller font reduces height
+          decoration: InputDecoration(
+            labelText: 'Amount',
+            border: OutlineInputBorder(),
+            isDense: true, // makes the field more compact
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 8,  // vertical padding to reduce height
+              horizontal: 12,
+            ),
+          ),
         ),
+
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
           value: _selectedMethod,
-          decoration: const InputDecoration(
-              labelText: 'Withdraw Method', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+            labelText: 'Withdraw Method',
+            border: OutlineInputBorder(),
+            isDense: true, // compact vertical spacing
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 8,  // reduce vertical height
+              horizontal: 12,
+            ),
+          ),
           items: _methods
-              .map((method) =>
-              DropdownMenuItem(value: method, child: Text(method)))
+              .map(
+                (method) => DropdownMenuItem(
+              value: method,
+              child: Text(
+                method,
+                style: TextStyle(fontSize: 14), // optional smaller text
+              ),
+            ),
+          )
               .toList(),
           onChanged: _isSubmitting
               ? null
               : (val) {
             setState(() {
               _selectedMethod = val!;
-              // Removed assignment to _isBankTransfer
             });
 
             // Auto-fill from API if a method is chosen
@@ -428,57 +450,111 @@ class _WithdrawPageState extends State<WithdrawPage> {
           },
         ),
 
+
         const SizedBox(height: 12),
         if (_isBankTransfer) ...[
           TextField(
             controller: _bankAccountNameController,
-            readOnly: true, // <-- user can't edit
-            decoration: const InputDecoration(
-                labelText: 'Account Name', border: OutlineInputBorder()),
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            style: TextStyle(fontSize: 14), // smaller text reduces height
+            decoration: InputDecoration(
+              labelText: 'Account Name',
+              border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8,  // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
           const SizedBox(height: 8),
           TextField(
             controller: _bankNameController,
-            readOnly: true, // <-- user can't edit
-            decoration: const InputDecoration(
-                labelText: 'Bank Name', border: OutlineInputBorder()),
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            style: TextStyle(fontSize: 14), // smaller font reduces height
+            decoration: InputDecoration(
+              labelText: 'Bank Name',
+              border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8, // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
           const SizedBox(height: 8),
           TextField(
             controller: _accountNumberController,
-            readOnly: true, // <-- user can't edit
-            decoration: const InputDecoration(
-                labelText: 'Account Number', border: OutlineInputBorder()),
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            style: TextStyle(fontSize: 14), // smaller font reduces height
+            decoration: InputDecoration(
+              labelText: 'Account Number',
+              border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8, // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
           const SizedBox(height: 8),
           TextField(
             controller: _branchNameController,
-            readOnly: true, // <-- user can't edit
-            decoration: const InputDecoration(
-                labelText: 'Branch Name', border: OutlineInputBorder()),
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            style: TextStyle(fontSize: 14), // smaller font reduces height
+            decoration: InputDecoration(
+              labelText: 'Branch Name',
+              border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8, // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
           const SizedBox(height: 8),
           TextField(
             controller: _routingNumberController,
-            readOnly: true, // <-- user can't edit
-            decoration: const InputDecoration(
-                labelText: 'Routing Number', border: OutlineInputBorder()),
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            style: TextStyle(fontSize: 14), // smaller font reduces height
+            decoration: InputDecoration(
+              labelText: 'Routing Number',
+              border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8, // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
         ] else if (_selectedMethod != "Selected Method") ...[
           TextField(
             controller: _mobileNumberController,
-            readOnly: true, // <-- user can't edit
-            decoration: InputDecoration(
-                labelText: 'Mobile Number for $_selectedMethod',
-                border: const OutlineInputBorder()),
-            keyboardType: TextInputType.phone,
+            readOnly: true, // user can't edit
             enabled: !_isSubmitting,
+            keyboardType: TextInputType.phone,
+            style: TextStyle(fontSize: 14), // smaller font reduces height
+            decoration: InputDecoration(
+              labelText: 'Mobile Number for $_selectedMethod',
+              border: OutlineInputBorder(),
+              isDense: true, // compact vertical spacing
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8, // reduce vertical padding
+                horizontal: 12,
+              ),
+            ),
           ),
+
         ],
         const SizedBox(height: 16),
         SizedBox(

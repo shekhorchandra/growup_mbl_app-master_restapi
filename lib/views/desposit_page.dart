@@ -725,7 +725,6 @@ class _DepositPageState extends State<DepositPage> {
   }
 
   Widget _buildDepositForm() {
-    // Normalize the selected method for conditional checks
     final method = _selectedMethod.toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
     return Padding(
@@ -733,87 +732,71 @@ class _DepositPageState extends State<DepositPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Dropdown for Deposit Method
+          // Deposit Method Dropdown
           DropdownButtonFormField<String>(
             value: _selectedMethod,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Deposit Method',
               border: OutlineInputBorder(),
+              isDense: true, // makes the field more compact
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 8,  // reduce vertical height
+                horizontal: 12,
+              ),
             ),
             items: _methods
-                .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                .map((m) => DropdownMenuItem(
+              value: m,
+              child: Text(m, style: TextStyle(fontSize: 14)), // optional smaller text
+            ))
                 .toList(),
             onChanged: (val) => setState(() => _selectedMethod = val!),
           ),
+
           const SizedBox(height: 12),
-          // Amount Field
-          if (method != 'cashpayment')
+
+          // Amount field (skip for cash)
+          if (method != 'cashpayment') ...[
             TextField(
               controller: _amountController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount',
                 border: OutlineInputBorder(),
+                isDense: true, // makes the TextField more compact
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 8, // adjust this for desired height
+                  horizontal: 12,
+                ),
               ),
               keyboardType: TextInputType.number,
+              style: TextStyle(fontSize: 14), // smaller font reduces height
             ),
-          if (method != 'cashpayment')
-            const SizedBox(height: 12),
 
-
-
-          // Mobile Banking Fields
-          // if (['bkash', 'nagad', 'rocket'].contains(method)) ...[
-          //   // ... (Your existing mobile banking fields) ...
-          //   TextField(
-          //     controller: _transactionIdController,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Transaction ID',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //   ),
-          //   const SizedBox(height: 8),
-          //   TextField(
-          //     controller: _mobileNumberController,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Mobile Number',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //   ),
-          // ],
-          // Cash Payment Logic (UPDATED)
-          if (method == 'cashpayment') ...[
-            _buildCashPaymentInstructions(), // <-- Your new widget
-            const SizedBox(height: 12),
-          ],
-          if (method == 'onlinepayment(shurjopay)') ...[
-            _buildShurjopayInstructions(), // <-- Your new widget
             const SizedBox(height: 12),
           ],
 
-          // Bank Transfer Fields (New Bank Details Widget Included)
+          // Bank Transfer Fields
           if (method == 'banktransfer') ...[
-
-            // --- NEW: Multiple Bank Account Details ---
-            // const SizedBox(height: 10),
-            // _buildBankDetailsList(),
-            // const SizedBox(height: 12),
-            // ----------------------------------------
-
-            // User's Bank Information (for your record)
+            // User Bank Info
             TextField(
               controller: _bankNameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Your Bank Name (where you sent the money from)',
                 border: OutlineInputBorder(),
+                isDense: true, // makes TextField more compact
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 8,  // reduce vertical padding
+                  horizontal: 12,
+                ),
               ),
             ),
-            const SizedBox(height: 10),
 
-            // Deposit Slip/Document Upload
+            const SizedBox(height: 12),
+
+            // Upload Deposit Document
             _selectedImage != null
                 ? Image.file(_selectedImage!, height: 100)
-                : const Center(
-                child: Text("Upload Deposit Document (Pdf or Image)")),
+                : const Center(child: Text("Upload Deposit Document (Pdf or Image)")),
             Center(
               child: TextButton.icon(
                 onPressed: _pickImage,
@@ -821,68 +804,53 @@ class _DepositPageState extends State<DepositPage> {
                 label: const Text(""),
               ),
             ),
-            bankTransferText(),
-            _buildBankDetailsList(),
-            // const SizedBox(height: 12),
-            // const SizedBox(height: 10),
-
-            // --- NEW: Multiple Bank Account Details ---
-            //  bankTransferText(),
-            // _buildBankDetailsList(),
+            const SizedBox(height: 12),
           ],
 
-          // Shurjo Pay Field
-          // if (method == 'onlinepayment(shurjopay)') ...[
-          //   TextField(
-          //     controller: _shurjopayController,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Shurjo Pay',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //   ),
-          //   const SizedBox(height: 10),
-          // ],
-
-          // Submit/Pay Button Logic
-          const SizedBox(height: 10),
+          // Submit/Deposit Button
+          // const SizedBox(height: 10),
           if (method != 'cashpayment')
-            _isSubmitting ||
-                (method == 'onlinepayment(shurjopay)' && _isLoading)
+            _isSubmitting
                 ? const Center(child: CircularProgressIndicator())
                 : SizedBox(
               width: double.infinity,
-              child: method == 'onlinepayment(shurjopay)'
-                  ? ElevatedButton(
-                onPressed: _handleShurjoPay,
+              child: ElevatedButton(
+                onPressed: method == 'banktransfer'
+                    ? _submitDeposit
+                    : method == 'onlinepayment(shurjopay)'
+                    ? _handleShurjoPay
+                    : _submitDeposit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
-                child: const Text(
-                  'Pay with ShurjoPay',
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  method == 'onlinepayment(shurjopay)' ? 'Pay with ShurjoPay' : 'Deposit',
+                  style: const TextStyle(color: Colors.white),
                 ),
-              )
-                  : ElevatedButton(
-                onPressed: _submitDeposit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-                child: const Text(
-                  'Deposit',
-                  style: TextStyle(color: Colors.white),
-                ),
-
               ),
-
             ),
           const SizedBox(height: 12),
-          // _buildBankDetailsList(),
-          // const SizedBox(height: 12),
+
+          // Bank Transfer Cards (only show after button)
+          if (method == 'banktransfer') ...[
+            bankTransferText(),
+            const SizedBox(height: 12),
+            _buildBankDetailsList(),
+            const SizedBox(height: 12),
+          ],
+
+          // Cash Payment or ShurjoPay instructions can remain before the button
+          if (method == 'cashpayment') ...[
+            _buildCashPaymentInstructions(),
+            const SizedBox(height: 12),
+          ],
+          if (method == 'onlinepayment(shurjopay)') ...[
+            _buildShurjopayInstructions(),
+            const SizedBox(height: 12),
+          ],
 
           // Deposit History Section
-          const SizedBox(height: 20),
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -900,34 +868,6 @@ class _DepositPageState extends State<DepositPage> {
           const SizedBox(height: 16),
           _buildDepositHistoryTable(),
           const SizedBox(height: 45),
-          // Pagination logic...
-          // Transform.translate(
-          //   offset: const Offset(0, -52),  // move upward by 10 pixels
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.center,
-          //     children: [
-          //       ElevatedButton(
-          //         onPressed: _currentPage > 0
-          //             ? () => setState(() => _currentPage--)
-          //             : null,
-          //         child: const Text('Previous'),
-          //       ),
-          //       const SizedBox(width: 20),
-          //       Text(
-          //         'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length / _itemsPerPage).ceil()}',
-          //       ),
-          //       const SizedBox(width: 20),
-          //       ElevatedButton(
-          //         onPressed: (_currentPage + 1) * _itemsPerPage <
-          //             _filteredDepositHistory.length
-          //             ? () => setState(() => _currentPage++)
-          //             : null,
-          //         child: const Text('Next'),
-          //       ),
-          //     ],
-          //   ),
-          // )
-
         ],
       ),
     );
@@ -1053,8 +993,6 @@ class _DepositPageState extends State<DepositPage> {
       ),
     );
   }
-
-
 
 
   Widget _buildCashPaymentInstructions() {
@@ -1258,8 +1196,6 @@ class _DepositPageState extends State<DepositPage> {
       ],
     );
   }
-
-
 
 
   Future<void> _openInvoiceInBrowser(String? invoiceNo) async {

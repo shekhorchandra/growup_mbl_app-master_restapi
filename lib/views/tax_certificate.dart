@@ -212,7 +212,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                           children: [
                             // Always visible part
                             Text(
-                              'Fiscal Year: ${fiscal['start']} - ${fiscal['end']}',
+                              'Fiscal Year: ${fiscal['start']} to ${fiscal['end']}',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -232,10 +232,10 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16)),
+                                        Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
                                         Text('Investment: ${proj['total_investment']} BDT'),
                                         Text('ROI: ${proj['roi_amount']} BDT'),
-                                        Text('Invoice: ${proj['invoice_no']}'),
+                                        // Text('Invoice: ${proj['invoice_no']}'),
                                       ],
                                     ),
                                   )),
