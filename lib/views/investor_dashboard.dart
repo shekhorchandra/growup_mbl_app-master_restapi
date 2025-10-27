@@ -607,118 +607,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: [
-                      // DrawerHeader(
-                      //   decoration: const BoxDecoration(color: Color(0xFF2E7D32)),
-                      //   margin: EdgeInsets.zero,
-                      //   padding: const EdgeInsets.all(16),
-                      //   child: Row(
-                      //     crossAxisAlignment: CrossAxisAlignment.start,
-                      //     children: [
-                      //       // Avatar on the left
-                      //       CircleAvatar(
-                      //         radius: 38,
-                      //         backgroundImage: profile['image'] != null && profile['image'] != ''
-                      //             ? NetworkImage('https://admin-growup.onebitstore.site/storage/${profile['image']}')
-                      //             : const AssetImage('assets/images/img.png') as ImageProvider,
-                      //       ),
-                      //       const SizedBox(width: 16),
-                      //
-                      //       // Info Column on the right
-                      //       Expanded(
-                      //         child: SingleChildScrollView(
-                      //           child: Column(
-                      //             crossAxisAlignment: CrossAxisAlignment.start,
-                      //             children: [
-                      //               // Name + Edit icon row
-                      //               Row(
-                      //                 children: [
-                      //                   Expanded(
-                      //                     child: Text(
-                      //                       profile['name'] ?? 'No Name',
-                      //                       style: const TextStyle(
-                      //                         color: Colors.white,
-                      //                         fontWeight: FontWeight.bold,
-                      //                         fontSize: 18,
-                      //                       ),
-                      //                       overflow: TextOverflow.ellipsis,
-                      //                     ),
-                      //                   ),
-                      //                   GestureDetector(
-                      //                     onTap: () {
-                      //                       Navigator.pushNamed(context, '/myprofile');
-                      //                     },
-                      //                     child: Image.asset(
-                      //                       'assets/icons/edit.png',
-                      //                       width: 20,
-                      //                       height: 20,
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //               const SizedBox(height: 8),
-                      //
-                      //               // Code
-                      //               Row(
-                      //                 children: [
-                      //                   const Icon(Icons.person, color: Colors.white70, size: 16),
-                      //                   const SizedBox(width: 6),
-                      //                   Expanded(
-                      //                     child: Text(
-                      //                       profile['code'] ?? '',
-                      //                       style: const TextStyle(
-                      //                         color: Colors.white70,
-                      //                         fontSize: 12,
-                      //                       ),
-                      //                       overflow: TextOverflow.ellipsis,
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //               const SizedBox(height: 6),
-                      //
-                      //               // Phone
-                      //               Row(
-                      //                 children: [
-                      //                   const Icon(Icons.phone, color: Colors.white70, size: 16),
-                      //                   const SizedBox(width: 6),
-                      //                   Expanded(
-                      //                     child: Text(
-                      //                       profile['phone'] ?? '',
-                      //                       style: const TextStyle(
-                      //                         color: Colors.white70,
-                      //                         fontSize: 12,
-                      //                       ),
-                      //                       overflow: TextOverflow.ellipsis,
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //               const SizedBox(height: 6),
-                      //
-                      //               // Email
-                      //               Row(
-                      //                 children: [
-                      //                   const Icon(Icons.email, color: Colors.white70, size: 16),
-                      //                   const SizedBox(width: 6),
-                      //                   Expanded(
-                      //                     child: Text(
-                      //                       profile['email'] ?? '',
-                      //                       style: const TextStyle(
-                      //                         color: Colors.white70,
-                      //                         fontSize: 12,
-                      //                       ),
-                      //                       overflow: TextOverflow.ellipsis,
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //             ],
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
                       UserAccountsDrawerHeader(
                         decoration: const BoxDecoration(
                           color: Color(0xFF2E7D32),
@@ -762,13 +650,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            // Text(
-                            //   "ID: ${profile['code']}",
-                            //   style: const TextStyle(
-                            //     fontSize: 10,
-                            //     color: Colors.white,
-                            //   ),
-                            // )
                           ],
                         ),
 
@@ -782,16 +663,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               : const AssetImage('assets/images/img.png')
                           as ImageProvider,
                         ),
-
-                        // currentAccountPicture: CircleAvatar(
-                        //   backgroundImage:
-                        //       profile['image'] != null && profile['image'] != ''
-                        //       ? NetworkImage(
-                        //           'https://admin-growup.onebitstore.site/storage/${profile['image']}',
-                        //         )
-                        //       : const AssetImage('assets/images/img.png')
-                        //             as ImageProvider,
-                        // ),
                       ),
 
                       _buildDrawerItem(
@@ -806,236 +677,214 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         leading: Icon(
                           FontAwesomeIcons.wallet,
                           color: Colors.green,
+                          size: 20, // smaller main icon
                         ),
-                        title: Text('Wallet'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Wallet',
+                          style: TextStyle(
+                            fontSize: 14, // smaller text
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // remove top/bottom padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4), // compact vertical space
                             leading: Icon(
                               FontAwesomeIcons.wallet,
-                              size: 18,
+                              size: 16, // smaller child icon
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('My Wallet'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) =>
-                            //           const WalletHistoryPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/wallet'),
+                            ),
+                            title: Text(
+                              'My Wallet',
+                              style: TextStyle(fontSize: 13), // smaller child text
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/wallet'),
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.moneyCheck,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Deposit'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const DepositPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/deposit'),
+                            ),
+                            title: Text(
+                              'Deposit',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/deposit'),
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.arrowDown,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Withdraw'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const WithdrawPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/withdraw'),
+                            ),
+                            title: Text(
+                              'Withdraw',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/withdraw'),
                           ),
                         ],
                       ),
+
                       ExpansionTile(
                         leading: Icon(
                           FontAwesomeIcons.seedling,
                           color: Colors.green,
+                          size: 20, // smaller main icon
                         ),
-                        title: Text('Growup'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Growup',
+                          style: TextStyle(
+                            fontSize: 14, // smaller main text
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0),
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.folderOpen,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Projects'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const AllProjectsPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/projects'),
+                            ),
+                            title: Text(
+                              'Projects',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/projects'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.projectDiagram,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Invested Projects'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const MyProjectsPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/myprojects'),
+                            ),
+                            title: Text(
+                              'Invested Projects',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/myprojects'),
                           ),
                         ],
                       ),
+
 
                       //invoice
                       ExpansionTile(
                         leading: Icon(
                           FontAwesomeIcons.fileInvoiceDollar,
                           color: Colors.green,
+                          size: 20, // main icon size
                         ),
-                        title: Text('Invoices'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Invoices',
+                          style: TextStyle(
+                            fontSize: 14, // main title size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileInvoice,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Growup'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const InvoiceGrowupPage()),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/invoice_growup'),
+                            ),
+                            title: Text(
+                              'Growup',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/invoice_growup'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.warehouse,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Property'),
-                            onTap: () {
-                              // Navigator.pop(context); // Close the drawer or dialog if needed
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(builder: (context) => const DepositPage()),
-                              // );
-                            },
+                            ),
+                            title: Text(
+                              'Property',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileInvoiceDollar,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Recharge'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const InvoiceRechargePage()),
-                            //   );
-                            // },
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              '/invoice_recharge',
                             ),
+                            title: Text(
+                              'Recharge',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/invoice_recharge'),
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.coins,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('ROI'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const InvoiceRoiPage()),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/invoice_roi'),
+                            ),
+                            title: Text(
+                              'ROI',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/invoice_roi'),
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.handHoldingDollar,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Capital Return'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const CapitalReturnPage()),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/capital_return'),
+                            ),
+                            title: Text(
+                              'Capital Return',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/capital_return'),
                           ),
                         ],
                       ),
+
 
                       _buildDrawerItem(
                         FontAwesomeIcons.history,
@@ -1048,125 +897,128 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         leading: Icon(
                           FontAwesomeIcons.building,
                           color: Colors.green,
+                          size: 20, // smaller main icon
                         ),
-                        title: Text('Properties'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Properties',
+                          style: TextStyle(
+                            fontSize: 14, // main text size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.building,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Package Details'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const AllPropertiesPage()),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/properties'),
+                            ),
+                            title: Text(
+                              'Package Details',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/properties'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.shoppingBag,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Ordered Properties'),
-                            onTap: () {
-                              // Navigator.pop(context); // Close the drawer or dialog if needed
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(builder: (context) => const MyProjectsPage()),
-                              // );
-                            },
+                            ),
+                            title: Text(
+                              'Ordered Properties',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
                           ),
                         ],
                       ),
+
                       ExpansionTile(
                         leading: Icon(
                           FontAwesomeIcons.box,
                           color: Colors.green,
+                          size: 20, // main icon size
                         ),
-                        title: Text('Products'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Products',
+                          style: TextStyle(
+                            fontSize: 14, // main title text size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.box,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('All Products'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const AllProductsPage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/products'),
+                            ),
+                            title: Text(
+                              'All Products',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/products'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.shoppingCart,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('My Cart'),
-                            onTap: () {
-                              // Navigator.pop(context); // Close the drawer or dialog if needed
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(builder: (context) => const DepositPage()),
-                              // );
-                            },
+                            ),
+                            title: Text(
+                              'My Cart',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.boxOpen,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('My Orders'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const MyOrdersPage()),
-                            //   );
-                            // },
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/myorders'),
+                            ),
+                            title: Text(
+                              'My Orders',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/myorders'),
                           ),
-
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.truck,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Track My Orders'),
-                            onTap: () {
-                              // Navigator.pop(context); // Close the drawer or dialog if needed
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(builder: (context) => const WithdrawPage()),
-                              // );
-                            },
+                            ),
+                            title: Text(
+                              'Track My Orders',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
                           ),
                         ],
                       ),
@@ -1186,57 +1038,48 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         leading: Icon(
                           FontAwesomeIcons.certificate,
                           color: Colors.green,
+                          size: 20, // main icon size
                         ),
-                        title: Text('Certification'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'Certification',
+                          style: TextStyle(
+                            fontSize: 14, // main title size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileAlt,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('TAX Certificate'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const TaxCertificatePage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              '/tax_certificate',
                             ),
+                            title: Text(
+                              'TAX Certificate',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/tax_certificate'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.coins,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Investment Certificate'),
-                            // onTap: () {
-                            //   Navigator.pop(
-                            //     context,
-                            //   ); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const ProjectCertificatePage(),
-                            //     ),
-                            //   );
-                            // },
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              '/project_certificate',
                             ),
+                            title: Text(
+                              'Investment Certificate',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(context, '/project_certificate'),
                           ),
                         ],
                       ),
@@ -1244,44 +1087,47 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         leading: Icon(
                           FontAwesomeIcons.infoCircle,
                           color: Colors.green,
+                          size: 20, // main icon size
                         ),
-                        title: Text('About'),
-                        childrenPadding: EdgeInsets.only(
-                          left: 40,
-                        ), // Add left space for all children
+                        title: Text(
+                          'About',
+                          style: TextStyle(
+                            fontSize: 14, // main text size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        dense: true,
                         children: <Widget>[
                           ListTile(
-                            leading: const Icon(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
                               FontAwesomeIcons.infoCircle,
-                              size: 18,
+                              size: 16,
                               color: Colors.green,
                             ),
-                            title: const Text('About Us'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // close drawer first
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => const AboutUsPage(),
-                            //     ),
-                            //   );
-                            // },
+                            title: Text(
+                              'About Us',
+                              style: TextStyle(fontSize: 13),
+                            ),
                             onTap: () => Navigator.pushNamed(context, '/about_us'),
                           ),
                           ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileAlt,
-                              size: 28,
+                              size: 16, // reduced from 28
                               color: Colors.green,
-                            ), // Bullet point
-                            title: Text('Certificates'),
-                            // onTap: () {
-                            //   Navigator.pop(context); // Close the drawer or dialog if needed
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(builder: (context) => const CertificateWebViewPage()),
-                            //   );
-                            // },
+                            ),
+                            title: Text(
+                              'Certificates',
+                              style: TextStyle(fontSize: 13),
+                            ),
                             onTap: () => Navigator.pushNamed(context, '/certificate'),
                           ),
                         ],
@@ -1718,58 +1564,61 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 // Inside your Column or wherever you are adding the slider
                 if (isLoading)
                   const SizedBox(
-                    height: 220,
+                    // height: 220,
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else if (imageUrls.isEmpty)
                   const SizedBox(
-                    height: 220,
+                    // height: 220,
                     child: Center(child: Text('No images available')),
                   )
                 else
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: CarouselSlider(
-                      options: CarouselOptions(
-                        height: 220,
-                        autoPlay: true,
-                        enlargeCenterPage: true,
-                        viewportFraction: 1.0,
-                      ),
-                      items: imageUrls.map((url) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  url,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, progress) {
-                                    if (progress == null) return child;
-                                    return const Center(
-                                      child:
-                                      CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder:
-                                      (context, error, stackTrace) {
-                                    return const Center(
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: CarouselSlider(
+                        options: CarouselOptions(
+                          // height: 220,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          viewportFraction: 1.0,
+                        ),
+                        items: imageUrls.map((url) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(
+                                        child:
+                                        CircularProgressIndicator(),
+                                      );
+                                    },
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      }).toList(),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
 
@@ -3123,18 +2972,25 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   }
 
   // left drawer
-  ListTile _buildDrawerItem(
-      IconData icon,
-      String title,
-      BuildContext context,
-      String route,
-      ) {
+  Widget _buildDrawerItem(IconData icon, String title, BuildContext context, String route) {
     return ListTile(
-      leading: Icon(icon, color: Colors.green),
-      title: Text(title),
+      dense: true, // makes the tile vertically smaller
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16), // reduce left/right padding
+      visualDensity: const VisualDensity(vertical: -4), // shrink vertical space
+      leading: Icon(
+        icon,
+        color: Colors.green,
+        size: 18, // smaller icon
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500, // smaller text
+        ),
+      ),
       onTap: () {
-        //Navigator.pop(context); // close the drawer first
-        Navigator.pushNamed(context, route);
+        Navigator.pushNamed(context, route); // navigate to route
       },
     );
   }

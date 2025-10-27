@@ -139,7 +139,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     text: TextSpan(
                                       style: TextStyle(
                                         color: Colors.white,
-                                        // fontFamily: 'Fontappbar',
                                       ),
                                       children: [
                                         TextSpan(
@@ -150,21 +149,24 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: 'to',
+                                          text: 'TO', // add \n to create line break after TO
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             fontSize: 32 * textScale,
+                                            height: 1.5, // increase line spacing here
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
+
                                   Image.asset(
                                     'assets/images/GrowupLogo.png',
                                     height: height * 0.13,
-                                    fit: BoxFit.contain,
+                                    width: width * 0.8,
+                                    fit: BoxFit.cover,
                                   ),
-                                  SizedBox(height: 0), // reduce gap (default is usually ~8)
+                                  // SizedBox(height: 0), // reduce gap (default is usually ~8)
                                   Text(
                                     'AGROTECH LIMITED',
                                     textAlign: TextAlign.center,
@@ -211,7 +213,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
-                                      fontSize: 32 * textScale,
+                                      fontSize: 22 * textScale,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

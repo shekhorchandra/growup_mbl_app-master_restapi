@@ -74,12 +74,12 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
         },
       );
 
-
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
         final List data = body['data'];
-        final historyList =
-        data.map((e) => WalletHistoryModel.fromJson(e)).toList();
+        final historyList = data
+            .map((e) => WalletHistoryModel.fromJson(e))
+            .toList();
 
         setState(() {
           fullHistory = historyList;
@@ -88,7 +88,8 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
         });
       } else {
         throw Exception(
-            'Error ${response.statusCode}: ${json.decode(response.body)['message']}');
+          'Error ${response.statusCode}: ${json.decode(response.body)['message']}',
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,7 +101,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
           backgroundColor: Colors.red, // 🔴 red background
         ),
       );
-    }  finally {
+    } finally {
       setState(() => isLoading = false);
     }
   }
@@ -153,9 +154,9 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
   }
 
   Future<void> _openInvoiceInBrowser(
-      BuildContext context,
-      String invoiceNo,
-      ) async {
+    BuildContext context,
+    String invoiceNo,
+  ) async {
     setState(() {
       downloadingInvoices.add(invoiceNo);
     });
@@ -192,8 +193,6 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
       });
     }
   }
-
-
 
   ///  Custom Status Chip
   Widget _getStatusChip(String? status) {
@@ -251,9 +250,14 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wallet Transaction History',
-            style: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          'Wallet Transaction History',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: const Color(0xFF2E7D32),
         centerTitle: true,
         foregroundColor: Colors.white,
@@ -266,252 +270,296 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : Column(
-            children: [
-              IndexedStack(
-                index: _selectedIndex,
-                children: _pages,
-              ),
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search by Transaction ID or Type',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Card(
-                      child: DataTable(
-                        columnSpacing: 14,
-                        dataRowHeight: 80,
-                        headingRowColor: MaterialStateProperty.all(
-                            const Color(0xFF388E3C)),
-                        headingTextStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  children: [
+                    IndexedStack(index: _selectedIndex, children: _pages),
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        labelText: 'Search by Transaction ID or Type',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
                         ),
-                        columns: const [
-                          DataColumn(label: Text('SL')),
-                          DataColumn(label: Text('Transaction Info')),
-                          // DataColumn(label: Text('Date')),
-                          // DataColumn(label: Text('Amount')),
-                          // DataColumn(label: Text('Status')),
-                          //DataColumn(label: Text('Actioned By')),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Card(
+                            child: DataTable(
+                              columnSpacing: 14,
+                              dataRowHeight: 80,
+                              headingRowColor: MaterialStateProperty.all(
+                                const Color(0xFF388E3C),
+                              ),
+                              headingTextStyle: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              columns: const [
+                                DataColumn(label: Text('SL')),
+                                DataColumn(label: Text('Transaction Info')),
 
-                          DataColumn(label: Text('Actions')), // download button
-                        ],
-                        rows: List.generate(currentPageItems.length,
-                                (index) {
-                              final item = currentPageItems[index];
-                              return DataRow(cells: [
-                                DataCell(Text(
-                                    '${(currentPage - 1) * rowsPerPage + index + 1}')),
-                                DataCell(
-                                    Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text.rich(
+                                // DataColumn(label: Text('Date')),
+                                // DataColumn(label: Text('Amount')),
+                                // DataColumn(label: Text('Status')),
+                                //DataColumn(label: Text('Actioned By')),
+                                DataColumn(
+                                  label: Text('Actions'),
+                                ), // download button
+                              ],
+                              rows: List.generate(currentPageItems.length, (
+                                index,
+                              ) {
+                                final item = currentPageItems[index];
+                                return DataRow(
+                                  cells: [
+                                    DataCell(
+                                      Text(
+                                        '${(currentPage - 1) * rowsPerPage + index + 1}',
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        text: '${item.type}',
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              // Text.rich(
+                                              //   TextSpan(
+                                              //     children: [
+                                              //       TextSpan(
+                                              //         text: '${item.date}',
+                                              //         style: const TextStyle(
+                                              //           fontSize: 12,
+                                              //           color: Colors.black54,
+                                              //         ),
+                                              //       ),
+                                              //     ],
+                                              //   ),
+                                              // ),
+                                              Text.rich(
+                                                TextSpan(
+                                                  children: [
+                                                    TextSpan(
+                                                      text:
+                                                          '৳${item.amount.toStringAsFixed(2)}',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          Text.rich(
                                             TextSpan(
                                               children: [
                                                 TextSpan(
-                                                  text: '${item.type}',
+                                                  text: (item.context),
                                                   style: const TextStyle(
                                                     fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ),
-                                        // Text.rich(
-                                        //   TextSpan(
-                                        //     children: [
-                                        //       TextSpan(
-                                        //         text: '${item.date}',
-                                        //         style: const TextStyle(
-                                        //           fontSize: 12,
-                                        //           color: Colors.black54,
-                                        //         ),
-                                        //       ),
-                                        //     ],
-                                        //   ),
-                                        // ),
-                                        Text.rich(
-                                          TextSpan(
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: [
-                                              TextSpan(
-                                                text: '৳${item.amount.toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
+                                              Expanded(
+                                                child: Text.rich(
+                                                  TextSpan(
+                                                    text: '${item.date}',
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
+                                              _getStatusChip(item.status),
                                             ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: (item.context),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          child: Text.rich(
-                                            TextSpan(
-                                              text: '${item.date}',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black87,
-                                              ),
+
+                                    // DataCell(
+                                    //     Column(
+                                    //       crossAxisAlignment:
+                                    //       CrossAxisAlignment.start,
+                                    //       mainAxisAlignment:
+                                    //       MainAxisAlignment.center,
+                                    //       children: [
+                                    //         Text.rich(
+                                    //           TextSpan(
+                                    //             children: [
+                                    //               TextSpan(
+                                    //                 text: '${item.date}',
+                                    //                 style: const TextStyle(
+                                    //                   fontSize: 12,
+                                    //                 ),
+                                    //               ),
+                                    //             ],
+                                    //           ),
+                                    //         ),
+                                    //
+                                    //       ],
+                                    //     )),
+
+                                    // DataCell(
+                                    //     Column(
+                                    //   crossAxisAlignment:
+                                    //   CrossAxisAlignment.start,
+                                    //   mainAxisAlignment:
+                                    //   MainAxisAlignment.center,
+                                    //   children: [
+                                    //     Text.rich(
+                                    //       TextSpan(
+                                    //         children: [
+                                    //           TextSpan(
+                                    //             text: '৳${item.amount.toStringAsFixed(2)}',
+                                    //             style: const TextStyle(
+                                    //               fontSize: 12,
+                                    //               fontWeight: FontWeight.bold,
+                                    //               color: Colors.black,
+                                    //             ),
+                                    //           ),
+                                    //         ],
+                                    //       ),
+                                    //     ),
+                                    //
+                                    //   ],
+                                    // )),
+                                    // DataCell(_getStatusChip(item.status)),
+                                    // const DataCell(Text('N/A')),
+                                    // DataCell(Text(item.note ?? 'N/A')),
+                                    DataCell(
+                                      item.status == "Approved"
+                                          ? (downloadingInvoices.contains(
+                                                  item.invoiceNo.toString(),
+                                                )
+                                                ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : IconButton(
+                                                    icon: const Icon(
+                                                      Icons.download,
+                                                      color: Colors.green,
+                                                    ),
+                                                    tooltip:
+                                                        'Open Invoice in Browser',
+                                                    onPressed: () =>
+                                                        _openInvoiceInBrowser(
+                                                          context,
+                                                          item.invoiceNo
+                                                              .toString(),
+                                                        ),
+                                                  ))
+                                          : const Icon(
+                                              Icons.block,
+                                              color: Colors
+                                                  .red, // visually “disabled” look
+                                              size: 24,
                                             ),
-                                          ),
-                                        ),
-                                        _getStatusChip(item.status),
-                                      ],
-                                    )
-
-
-                                  ],
-                                )),
-
-                                // DataCell(
-                                //     Column(
-                                //       crossAxisAlignment:
-                                //       CrossAxisAlignment.start,
-                                //       mainAxisAlignment:
-                                //       MainAxisAlignment.center,
-                                //       children: [
-                                //         Text.rich(
-                                //           TextSpan(
-                                //             children: [
-                                //               TextSpan(
-                                //                 text: '${item.date}',
-                                //                 style: const TextStyle(
-                                //                   fontSize: 12,
-                                //                 ),
-                                //               ),
-                                //             ],
-                                //           ),
-                                //         ),
-                                //
-                                //       ],
-                                //     )),
-
-                                // DataCell(
-                                //     Column(
-                                //   crossAxisAlignment:
-                                //   CrossAxisAlignment.start,
-                                //   mainAxisAlignment:
-                                //   MainAxisAlignment.center,
-                                //   children: [
-                                //     Text.rich(
-                                //       TextSpan(
-                                //         children: [
-                                //           TextSpan(
-                                //             text: '৳${item.amount.toStringAsFixed(2)}',
-                                //             style: const TextStyle(
-                                //               fontSize: 12,
-                                //               fontWeight: FontWeight.bold,
-                                //               color: Colors.black,
-                                //             ),
-                                //           ),
-                                //         ],
-                                //       ),
-                                //     ),
-                                //
-                                //   ],
-                                // )),
-                                // DataCell(_getStatusChip(item.status)),
-                                // const DataCell(Text('N/A')),
-                                // DataCell(Text(item.note ?? 'N/A')),
-                                DataCell(
-                                  item.status == "Approved"
-                                      ? (downloadingInvoices.contains(item.invoiceNo.toString())
-                                      ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                      : IconButton(
-                                    icon: const Icon(Icons.download, color: Colors.green),
-                                    tooltip: 'Open Invoice in Browser',
-                                    onPressed: () => _openInvoiceInBrowser(
-                                      context,
-                                      item.invoiceNo.toString(),
                                     ),
-                                  ))
-                                      : const Icon(
-                                    Icons.block,
-                                    color: Colors.red, // visually “disabled” look
-                                    size: 24,
-                                  ),
-                                )
-
-
-                              ]);
-                            }),
+                                  ],
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 60), // less vertical space
+                    Transform.translate(
+                      offset: const Offset(0, -48), // adjust upward
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                            height: 26, // smaller button height
+                            child: ElevatedButton(
+                              onPressed: currentPage > 1 ? _previousPage : null,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5), // 7px border radius
+                                ),
+                              ),
+                              child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                            ),
+                          ),
+                          const SizedBox(width: 24), // more space between buttons
+                          Text(
+                            'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(width: 24),
+                          SizedBox(
+                            height: 26, // smaller button height
+                            child: ElevatedButton(
+                              onPressed: currentPage * rowsPerPage < filteredHistory.length
+                                  ? _nextPage
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5), // 7px border radius
+                                ),
+                              ),
+                              child: const Text('Next', style: TextStyle(fontSize: 14)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: currentPage > 1 ? _previousPage : null,
-                    child: const Text('Previous'),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                      'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}'),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: currentPage * rowsPerPage <
-                        filteredHistory.length
-                        ? _nextPage
-                        : null,
-                    child: const Text('Next'),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -899,33 +899,35 @@ class _DepositPageState extends State<DepositPage> {
           ),
           const SizedBox(height: 16),
           _buildDepositHistoryTable(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 45),
           // Pagination logic...
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: _currentPage > 0
-                    ? () => setState(() => _currentPage--)
-                    : null,
-                child: const Text('Previous'),
-              ),
-              const SizedBox(width: 20),
-              Text(
-                'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length /
-                    _itemsPerPage).ceil()}',
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton(
-                onPressed:
-                (_currentPage + 1) * _itemsPerPage <
-                    _filteredDepositHistory.length
-                    ? () => setState(() => _currentPage++)
-                    : null,
-                child: const Text('Next'),
-              ),
-            ],
-          ),
+          // Transform.translate(
+          //   offset: const Offset(0, -52),  // move upward by 10 pixels
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.center,
+          //     children: [
+          //       ElevatedButton(
+          //         onPressed: _currentPage > 0
+          //             ? () => setState(() => _currentPage--)
+          //             : null,
+          //         child: const Text('Previous'),
+          //       ),
+          //       const SizedBox(width: 20),
+          //       Text(
+          //         'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length / _itemsPerPage).ceil()}',
+          //       ),
+          //       const SizedBox(width: 20),
+          //       ElevatedButton(
+          //         onPressed: (_currentPage + 1) * _itemsPerPage <
+          //             _filteredDepositHistory.length
+          //             ? () => setState(() => _currentPage++)
+          //             : null,
+          //         child: const Text('Next'),
+          //       ),
+          //     ],
+          //   ),
+          // )
+
         ],
       ),
     );
@@ -1258,30 +1260,7 @@ class _DepositPageState extends State<DepositPage> {
   }
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // centerTitle: true,
-        // backgroundColor: const Color(0xFF2E7D32),
-        // foregroundColor: Colors.white,
-        title: const Text(
-          "Deposit Funds",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: _buildDepositForm(),
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Future<void> _openInvoiceInBrowser(String? invoiceNo) async {
     // Exit if invoiceNo is null or empty
@@ -1335,6 +1314,81 @@ class _DepositPageState extends State<DepositPage> {
       }
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Deposit Funds",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+      ),
+
+      // Main scrollable content
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: _buildDepositForm(),
+          ),
+        ),
+      ),
+
+      // 👇 Fixed pagination bar (always visible)
+      bottomNavigationBar: Transform.translate(
+        offset: const Offset(0, -40), // slightly lift up
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30), // proper padding around row
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                height: 26, // slightly taller for better touch area
+                child: ElevatedButton(
+                  onPressed: _currentPage > 0
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5), // 7px border radius
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  ),
+                  child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                ),
+              ),
+              Text(
+                'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length / _itemsPerPage).ceil()}',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              SizedBox(
+                height: 26, // slightly taller for better touch area
+                child: ElevatedButton(
+                  onPressed: (_currentPage + 1) * _itemsPerPage < _filteredDepositHistory.length
+                      ? () => setState(() => _currentPage++)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5), // 7px border radius
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  ),
+                  child: const Text('Next', style: TextStyle(fontSize: 14)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+
+    );
+  }
+
+
 
 
 

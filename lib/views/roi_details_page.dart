@@ -220,29 +220,56 @@ class _RoiDetailsPageState extends State<RoiDetailsPage> {
             ),
           ),
 
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: currentPage > 0
-                    ? () => setState(() => currentPage--)
-                    : null,
-                child: const Text('Previous'),
+          const SizedBox(height: 45),
+          Transform.translate(
+            offset: const Offset(0, -52), // move upward
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper horizontal padding
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 26, // smaller button height
+                    child: ElevatedButton(
+                      onPressed: currentPage > 0
+                          ? () => setState(() => currentPage--)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5), // rounded corners
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                    ),
+                  ),
+                  Text(
+                    'Page ${currentPage + 1} of $totalPages',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(
+                    height: 26, // smaller button height
+                    child: ElevatedButton(
+                      onPressed: currentPage < totalPages - 1
+                          ? () => setState(() => currentPage++)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5), // rounded corners
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      child: const Text('Next', style: TextStyle(fontSize: 14)),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text('Page ${currentPage + 1} of $totalPages'),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: currentPage < totalPages - 1
-                    ? () => setState(() => currentPage++)
-                    : null,
-                child: const Text('Next'),
-              ),
-            ],
-          ),
+            ),
+          )
 
-          const SizedBox(height: 10),
+
+
+          // const SizedBox(height: 10),
         ],
       ),
     );

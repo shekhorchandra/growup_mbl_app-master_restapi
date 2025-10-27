@@ -380,29 +380,52 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                   ),
                 ),
               ),
-
-              // Pagination
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: currentPage > 1 ? _previousPage : null,
-                      child: const Text('Previous'),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      'Page $currentPage of ${(filteredList.length / rowsPerPage).ceil()}',
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: currentPage * rowsPerPage < filteredList.length ? _nextPage : null,
-                      child: const Text('Next'),
-                    ),
-                  ],
+              const SizedBox(height: 45),
+              Transform.translate(
+                offset: const Offset(0, -52), // move upward slightly
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper padding
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        height: 26, // smaller button height
+                        child: ElevatedButton(
+                          onPressed: currentPage > 1 ? _previousPage : null,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5), // 7px border radius
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                        ),
+                      ),
+                      const SizedBox(width: 24), // space between button and text
+                      Text(
+                        'Page $currentPage of ${(filteredList.length / rowsPerPage).ceil()}',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(width: 24), // space between text and button
+                      SizedBox(
+                        height: 26, // smaller button height
+                        child: ElevatedButton(
+                          onPressed: currentPage * rowsPerPage < filteredList.length ? _nextPage : null,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5), // 7px border radius
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          child: const Text('Next', style: TextStyle(fontSize: 14)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              )
+
+
             ],
           );
         },

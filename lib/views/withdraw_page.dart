@@ -107,15 +107,10 @@ class _WithdrawPageState extends State<WithdrawPage> {
   }
 
   List<Withdraw> get _paginatedWithdrawHistory {
-    final startIndex = _currentPage * _itemsPerPage;
-    final endIndex = startIndex + _itemsPerPage;
-    if (startIndex >= _filteredWithdrawHistory.length) return [];
-    return _filteredWithdrawHistory.sublist(
-        startIndex,
-        endIndex > _filteredWithdrawHistory.length
-            ? _filteredWithdrawHistory.length
-            : endIndex);
+    // Simply return the full filtered withdraw history
+    return _filteredWithdrawHistory;
   }
+
 
 
   Future<void> _fetchWalletBalanceFromAPI() async {
@@ -387,7 +382,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
     }
   }
 
-  Widget _buildWithdrawForm() {
+  Widget _buildWithdrawForm({required bool includePagination}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -523,30 +518,29 @@ class _WithdrawPageState extends State<WithdrawPage> {
         const SizedBox(height: 16),
         _buildWithdrawHistoryTable(),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-                onPressed: _currentPage > 0
-                    ? () => setState(() => _currentPage--)
-                    : null,
-                child: const Text('Previous')),
-            const SizedBox(width: 20),
-            Text(
-                'Page ${_currentPage + 1} of ${(_filteredWithdrawHistory.length / _itemsPerPage).ceil()}'),
-            const SizedBox(width: 20),
-            ElevatedButton(
-                onPressed: (_currentPage + 1) * _itemsPerPage <
-                    _filteredWithdrawHistory.length
-                    ? () => setState(() => _currentPage++)
-                    : null,
-                child: const Text('Next')),
-          ],
-        ),
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     ElevatedButton(
+        //         onPressed: _currentPage > 0
+        //             ? () => setState(() => _currentPage--)
+        //             : null,
+        //         child: const Text('Previous')),
+        //     const SizedBox(width: 20),
+        //     Text(
+        //         'Page ${_currentPage + 1} of ${(_filteredWithdrawHistory.length / _itemsPerPage).ceil()}'),
+        //     const SizedBox(width: 20),
+        //     ElevatedButton(
+        //         onPressed: (_currentPage + 1) * _itemsPerPage <
+        //             _filteredWithdrawHistory.length
+        //             ? () => setState(() => _currentPage++)
+        //             : null,
+        //         child: const Text('Next')),
+        //   ],
+        // ),
       ],
     );
   }
-
 
   Widget _buildWithdrawHistoryTable() {
     if (_isLoading) {
@@ -602,8 +596,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
                   final hasInvoice = invoiceNo != 0;
 
                   return DataRow(cells: [
-                    DataCell(
-                        Text('${_currentPage * _itemsPerPage + index + 1}')),
+                    DataCell(Text('${index + 1}')),
                     DataCell(Text(_formatDate(item.createdAt))),
                     DataCell(Text(item.amount.toString())),
                     DataCell(Text(item.sendMoneyMobileMedia.toString())),
@@ -653,30 +646,6 @@ class _WithdrawPageState extends State<WithdrawPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Withdraw Funds',
-            style: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
-      ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: _buildWithdrawForm(),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _openInvoiceInBrowser(String? invoiceNo) async {
     if (invoiceNo == null || invoiceNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -722,5 +691,84 @@ class _WithdrawPageState extends State<WithdrawPage> {
       setState(() => downloadingInvoices.remove(invoiceNo));
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Withdraw Funds',
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
+        foregroundColor: Colors.white,
+      ),
+
+      // Scrollable withdraw form + history
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: _buildWithdrawForm(
+              includePagination: false, // Remove pagination from inside scroll
+            ),
+          ),
+        ),
+      ),
+
+      // Fixed pagination at the bottom
+      bottomNavigationBar: Transform.translate(
+        offset: const Offset(0, -40), // slightly lift up
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),  // proper padding
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                height: 26, // smaller button height
+                child: ElevatedButton(
+                  onPressed: _currentPage > 0
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7), // 7px border radius
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                ),
+              ),
+              const SizedBox(width: 24),
+              Text(
+                'Page ${_currentPage + 1} of ${(_filteredWithdrawHistory.length / _itemsPerPage).ceil()}',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(width: 24),
+              SizedBox(
+                height: 26, // smaller button height
+                child: ElevatedButton(
+                  onPressed: (_currentPage + 1) * _itemsPerPage < _filteredWithdrawHistory.length
+                      ? () => setState(() => _currentPage++)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7), // 7px border radius
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: const Text('Next', style: TextStyle(fontSize: 14)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+    );
+  }
+
 
 }
