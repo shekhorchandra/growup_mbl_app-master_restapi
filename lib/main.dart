@@ -34,15 +34,11 @@ import 'package:shurjopay/utilities/functions.dart';
 
 import 'main_screen.dart';
 
-
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   initializeShurjopay(environment: "live"); // use live API
   runApp(const MyApp());
 }
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
