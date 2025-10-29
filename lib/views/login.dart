@@ -169,6 +169,9 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     final height = size.height;
     final width = size.width;
 
+    usernameController.text = "01833933567";
+    passwordController.text = "ja!1ma!3Pa#2";
+
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(

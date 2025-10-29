@@ -12,7 +12,6 @@ import 'package:growup_agro/views/certificates_web.dart';
 import 'package:growup_agro/views/desposit_page.dart';
 import 'package:growup_agro/views/edit_profile_info.dart';
 import 'package:growup_agro/views/investment_history.dart';
-import 'package:growup_agro/views/investor_dashboard.dart';
 import 'package:growup_agro/views/invoice_capital_return.dart';
 import 'package:growup_agro/views/invoice_growup.dart';
 import 'package:growup_agro/views/invoice_recharge.dart';
@@ -29,16 +28,19 @@ import 'package:growup_agro/views/short_duration.dart';
 import 'package:growup_agro/views/tax_certificate.dart';
 import 'package:growup_agro/views/wallet_history.dart';
 import 'package:growup_agro/views/withdraw_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shurjopay/utilities/functions.dart';
 
 import 'main_screen.dart';
+
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   initializeShurjopay(environment: "live"); // use live API
   runApp(const MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

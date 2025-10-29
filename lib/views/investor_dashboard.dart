@@ -47,6 +47,13 @@ import 'package:growup_agro/widgets/webview_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/all_properties.model.dart';
+import '../widgets/achievement_card.dart';
+import '../widgets/appbar_content.dart';
+import '../widgets/build_card.dart';
+import '../widgets/category_item.dart';
+import '../widgets/home_image_slider.dart';
+import '../widgets/summary_item.dart';
+import '../widgets/wallet_balance.dart';
 import 'IntroPage.dart';
 import 'all_products_page.dart';
 import 'completed_projects.dart';
@@ -85,14 +92,7 @@ class DashboardInvestor extends StatefulWidget {
 }
 
 class _DashboardInvestorState extends State<DashboardInvestor> {
-  // slider picture start
-  // final List<String> imageUrls = [
-  //   // 'https://admin-growup.onebitstore.site/storage/uploads/slider-image/68cfb01aa8e87.jpg',
-  //   // 'https://admin-growup.onebitstore.site/storage/uploads/slider-image/68cfb0265fd21.jpg',
-  //   // 'https://admin-growup.onebitstore.site/storage/uploads/slider-image/68cfb02cb01b6.jpg',
-  // ];
-  // bool isLoading = true;
-  //slider picture end
+
   int _selectedIndex = 0;
   double totalIncome = 0.0;
   double todaysIncome = 0.0;
@@ -101,7 +101,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   String totalInvestment = '0';
   String _walletBalance = '0';
   int _loyaltyPoints = 78;
-  bool _showAllCards = false; // Add this inside your State class
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   final GlobalKey _searchKey = GlobalKey();
@@ -381,11 +380,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       'phone': prefs.getString('investor_phone') ?? 'N/A',
       'code': prefs.getString('investor_code') ?? 'N/A', // fix here
       'image': prefs.getString('investor_image') ?? '',
-      // 'walletbalance': prefs.getString('wallet_balance') ?? 'N/A',
-      // "totalinvestment": prefs.getString('total_investment') ?? 'N/A',
-      // "totalIncome": prefs.getString('total_income') ?? 'N/A',
-      // "todaysIncome": prefs.getString('todays_income') ?? 'N/A',
-      // "totalProjects": prefs.getString('total_projects') ?? 'N/A',
     };
   }
 
@@ -459,17 +453,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     final token = prefs.getString('auth_token');
     final investorCode = prefs.getString('investor_code');
 
-    // final url = Uri.parse(
-    //   'https://admin-growup.onebitstore.site/api/wallet-history?investor_code=$investorCode',
-    // );
-    //
-    // final response = await http.get(
-    //   url,
-    //   headers: {
-    //     'Authorization': 'Bearer $token',
-    //     'Content-Type': 'application/json',
-    //   },
-    // );
     final url = Uri.parse(ApiConstants.walletHistory(investorCode!));
     final response = await http.get(
       url,
@@ -591,6 +574,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       },
       child: Scaffold(
         //left drawer fetch data from api
+        backgroundColor: Colors.white,
         drawer: Drawer(
           backgroundColor: const Color(0xFFFFFFFF),
           child: FutureBuilder<Map<String, dynamic>>(
@@ -1207,7 +1191,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               onTap: () => Scaffold.of(context).openDrawer(),
               child: Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 10),
+                padding: EdgeInsets.only(left: 16),
                 child: FutureBuilder<Map<String, dynamic>>(
                   future: _profileFuture,
                   builder: (context, snapshot) {
@@ -1224,11 +1208,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       );
                     } else {
                       final profile = snapshot.data!;
-                      // final imageUrl =
-                      //     profile['image'] != null &&
-                      //         profile['image'].toString().isNotEmpty
-                      //     ? 'https://admin-growup.onebitstore.site/storage/${profile['image']}'
-                      //     : null;
 
                       final imageUrl =
                       profile['image'] != null &&
@@ -1279,172 +1258,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               print("Searching: $value");
             },
           )
-              : Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-              // color: Colors.green,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Username from API
-                      FutureBuilder<Map<String, dynamic>>(
-                        future: _profileFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          } else if (snapshot.hasError) {
-                            return const Center(
-                              child: Text("Error fetching data"),
-                            );
-                          } else {
-                            final profile = snapshot.data!;
-                            return Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.center,
-                                    children: [
-                                      // Name
-                                      Flexible(
-                                        child: Text(
-                                          "${profile['name']}",
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.white,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                          ),
-                                          overflow:
-                                          TextOverflow.ellipsis,
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 6),
-
-                                      // Loyalty Points
-                                      Container(
-                                        padding:
-                                        const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.amber[700],
-                                          borderRadius:
-                                          BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize:
-                                          MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.star,
-                                              color: Colors.white,
-                                              size: 14,
-                                            ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
-                                            Text(
-                                              '$_loyaltyPoints',
-                                              style:
-                                              const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors
-                                                    .white,
-                                                fontWeight:
-                                                FontWeight
-                                                    .bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  // Text(
-                                  //   "ID: ${profile['code']}",
-                                  //   style: const TextStyle(
-                                  //     fontSize: 10,
-                                  //     color: Colors.white,
-                                  //   ),
-                                  // )
-                                ],
-                              ),
-                            );
-                          }
-                        },
-                      ),
-
-                      // end of username api
-
-                      // wallet balance
-                      Container(
-                        width: 160,
-                        padding: const EdgeInsets.only(
-                          left: 8,
-                          right: 12,
-                          top: 6,
-                          bottom: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: Colors.green[700],
-                                borderRadius: BorderRadius.circular(
-                                  3,
-                                ),
-                              ),
-                              child: Image.asset(
-                                'assets/icons/img_5.png',
-                                fit: BoxFit.cover,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-
-                            Text(
-                              '$_walletBalance',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+              : AppbarContent(profileFuture: _profileFuture, loyaltyPoints: _loyaltyPoints, walletBalance: _walletBalance),
 
           // Notification bell on the right
 
@@ -1545,15 +1359,22 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               },
             ),
 
+            IconButton(
+              icon: const Icon(
+                FontAwesomeIcons.bars,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                // here i want to open navigation drawer
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
+
             const SizedBox(width: 0), // optional spacing at the end
           ],
         ),
 
-        body:
-        // _selectedIndex == 4
-        //     ? const AllPropertiesPage()
-        //     :
-        RefreshIndicator(
+        body: RefreshIndicator(
           onRefresh: _refreshDashboard,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -1573,935 +1394,148 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     child: Center(child: Text('No images available')),
                   )
                 else
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: CarouselSlider(
-                        options: CarouselOptions(
-                          // height: 220,
-                          autoPlay: true,
-                          enlargeCenterPage: true,
-                          viewportFraction: 1.0,
-                        ),
-                        items: imageUrls.map((url) {
-                          return Builder(
-                            builder: (BuildContext context) {
-                              return SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    url,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return const Center(
-                                        child:
-                                        CircularProgressIndicator(),
-                                      );
-                                    },
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
-                                      return const Center(
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          size: 50,
-                                          color: Colors.grey,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
+                  HomeImageSlider(imageUrls: imageUrls),
+
+                DashboardSummaryCard(
+                  items: [
+                    SummaryItem(
+                      icon: const Icon(Icons.stacked_bar_chart),
+                      value: totalInvestment.toString(),
+                      label: 'Total Investment',
                     ),
-                  ),
+                    SummaryItem(
+                      icon: const Icon(Icons.attach_money),
+                      value: totalIncome.toString(),
+                      label: 'Total Income',
+                    ),
+                    SummaryItem(
+                      icon: const Icon(Icons.payments_rounded),
+                      value: todaysIncome.toString(),
+                      label: "Today's Income",
+                    ),
+                  ],
+                ),
 
-                // const CertificationsSection(),
+                SizedBox(height: 8,),
 
-                // IndexedStack(index: _selectedIndex, children: _pages),
+                DashboardSummaryCard(
+                  items: [
+                    SummaryItem(
+                      icon: const Icon(Icons.stacked_bar_chart),
+                      value: totalProjects.toString(),
+                      label: 'My Grow Up Projects',
+                    ),
+                    SummaryItem(
+                      icon: const Icon(Icons.attach_money),
+                      value: '0',
+                      label: 'Ordered Properties',
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 16,),
+
+                const CompanyCertificationsCarousel(),
+
+                SizedBox(height: 8,),
 
                 // The single container holding all four counter items.
                 // The new parent Container adds the margin.
-                // Container(
-                //   // This adds left and right margin.
-                //   margin: const EdgeInsets.symmetric(horizontal: 12.0),
-                //   child: Container(
-                //     padding: const EdgeInsets.all(10.0),
-                //     decoration: BoxDecoration(
-                //       color: Colors.green.shade50,
-                //       border: Border.all(
-                //         color: Colors.grey.shade300,
-                //         width: 1,
-                //       ),
-                //       borderRadius: BorderRadius.circular(12.0),
-                //     ),
-                //     child: Column(
-                //       children: [
-                //         // First Row
-                //         IntrinsicHeight(
-                //           // Added to make the VerticalDivider visible
-                //           child: Row(
-                //             children: [
-                //               // Card 1: Fund Disburse
-                //               Expanded(
-                //                 child: Padding(
-                //                   padding: const EdgeInsets.symmetric(
-                //                     vertical: 8.0,
-                //                   ),
-                //                   child: Column(
-                //                     mainAxisAlignment:
-                //                     MainAxisAlignment.center,
-                //                     children: [
-                //                       const Icon(
-                //                         FontAwesomeIcons.handHoldingDollar,
-                //                         size: 20,
-                //                         color: Colors.green,
-                //                       ),
-                //                       const SizedBox(height: 6),
-                //                       const Text(
-                //                         "৳ 1Billion++",
-                //                         style: TextStyle(
-                //                           fontSize: 16,
-                //                           fontWeight: FontWeight.bold,
-                //                           color: Colors.black87,
-                //                         ),
-                //                       ),
-                //                       const SizedBox(height: 1),
-                //                       const Text(
-                //                         "Fund Disburse",
-                //                         style: TextStyle(
-                //                           fontSize: 12,
-                //                           color: Colors.black,
-                //                           fontWeight: FontWeight.bold,
-                //                         ),
-                //                         textAlign: TextAlign.center,
-                //                       ),
-                //                     ],
-                //                   ),
-                //                 ),
-                //               ),
-                //               // NEW: Vertical line separator
-                //               const VerticalDivider(width: 1, thickness: 1),
-                //               // Card 2: Fund Reimburse
-                //               Expanded(
-                //                 child: Padding(
-                //                   padding: const EdgeInsets.symmetric(
-                //                     vertical: 8.0,
-                //                   ),
-                //                   child: Column(
-                //                     mainAxisAlignment:
-                //                     MainAxisAlignment.center,
-                //                     children: [
-                //                       const Icon(
-                //                         FontAwesomeIcons.moneyBillTransfer,
-                //                         size: 20,
-                //                         color: Colors.green,
-                //                       ),
-                //                       const SizedBox(height: 6),
-                //                       const Text(
-                //                         "৳ 1Billion++",
-                //                         style: TextStyle(
-                //                           fontSize: 16,
-                //                           fontWeight: FontWeight.bold,
-                //                           color: Colors.black87,
-                //                         ),
-                //                       ),
-                //                       const SizedBox(height: 1),
-                //                       const Text(
-                //                         "Fund Reimburse",
-                //                         style: TextStyle(
-                //                           fontSize: 12,
-                //                           color: Colors.black,
-                //                           fontWeight: FontWeight.bold,
-                //                         ),
-                //                         textAlign: TextAlign.center,
-                //                       ),
-                //                     ],
-                //                   ),
-                //                 ),
-                //               ),
-                //             ],
-                //           ),
-                //         ),
-                //         // NEW: Horizontal line separator
-                //         const Divider(height: 1, thickness: 1),
-                //         // Second Row
-                //         IntrinsicHeight(
-                //           // Added to make the VerticalDivider visible
-                //           child: Row(
-                //             children: [
-                //               // Card 3: Farmers Engaged
-                //               Expanded(
-                //                 child: Padding(
-                //                   padding: const EdgeInsets.symmetric(
-                //                     vertical: 8.0,
-                //                   ),
-                //                   child: Column(
-                //                     mainAxisAlignment:
-                //                     MainAxisAlignment.center,
-                //                     children: [
-                //                       const Icon(
-                //                         FontAwesomeIcons.wheatAwn,
-                //                         size: 20,
-                //                         color: Colors.green,
-                //                       ),
-                //                       const SizedBox(height: 6),
-                //                       const Text(
-                //                         "12K+",
-                //                         style: TextStyle(
-                //                           fontSize: 16,
-                //                           fontWeight: FontWeight.bold,
-                //                           color: Colors.black87,
-                //                         ),
-                //                       ),
-                //                       const SizedBox(height: 1),
-                //                       const Text(
-                //                         "Farmers Engaged",
-                //                         style: TextStyle(
-                //                           fontSize: 12,
-                //                           color: Colors.black,
-                //                           fontWeight: FontWeight.bold,
-                //                         ),
-                //                         textAlign: TextAlign.center,
-                //                       ),
-                //                     ],
-                //                   ),
-                //                 ),
-                //               ),
-                //               // NEW: Vertical line separator
-                //               const VerticalDivider(width: 1, thickness: 1),
-                //               // Card 4: Active Projects
-                //               Expanded(
-                //                 child: Padding(
-                //                   padding: const EdgeInsets.symmetric(
-                //                     vertical: 8.0,
-                //                   ),
-                //                   child: Column(
-                //                     mainAxisAlignment:
-                //                     MainAxisAlignment.center,
-                //                     children: [
-                //                       const Icon(
-                //                         FontAwesomeIcons.seedling,
-                //                         size: 20,
-                //                         color: Colors.green,
-                //                       ),
-                //                       const SizedBox(height: 6),
-                //                       const Text(
-                //                         "100k Ton++",
-                //                         style: TextStyle(
-                //                           fontSize: 16,
-                //                           fontWeight: FontWeight.bold,
-                //                           color: Colors.black87,
-                //                         ),
-                //                       ),
-                //                       const SizedBox(height: 1),
-                //                       const Text(
-                //                         "Farm Produce Sold",
-                //                         style: TextStyle(
-                //                           fontSize: 12,
-                //                           color: Colors.black,
-                //                           fontWeight: FontWeight.bold,
-                //                         ),
-                //                         textAlign: TextAlign.center,
-                //                       ),
-                //                     ],
-                //                   ),
-                //                 ),
-                //               ),
-                //             ],
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                // ),
-
-                // Total Counting cards
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      double cardWidth =
-                          (constraints.maxWidth - 16) /
-                              3; // 16 = 2 gaps of 8 pixels between cards
-
-                      //counter
-                      String formatValue(String value) {
-                        try {
-                          final parsedValue = double.tryParse(value) ?? 0.0;
-                          final formattedValue = NumberFormat('#,##0.00').format(parsedValue);
-                          return formattedValue;
-                        } catch (e) {
-                          return value;
-                        }
-                      }
-
-
-                      Widget buildCard(
-                          String title,
-                          String value,
-                          IconData icon,
-                          ) {
-                        String displayValue = formatValue(value);
-                        return Container(
-                          width: cardWidth,
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.4),
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            clipBehavior: Clip
-                                .none, // allow positioning outside padding if needed
-                            children: [
-                              Center(
-                                child: _buildInnerCard(
-                                  title,
-                                  displayValue, // <-- use formatted value here
-                                  icon,
-                                ),
-                              ),
-
-                              Positioned(
-                                top: -20, // a little padding from top edge
-                                right:
-                                -10, // a little padding from right edge
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.more_horiz,
-                                    size: 16,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  splashRadius: 20,
-                                  onPressed: () {
-                                    if (title == 'Total Investment') {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return Dialog(
-                                            insetPadding:
-                                            const EdgeInsets.all(12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child:
-                                            const TotalInvestmentHistoryPage(),
-                                          );
-                                        },
-                                      );
-                                    } else if (title == "Today's Income") {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return Dialog(
-                                            insetPadding:
-                                            const EdgeInsets.all(12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child:
-                                            const TodaysIncomeDialog(),
-                                          );
-                                        },
-                                      );
-                                    } else if (title == "Total Income") {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return Dialog(
-                                            insetPadding:
-                                            const EdgeInsets.all(12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child:
-                                            const TotalIncomeDialog(),
-                                          );
-                                        },
-                                      );
-                                    } else if (title ==
-                                        "My Grow Up Projects") {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return Dialog(
-                                            insetPadding:
-                                            const EdgeInsets.all(12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child:
-                                            const MyGrowupProjectsDialog(),
-                                          );
-                                        },
-                                      );
-                                    } else if (title == "Wallet Balance") {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return Dialog(
-                                            insetPadding:
-                                            const EdgeInsets.all(12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child:
-                                            const WalletHistoryDialog(),
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Details'),
-                                            content: Text(
-                                              'Here are more details about "$title".',
-                                            ),
-                                            actions: [
-                                              ElevatedButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                style:
-                                                ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                  Colors.red,
-                                                ),
-                                                child: const Text(
-                                                  "Close",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      // three cards disburse, reimburse and engaged
-                      // Widget buildCardcounter(String title, String value, IconData icon, Color iconColor) {
-                      //   // Wrap with a Container to add border and shape
-                      //   return Container(
-                      //     decoration: BoxDecoration(
-                      //
-                      //       // The border for each card
-                      //       border: Border.all(
-                      //         color: Colors.grey.shade300, // Light grey color for the border
-                      //         width: 1,
-                      //       ),
-                      //       // The corner radius
-                      //       borderRadius: BorderRadius.circular(8.0),
-                      //     ),
-                      //     child: Padding(
-                      //       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                      //       child: Column(
-                      //         mainAxisAlignment: MainAxisAlignment.center,
-                      //         children: [
-                      //           Icon(icon, size: 20, color: iconColor),
-                      //           const SizedBox(height: 6),
-                      //           Text(
-                      //             value,
-                      //             style: const TextStyle(
-                      //               fontSize: 16,
-                      //               fontWeight: FontWeight.bold,
-                      //               color: Colors.black87,
-                      //             ),
-                      //           ),
-                      //           const SizedBox(height: 1),
-                      //           Text(
-                      //             title,
-                      //             style: const TextStyle(fontSize: 12, color: Colors.black,fontWeight: FontWeight.bold,),
-                      //             textAlign: TextAlign.center,
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   );
-                      // }
-
-                      return Column(
-                        children: [
-                          // const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: buildCard(
-                                  'Today\'s Income',
-                                  todaysIncome.toString(),
-                                  Icons.monetization_on,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: buildCard(
-                                  'Total Income',
-                                  totalIncome.toString(),
-                                  Icons.account_balance_wallet,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Row 2: Full-width Wallet Balance card with image
-                          // buildFullImageCard(
-                          //   context,
-                          //   'Wallet Balance',
-                          //   totalwallet_balance.toString(),
-                          //   'assets/images/img_2.png', // your image
-                          // ),
-                          // const SizedBox(height: 8),
-
-                          // Row 3: Two half-width cards
-                          Row(
-                            children: [
-                              Expanded(
-                                child: buildCard(
-                                  'My Grow Up Projects',
-                                  totalProjects.toString(),
-                                  Icons.auto_graph,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: buildCard(
-                                  'Ordered Properties',
-                                  '0',
-                                  Icons.home_work_outlined,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: buildCard(
-                                  "Total Investment",
-                                  totalInvestment.toString(),
-                                  FontAwesomeIcons.moneyBillTrendUp,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // const SizedBox(height: 8),
-                          // SizedBox(
-                          //   height: 90, // card height
-                          //   width: double.infinity,
-                          //   child: PageView(
-                          //     controller: PageController(
-                          //       viewportFraction: 1.02,
-                          //     ), // full width minus small space
-                          //     children: [
-                          //       Padding(
-                          //         padding: const EdgeInsets.symmetric(
-                          //           horizontal: 4,
-                          //         ), // space between cards
-                          //         child: buildCard(
-                          //           // context,
-                          //           "Total Investment",
-                          //           totalInvestment.toString(),
-                          //             FontAwesomeIcons.piggyBank,
-                          //           // "assets/images/img_1.png",
-                          //         ),
-                          //       ),
-                          //       // Padding(
-                          //       //   padding: const EdgeInsets.symmetric(
-                          //       //     horizontal: 4,
-                          //       //   ), // space between cards
-                          //       //   child: buildFullImageCard(
-                          //       //     context,
-                          //       //     "Wallet Balance",
-                          //       //     totalwallet_balance.toString(),
-                          //       //     "assets/images/img_2.png",
-                          //       //   ),
-                          //       // ),
-                          //       // Add more cards here
-                          //     ],
-                          //   ),
-                          // ),
-
-                          // Row 4: Full-width Total Investment card with image
-                          // buildFullImageCard(
-                          //   context,
-                          //   'Total Investment',
-                          //   totalInvestment.toString(),
-                          //   'assets/images/img_1.png', // your image
-                          // ),
-                        ],
-                      );
-                    },
-                  ),
+                  padding: const EdgeInsets.only(left: 16, top: 16),
+                  child: Text("ACHIEVEMENT", style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF2E7D32),
+                      fontWeight: FontWeight.w600
+                  )),
                 ),
+                SizedBox(height: 8,),
 
-                const CertificationsSection(),
-
-                IndexedStack(index: _selectedIndex, children: _pages),
-
-                // The single container holding all four counter items.
-                // The new parent Container adds the margin.
-                Container(
-                  // This adds left and right margin.
-                  margin: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Column(
-                      children: [
-                        // First Row
-                        IntrinsicHeight(
-                          // Added to make the VerticalDivider visible
-                          child: Row(
-                            children: [
-                              // Card 1: Fund Disburse
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.handHoldingDollar,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "৳ 1Billion++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Fund Disburse",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // NEW: Vertical line separator
-                              const VerticalDivider(width: 1, thickness: 1),
-                              // Card 2: Fund Reimburse
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.moneyBillTransfer,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "৳ 1Billion++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Fund Reimburse",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // NEW: Horizontal line separator
-                        const Divider(height: 1, thickness: 1),
-                        // Second Row
-                        IntrinsicHeight(
-                          // Added to make the VerticalDivider visible
-                          child: Row(
-                            children: [
-                              // Card 3: Farmers Engaged
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.wheatAwn,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "12K+",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Farmers Engaged",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // NEW: Vertical line separator
-                              const VerticalDivider(width: 1, thickness: 1),
-                              // Card 4: Active Projects
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        FontAwesomeIcons.seedling,
-                                        size: 20,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        "100k Ton++",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      const Text(
-                                        "Farm Produce Sold",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                AchievementCard(),
 
                 // Growup Investment by category
-                Card(
-                  // CHANGED: Set elevation to 0 and color to transparent
-                  elevation: 0,
-                  color: Colors.green.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 12,
-                      bottom: 8,
-                      left: 8,
-                      right: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title row with asset icon on the right
-                        Row(
+
+                SizedBox(height: 8,),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 16),
+                  child: Text("INVESTMENT BY CATEGORY", style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF2E7D32),
+                      fontWeight: FontWeight.w600
+                  )),
+                ),
+
+                SizedBox(height: 8,),
+
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: .05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Left side: two lines of text
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // CHANGED: Wrapped the Text widget with a Container for highlighting
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors
-                                        .green
-                                        .shade100, // The highlight color
-                                    borderRadius: BorderRadius.circular(
-                                      6,
-                                    ), // Rounded corners
-                                  ),
-                                  child: const Text(
-                                    'GROWUP',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 18,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  'INVESTMENT BY CATEGORY',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 12,
-                                    height: 1.0,
-                                  ),
-                                ),
-                              ],
+                            Image.asset(
+                              'assets/images/GrowupLogo.png',
+                              width: 60,
                             ),
-                            // Right side: icon
                             Image.asset(
                               'assets/icons/Shariah.png',
                               width: 60,
-                              height: 60,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        // Your container with buttons
-                        Container(
-                          // Set the color to transparent if you want the buttons to sit on the main background
-                          color: Colors.transparent,
-                          child: Column(
-                            children: [
-                              // First row of buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: _buildCategoryButton4(
-                                      'Short-Term Projects',
-                                      Icons.timelapse,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildCategoryButton5(
-                                      'Long-Term Projects',
-                                      Icons.access_time_filled,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              // Second row of buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: _buildCategoryButton3(
-                                      'Live Projects',
-                                      FontAwesomeIcons.broadcastTower,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildCategoryButton2(
-                                      'Matured Projects',
-                                      FontAwesomeIcons.checkCircle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-                              // Second row of buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: _buildCategoryButton11(
-                                      'All GrowUp Projects',
-                                      Icons.dashboard_outlined,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: CategoryGridCard(
+                          items: [
+                            CategoryItem(icon: Icon(Icons.show_chart),        title: 'Live Projects', onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const LiveProjectsPage()),
+                              );
+                            }),
+                            CategoryItem(icon: Icon(Icons.stacked_bar_chart), title: 'Long Duration', onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const LongProjectsPage()),
+                              );
+                            }),
+                            CategoryItem(icon: Icon(Icons.trending_up),       title: 'Short Duration', onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ShortProjectsPage()),
+                              );
+                            }),
+                            CategoryItem(icon: Icon(Icons.scale),             title: 'Matured Projects', onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CompletedProjectsPage()),
+                              );
+                            }),
+                            CategoryItem(icon: Icon(Icons.stacked_bar_chart), title: 'All GrowUp Projects', onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AllProjectsPage()),
+                              );
+                            }),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+
+
+                SizedBox(height: 8,),
+
 
                 // Projects you may invest
                 Padding(
@@ -2718,16 +1752,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               ],
                             ),
                             const SizedBox(height: 10),
-
-                            // Row 2: The Royal Eco City (No change)
-                            // Row(
-                            //   children: [
-                            //     Expanded(child: _buildCategoryButton21('The Royal Eco City', FontAwesomeIcons.crown)),
-                            //   ],
-                            // ),
-                            // const SizedBox(height: 10),
-
-
 
                             // --- NEW SECTION FOR THE ROYAL CLUB AND ITS CHILDREN ---
                             Column(
@@ -2963,10 +1987,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             ),
           ),
         ),
-        // bottomNavigationBar: CustomBottomNavBar(
-        //   selectedIndex: _selectedIndex,
-        //   onItemTapped: _onItemTapped,
-        // ),
       ),
     );
   }
@@ -2992,66 +2012,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       onTap: () {
         Navigator.pushNamed(context, route); // navigate to route
       },
-    );
-  }
-
-  // Total Investment, income and today's income function
-  Widget _buildCompositeCard(double width, List<Widget> innerCards) {
-    return SizedBox(
-      width: width,
-      child: Card(
-        color: Colors.white, // Explicitly set white color
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white, // Ensure inner container is also white
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          height: 100,
-          child: Row(
-            children: List.generate(innerCards.length * 2 - 1, (index) {
-              if (index.isOdd) {
-                return Container(
-                  width: 1,
-                  height: double.infinity,
-                  color: Colors.grey.shade300,
-                );
-              }
-              return Expanded(child: innerCards[index ~/ 2]);
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInnerCard(String title, String value, IconData icon) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: Colors.green, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.green,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 
@@ -3193,411 +2153,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       ),
     );
   }
-
-  //// Total Investment, income and today's income function end
-
-  // Investment by category function
-
-  //Long Duration
-  Widget _buildCategoryButton2(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CompletedProjectsPage(),
-            ),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 6), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //short Duration
-  Widget _buildCategoryButton3(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LiveProjectsPage(),
-            ),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 6), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // live
-  Widget _buildCategoryButton4(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5,
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ShortProjectsPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 6), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //upcoming
-  Widget _buildCategoryButton10(String label, IconData icon) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: SizedBox(
-        width: 80, // Adjust width as needed
-        height: 80, // Adjust height as needed
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TotalProjectsPage(),
-              ),
-            );
-          },
-
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEBFEDE), // fully transparent
-            shadowColor: const Color(0xFFEBFEDE), // remove shadow
-            foregroundColor: Colors.green[700], // icon/text color
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-              side: BorderSide(color: Colors.grey, width: 0), // outline
-            ),
-            padding: const EdgeInsets.all(12),
-            elevation: 0,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 28),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 8,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  //Matured
-  // Matured
-  Widget _buildCategoryButton11(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5,
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AllProjectsPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1), // border
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 10), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //All projects
-  Widget _buildCategoryButton5(String label,  IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5,
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LongProjectsPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1), // border
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 6), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //Residential city
-  // Widget _buildCategoryButton6(String label, IconData icon, String imageUrl) {
-  //   final screenWidth = MediaQuery.of(context).size.width;
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   final isTablet = screenWidth >= 600;
-  //   final cardHeight = isTablet ? screenHeight * 0.18 : screenHeight * 0.10;
-  //   final cardWidth = screenWidth * 0.95;
-  //
-  //   return SizedBox(
-  //     width: cardWidth,
-  //     height: cardHeight,
-  //     child: InkWell(
-  //       onTap: () {
-  //         Navigator.push(
-  //           context,
-  //           MaterialPageRoute(
-  //             builder: (context) => const ResidencialCityPage(),
-  //           ),
-  //         );
-  //       },
-  //       borderRadius: BorderRadius.circular(12),
-  //       child: Card(
-  //         elevation: 9,
-  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //         clipBehavior: Clip.antiAlias,
-  //         child: Stack(
-  //           fit: StackFit.expand,
-  //           children: [
-  //             // Background image
-  //             Image.network(
-  //               imageUrl,
-  //               fit: BoxFit.cover,
-  //               errorBuilder: (context, error, stackTrace) => Container(
-  //                 color: Colors.grey[300],
-  //                 child: const Icon(Icons.image_not_supported,
-  //                     size: 40, color: Colors.grey),
-  //               ),
-  //             ),
-  //
-  //             BackdropFilter(
-  //               filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5), // adjust strength
-  //               child: Container(
-  //                 color: Colors.black.withOpacity(0.3), // dark overlay
-  //               ),
-  //             ),
-  //
-  //             // Gradient overlay
-  //             Container(
-  //               decoration: BoxDecoration(
-  //                 gradient: LinearGradient(
-  //                   colors: [
-  //                     Colors.black.withOpacity(0.5),
-  //                     Colors.transparent
-  //                   ],
-  //                   begin: Alignment.bottomCenter,
-  //                   end: Alignment.topCenter,
-  //                 ),
-  //               ),
-  //             ),
-  //
-  //             // Icon + Label
-  //             Padding(
-  //               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //               child: Row(
-  //                 children: [
-  //                   Icon(icon,
-  //                       size: isTablet ? screenWidth * 0.04 : 28,
-  //                       color: Colors.white),
-  //                   const SizedBox(width: 12),
-  //                   Expanded(
-  //                     child: Text(
-  //                       label,
-  //                       style: TextStyle(
-  //                         color: Colors.white,
-  //                         fontSize: isTablet
-  //                             ? screenWidth * 0.022
-  //                             : screenWidth * 0.040,
-  //                         fontWeight: FontWeight.bold,
-  //                       ),
-  //                       overflow: TextOverflow.ellipsis,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // // residential
-  // Widget _buildCategoryButton6(String label, IconData icon) {
-  //   double size = 8; // base size → controls icon + text scaling
-  //
-  //   return Card(
-  //     elevation: 2,
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     child: SizedBox(
-  //       height: 100, // fixed height
-  //       child: OutlinedButton(
-  //         onPressed: () {
-  //           Navigator.push(
-  //             context,
-  //             MaterialPageRoute(
-  //               builder: (context) => const ResidencialCityPage(),
-  //             ),
-  //           );
-  //         },
-  //         style: OutlinedButton.styleFrom(
-  //           side: const BorderSide(color: Colors.grey, width: 1), // border
-  //           backgroundColor: Colors.white,
-  //           foregroundColor: Colors.black,
-  //           shape: RoundedRectangleBorder(
-  //             borderRadius: BorderRadius.circular(12),
-  //           ),
-  //           padding: const EdgeInsets.all(12),
-  //         ),
-  //         child: Column(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             // 🔹 Icon inside round box
-  //             Container(
-  //               width: size * 3,
-  //               height: size * 3,
-  //               decoration: BoxDecoration(
-  //                 shape: BoxShape.circle,
-  //                 color: Colors.green[50],
-  //                 border: Border.all(color: Colors.green[700]!, width: 1),
-  //               ),
-  //               child: Icon(icon, size: size * 1.6, color: Colors.green[700]),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             Text(
-  //               label,
-  //               style: TextStyle(
-  //                 color: Colors.black,
-  //                 fontSize: size,
-  //                 fontWeight: FontWeight.w600,
-  //               ),
-  //               textAlign: TextAlign.center,
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   // residential
   Widget _buildCategoryButton6(String label, IconData icon) {
@@ -4017,14 +2572,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          // BoxShadow(
-          //   color: Colors.grey.withOpacity(0.9),
-          //   spreadRadius: 2,
-          //   blurRadius: 8,
-          //   offset: Offset(0, 4),
-          // ),
-        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4156,62 +2703,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                   ),
                 ),
-
-                // "Invest Now" Button
-                // Positioned(
-                //   bottom: cardHeight * 0.19,
-                //   right: -buttonWidth * 0.38,
-                //   child: Transform.rotate(
-                //     angle: -1.5708,
-                //     child: SizedBox(
-                //       width: buttonWidth,
-                //       height: buttonHeight,
-                //       child: ElevatedButton(
-                //         onPressed: () async {
-                //           final parsedProjectId = int.tryParse(projectId);
-                //           final prefs = await SharedPreferences.getInstance();
-                //           final investorCode = prefs.getString('investor_code') ?? '';
-                //
-                //           if (parsedProjectId != null &&
-                //               investorCode.isNotEmpty) {
-                //             Navigator.push(
-                //               context,
-                //               MaterialPageRoute(
-                //                 builder: (_) => ProjectDescriptionPage(
-                //                   projectId: parsedProjectId,
-                //                   investorCode: investorCode,
-                //                 ),
-                //               ),
-                //             );
-                //           }
-                //         },
-                //         style: ElevatedButton.styleFrom(
-                //           backgroundColor: const Color(0xFF61B15A),
-                //           foregroundColor: Colors.white,
-                //           padding: EdgeInsets.symmetric(
-                //             horizontal: 4,
-                //             vertical: 4,
-                //           ),
-                //           shape: const RoundedRectangleBorder(
-                //             borderRadius: BorderRadius.only(
-                //               topRight: Radius.circular(16),
-                //               bottomLeft: Radius.circular(16),
-                //             ),
-                //           ),
-                //         ),
-                //         child: Text(
-                //           'Details',
-                //           style: TextStyle(
-                //             fontSize: isTablet
-                //                 ? screenWidth * 0.022
-                //                 : screenWidth * 0.03,
-                //             fontWeight: FontWeight.bold,
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -4249,8 +2740,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     );
   }
 
-  // properties you may invest
-
   // Properties for you function
   Widget _buildPropertyCard({
     required BuildContext context,
@@ -4267,19 +2756,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
     return Container(
       width: cardWidth,
-      // height: cardHeight,
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          // BoxShadow(
-          //   color: Colors.grey.withOpacity(0.9),
-          //   spreadRadius: 2,
-          //   blurRadius: 8,
-          //   offset: Offset(0, 4),
-          // ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4324,36 +2804,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-
-          // const Spacer(),
-          // const SizedBox(height: 12),
-          // // Button flush with bottom card edges
-          // SizedBox(
-          //   width: double.infinity,
-          //   height: 40,
-          //   child: ElevatedButton(
-          //     onPressed: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (context) => const AllPropertiesPage()),
-          //       );
-          //     },
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor: Colors.green,
-          //       shape: const RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.only(
-          //           bottomLeft: Radius.circular(16),
-          //           bottomRight: Radius.circular(16),
-          //         ),
-          //       ),
-          //       elevation: 0, // match card shadow
-          //     ),
-          //     child: const Text(
-          //       'See Details',
-          //       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -4475,7 +2925,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           .map(
             (e) => {
           'type': e.type,
-              'date': e.date ?? '',
+          'date': e.date ?? '',
           'amount': e.amount,
           'status': e.status ?? 'N/A',
           'trx_id': e.trxId,
@@ -4534,146 +2984,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             Expanded(child: child),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CertificationsSection extends StatelessWidget {
-  const CertificationsSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Text(
-            'Company Certifications & Affiliations',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 10),
-
-          // --- ROSA Certifications (Using structured data now) ---
-          _buildCompanyCertificationCard(
-            context,
-            companyName: 'GrowUp Agrotech Limited',
-            logoIcon: Icons.grass,
-            // 1. UPDATED DATA TO LIST OF MAPS
-            certifications: const [
-              {'name': 'Certificate of Incorporation', 'number': 'C-195903'},
-              {'name': 'DCCI Registration', 'number': 'ECNGRO202507001532'},
-              {'name': 'BIDA Registration', 'number': 'L-202508060017189-H'},
-              {'name': 'Trade License', 'number': 'TRAD/DNCC/006823'},
-              {'name': 'D&B D-U-N-S', 'number': '77-411-5707'},
-            ],
-            color: Colors.green.shade50,
-            iconColor: Colors.green.shade800,
-          ),
-
-          const SizedBox(height: 12),
-
-          // --- GROWUP Certifications (Using simple list of strings) ---
-          _buildCompanyCertificationCard(
-            context,
-            companyName: 'Rural Organisations for Social Affairs(ROSA)',
-            logoIcon: Icons.business,
-            // 2. KEEPING THE OLD SIMPLE STRING LIST
-            certifications: const [
-              {'name': 'Established in', 'number': '1992'},
-              {'name': 'Reg No of (DSS)', 'number': 'DSS NAT-152'},
-              {'name': 'MRA No', 'number': '017330010400726'},
-              {'name': 'NGO Bureau No', 'number': '1091'},
-              {'name': 'Received financial support from PKSF ', 'number': ''}
-            ],
-            color: Colors.blue.shade50,
-            iconColor: Colors.blue.shade800,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // UPDATED SIGNATURE: certifications is now List<dynamic>
-  Widget _buildCompanyCertificationCard(
-      BuildContext context, {
-        required String companyName,
-        required IconData logoIcon,
-        required List<dynamic> certifications, // Changed to dynamic
-        required Color color,
-        required Color iconColor,
-      }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade300, width: 0.8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(logoIcon, size: 18, color: iconColor),
-              const SizedBox(width: 8),
-              Text(
-                companyName,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: iconColor,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 12, thickness: 0.5),
-
-          // Use Column and Padding for the list of certifications
-          ...certifications.map((cert) {
-            // Check if the item is a Map (Structured Data) or a String (Simple Data)
-            final bool isStructured = cert is Map<String, String>;
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.check_circle_outline, size: 14, color: iconColor.withOpacity(0.7)),
-                  const SizedBox(width: 8),
-
-                  if (isStructured) ...[
-                    // STRUCTURED FORMAT (GrowUp Agrotech Limited)
-                    Text(
-                      '${cert['name']}:',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        height: 1.2,
-                        fontWeight: FontWeight.w600, // Name bolded for emphasis
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        cert['number']!,
-                        style: const TextStyle(fontSize: 10, height: 1.2, color: Colors.black87),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ] else
-                  // SIMPLE STRING FORMAT (Rural Organisations for Social Affairs)
-                    Expanded(
-                      child: Text(
-                        cert.toString(),
-                        style: const TextStyle(fontSize: 10, height: 1.2),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }).toList(),
-        ],
       ),
     );
   }

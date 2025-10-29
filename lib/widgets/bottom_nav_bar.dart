@@ -14,7 +14,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      backgroundColor: const Color(0xFF83AB78),
+      backgroundColor: const Color(0xFF2E7D32),
       selectedItemColor: Colors.white70,
       unselectedItemColor: Colors.white,
       currentIndex: selectedIndex,
@@ -22,24 +22,24 @@ class CustomBottomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed, // Ensure all items are visible
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.bars),
-          label: 'Menu',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.leaf),
-          label: 'Growup',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.houseChimney) ,
+          icon: Icon(FontAwesomeIcons.houseChimney, size: 18) ,
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.shoppingCart),
+          icon: Icon(FontAwesomeIcons.leaf, size: 18),
+          label: 'Growup',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(FontAwesomeIcons.shoppingCart, size: 18),
           label: 'Products',
         ),
         BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.building),
+          icon: Icon(FontAwesomeIcons.building, size: 18),
           label: 'Properties',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(FontAwesomeIcons.bars, size: 18),
+          label: 'Menu',
         ),
       ],
     );
