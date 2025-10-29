@@ -46,7 +46,7 @@ class Assets {
   static const String iconsSort = 'assets/icons/sort.svg';
   static const String iconsTodaysIncome = 'assets/icons/todays_income.svg';
   static const String iconsTotalIncome = 'assets/icons/total_income.svg';
-  static const String iconsTotalInvestment = 'assets/icons/total_investment.png';
+  static const String iconsTotalInvestment = 'assets/icons/total_investment.svg';
   static const String iconsWithdraw = 'assets/icons/withdraw.png';
   static const String imagesAgriessn = 'assets/images/agriessn.jpg';
   static const String imagesAnimal = 'assets/images/animal.jpg';
