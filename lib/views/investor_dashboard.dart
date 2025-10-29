@@ -1,31 +1,18 @@
 import 'dart:convert';
 import 'dart:ui';
-// import 'package:carousel_slider/carousel_slider.dart' show CarouselSlider, CarouselOptions;
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:growup_agro/generated/assets.dart';
 import 'package:growup_agro/models/live_project_model.dart';
-import 'package:growup_agro/models/slider_model.dart';
 import 'package:growup_agro/models/wallet_history_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:growup_agro/views/NotificationPage.dart';
-import 'package:growup_agro/views/Total_projects.dart';
 import 'package:growup_agro/views/all_projects.dart';
 import 'package:growup_agro/views/all_properties.dart';
 import 'package:growup_agro/views/auto_slider_card.dart';
-import 'package:growup_agro/views/certificates_web.dart';
 import 'package:growup_agro/views/commercial_city.dart';
-import 'package:growup_agro/views/desposit_page.dart';
-import 'package:growup_agro/views/investment_history.dart';
-import 'package:growup_agro/views/invoice_capital_return.dart';
-import 'package:growup_agro/views/invoice_growup.dart';
-import 'package:growup_agro/views/invoice_recharge.dart';
-import 'package:growup_agro/views/invoice_roi.dart';
-import 'package:growup_agro/views/my_orders_page.dart';
-import 'package:growup_agro/views/project_Descriotion_page.dart';
-import 'package:growup_agro/views/project_certificate_page.dart';
-// import '../../../growup_agro/lib/views/desposit_page.dart';
-import 'package:growup_agro/views/recharge_page.dart';
 import 'package:growup_agro/views/residencial_city_page.dart';
 import 'package:growup_agro/views/rosa_health.dart';
 import 'package:growup_agro/views/rosa_hitech.dart';
@@ -35,39 +22,21 @@ import 'package:growup_agro/views/royal_north_bengal_club.dart';
 import 'package:growup_agro/views/royal_palace.dart';
 import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
-import 'package:growup_agro/views/tax_certificate.dart';
-import 'package:growup_agro/views/todays_income_dialog.dart';
-import 'package:growup_agro/views/total_income_dialog.dart';
-import 'package:growup_agro/views/upcoming_projects.dart';
 import 'package:growup_agro/views/wallet_balance_dialog.dart';
 import 'package:growup_agro/views/wallet_history.dart';
-import 'package:growup_agro/views/withdraw_page.dart';
-import 'package:growup_agro/widgets/bottom_nav_bar.dart';
-import 'package:growup_agro/widgets/webview_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/all_properties.model.dart';
 import '../widgets/achievement_card.dart';
 import '../widgets/appbar_content.dart';
-import '../widgets/build_card.dart';
 import '../widgets/category_item.dart';
 import '../widgets/home_image_slider.dart';
 import '../widgets/summary_item.dart';
-import '../widgets/wallet_balance.dart';
 import 'IntroPage.dart';
-import 'all_products_page.dart';
 import 'completed_projects.dart';
 import 'total_investment_dialog.dart' hide WalletHistoryDialog;
-import 'eco_city.dart';
-import 'healthcare.dart';
-import 'hitech_city.dart';
 import 'long_duration.dart'; // For SystemNavigator.pop()
 import 'package:intl/intl.dart';
-import 'package:growup_agro/views/about_us_page.dart';
-
-
-import 'my_growup_projects_dialog.dart';
-import 'my_projects.dart';
 
 void main() {
   runApp(const MyApp());
@@ -575,7 +544,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       child: Scaffold(
         //left drawer fetch data from api
         backgroundColor: Colors.white,
-        drawer: Drawer(
+        endDrawer: Drawer(
           backgroundColor: const Color(0xFFFFFFFF),
           child: FutureBuilder<Map<String, dynamic>>(
             future: _profileFuture,
@@ -1188,7 +1157,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           // Drawer avatar at the left
           leading: Builder(
             builder: (context) => GestureDetector(
-              onTap: () => Scaffold.of(context).openDrawer(),
+              onTap: () => {
+                Scaffold.of(context).openEndDrawer(),
+              },
               child: Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(left: 16),
@@ -1359,17 +1330,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               },
             ),
 
-            IconButton(
-              icon: const Icon(
-                FontAwesomeIcons.bars,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                // here i want to open navigation drawer
-                Scaffold.of(context).openEndDrawer();
-              },
-            ),
-
             const SizedBox(width: 0), // optional spacing at the end
           ],
         ),
@@ -1399,17 +1359,17 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 DashboardSummaryCard(
                   items: [
                     SummaryItem(
-                      icon: const Icon(Icons.stacked_bar_chart),
+                      icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green),
                       value: totalInvestment.toString(),
                       label: 'Total Investment',
                     ),
                     SummaryItem(
-                      icon: const Icon(Icons.attach_money),
+                      icon: SvgPicture.asset(Assets.iconsTotalIncome, color: Colors.green),
                       value: totalIncome.toString(),
                       label: 'Total Income',
                     ),
                     SummaryItem(
-                      icon: const Icon(Icons.payments_rounded),
+                      icon: SvgPicture.asset(Assets.iconsTodaysIncome, color: Colors.green),
                       value: todaysIncome.toString(),
                       label: "Today's Income",
                     ),
@@ -1421,12 +1381,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 DashboardSummaryCard(
                   items: [
                     SummaryItem(
-                      icon: const Icon(Icons.stacked_bar_chart),
+                      icon: SvgPicture.asset(Assets.iconsTodaysIncome, color: Colors.green),
                       value: totalProjects.toString(),
                       label: 'My Grow Up Projects',
                     ),
                     SummaryItem(
-                      icon: const Icon(Icons.attach_money),
+                      icon: SvgPicture.asset(Assets.iconsGrowUpPropertis, color: Colors.green),
                       value: '0',
                       label: 'Ordered Properties',
                     ),
@@ -1496,31 +1456,31 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
                         child: CategoryGridCard(
                           items: [
-                            CategoryItem(icon: Icon(Icons.show_chart),        title: 'Live Projects', onTap: () {
+                            CategoryItem(icon: SvgPicture.asset(Assets.iconsLiveProject, color: Colors.green),        title: 'Live Projects', onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const LiveProjectsPage()),
                               );
                             }),
-                            CategoryItem(icon: Icon(Icons.stacked_bar_chart), title: 'Long Duration', onTap: () {
+                            CategoryItem(icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green), title: 'Long Duration', onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const LongProjectsPage()),
                               );
                             }),
-                            CategoryItem(icon: Icon(Icons.trending_up),       title: 'Short Duration', onTap: () {
+                            CategoryItem(icon: SvgPicture.asset(Assets.iconsSort, color: Colors.green),     title: 'Short Duration', onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const ShortProjectsPage()),
                               );
                             }),
-                            CategoryItem(icon: Icon(Icons.scale),             title: 'Matured Projects', onTap: () {
+                            CategoryItem(icon: SvgPicture.asset(Assets.iconsMach, color: Colors.green),             title: 'Matured Projects', onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const CompletedProjectsPage()),
                               );
                             }),
-                            CategoryItem(icon: Icon(Icons.stacked_bar_chart), title: 'All GrowUp Projects', onTap: () {
+                            CategoryItem(icon: SvgPicture.asset(Assets.iconsEarning, color: Colors.green), title: 'All GrowUp Projects', onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const AllProjectsPage()),
@@ -1533,14 +1493,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
-
-                SizedBox(height: 8,),
-
-
                 // Projects you may invest
                 Padding(
                   padding: const EdgeInsets.only(
-                    top: 12,
+                    top: 0,
                     bottom: 10,
                     left: 8,
                     right: 8,
@@ -1553,12 +1509,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'PROJECTS YOU MAY INVEST',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: const Text(
+                                'PROJECTS YOU MAY INVEST',
+                                style: TextStyle(
+                                  color: Color(0xFF2E7D32),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                             TextButton(
@@ -1610,50 +1569,45 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             // Use CarouselSlider instead of SingleChildScrollView + Row
                             return CarouselSlider(
                               options: CarouselOptions(
-                                height:
-                                MediaQuery.of(context).size.height *
-                                    0.20,
+                                height: MediaQuery.of(context).size.height * 0.20,
                                 autoPlay: true,
-                                autoPlayInterval: const Duration(
-                                  seconds: 5,
-                                ),
+                                autoPlayInterval: const Duration(seconds: 5),
                                 enlargeCenterPage: true,
-                                viewportFraction:
-                                1.0, // shows multiple cards partially
+                                viewportFraction: 1.0,
                                 enableInfiniteScroll: true,
                               ),
                               items: projects.map((project) {
                                 return Builder(
                                   builder: (BuildContext context) {
-                                    return _buildProjectCard(
-                                      context: context,
-                                      imageUrl: project.imageUrl ?? '',
-                                      projectId:
-                                      project.id?.toString() ?? '',
-                                      name: project.projectName ?? 'N/A',
-                                      type:
-                                      project.investmentType_name ??
-                                          "N/A",
-                                      goal:
-                                      '${project.investmentGoal ?? '0'} Tk',
-                                      duration:
-                                      project.project_duration_viewer ??
-                                          'N/A',
-                                      minInvestment:
-                                      '${project.min_investment_amount ?? '0'} Tk',
-                                      time:
-                                      '${project.remaining_opportunity_days ?? 0} Days',
-                                      roi: '${project.annualRoi ?? 0}%',
-                                      isTablet:
-                                      MediaQuery.of(
-                                        context,
-                                      ).size.width >=
-                                          600,
+                                    return Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: const Color(0xFF2E7D32), // deep green border
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: _buildProjectCard(
+                                        context: context,
+                                        imageUrl: project.imageUrl ?? '',
+                                        projectId: project.id?.toString() ?? '',
+                                        name: project.projectName ?? 'N/A',
+                                        type: project.investmentType_name ?? "N/A",
+                                        goal: '${project.investmentGoal ?? '0'} Tk',
+                                        duration: project.project_duration_viewer ?? 'N/A',
+                                        minInvestment: '${project.min_investment_amount ?? '0'} Tk',
+                                        time: '${project.remaining_opportunity_days ?? 0} Days',
+                                        roi: '${project.annualRoi ?? 0}%',
+                                        isTablet: MediaQuery.of(context).size.width >= 600,
+                                      ),
                                     );
                                   },
                                 );
                               }).toList(),
                             );
+
                           },
                         ),
                       ],
@@ -1661,14 +1615,22 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
-                const SizedBox(height: 8),
                 // Properties Investment by category
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 16),
+                  child: Text("INVESTMENT BY CATEGORY", style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF2E7D32),
+                      fontWeight: FontWeight.w600
+                  )),
+                ),
+                const SizedBox(height: 8),
+
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
-                  color: Colors.green.shade50,
+                  color: Colors.green.withValues(alpha: .03),
                   child: Padding(
                     padding: const EdgeInsets.only(
-                      top: 12,
                       bottom: 8,
                       left: 8,
                       right: 8,
@@ -1677,108 +1639,105 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Title row with static icon on the right
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // CHANGED: Wrapped the Text widget in a Container for highlighting
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors
-                                        .green
-                                        .shade100, // The highlight color
-                                    borderRadius: BorderRadius.circular(
-                                      6,
-                                    ), // Soft, rounded corners
-                                  ),
-                                  child: const Text(
-                                    'PROPERTIES',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 16,
-                                      height: 1.0,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // CHANGED: Wrapped the Text widget in a Container for highlighting
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors
+                                          .green
+                                          .shade100, // The highlight color
+                                      borderRadius: BorderRadius.circular(
+                                        4,
+                                      ), // Soft, rounded corners
+                                    ),
+                                    child: const Text(
+                                      'PROPERTIES',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 16,
+                                        height: 1.0,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  'INVESTMENT BY CATEGORY',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 12,
-                                    height: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Image.asset(
-                              'assets/icons/Secure.png',
-                              width: 60,
-                              height: 60,
-                            ),
-                          ],
+                                ],
+                              ),
+                              Image.asset(
+                                'assets/icons/Secure.png',
+                                width: 60,
+                                height: 60,
+                              ),
+                            ],
+                          ),
                         ),
 
                         const SizedBox(height: 10),
 
                         // This is the section with your buttons, it remains unchanged.
-                        Column(
-                          children: [
-                            // ... (Your first three rows of buttons remain the same) ...
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Column(
+                            children: [
+                              // ... (Your first three rows of buttons remain the same) ...
 
-                            // Row 1: Residential + Commercial (No change)
-                            Row(
-                              children: [
-                                Expanded(child: _buildCategoryButton6('Residential ', FontAwesomeIcons.city)),
-                                const SizedBox(width: 8),
-                                Expanded(child: _buildCategoryButton7('Commercial ', FontAwesomeIcons.handshake)),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
+                              // Row 1: Residential + Commercial (No change)
+                              Row(
+                                children: [
+                                  Expanded(child: _buildCategoryButton6('Residential ', FontAwesomeIcons.city)),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _buildCategoryButton7('Commercial ', FontAwesomeIcons.handshake)),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
 
-                            // Row 3: ROSA HiTech City + ROSA Health (No change)
-                            Row(
-                              children: [
-                                Expanded(child: _buildCategoryButton8('ROSA HiTech City', FontAwesomeIcons.microchip)),
-                                const SizedBox(width: 8),
-                                Expanded(child: _buildCategoryButton9('ROSA Health', FontAwesomeIcons.heartbeat)),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
+                              // Row 3: ROSA HiTech City + ROSA Health (No change)
+                              Row(
+                                children: [
+                                  Expanded(child: _buildCategoryButton8('ROSA HiTech City', FontAwesomeIcons.microchip)),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _buildCategoryButton9('ROSA Health', FontAwesomeIcons.heartbeat)),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
 
-                            // --- NEW SECTION FOR THE ROYAL CLUB AND ITS CHILDREN ---
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // 1. The Parent Button (remains the same)
-                                _buildCategoryButton20(
-                                  'The Royal Eco City',
-                                  FontAwesomeIcons.crown,
-                                ),
-                                const SizedBox(height: 20),
-                                // 2. The new Tree List for Sub-Children
-                                _buildTreeListItem(
-                                  child: _buildCategoryButton22('The Royal Agro Eco Tourism', FontAwesomeIcons.seedling),
-                                  isLast: false,
-                                ),
-                                _buildTreeListItem(
-                                  child: _buildCategoryButton23('The Royal Palace', FontAwesomeIcons.landmark),
-                                  isLast: false,
-                                ),
-                                _buildTreeListItem(
-                                  child: _buildCategoryButton24('The Royal North-Bengal Club', FontAwesomeIcons.users),
-                                  isLast: true, // Mark the last item
-                                ),
-                              ],
-                            )
-                          ],
+                              // --- NEW SECTION FOR THE ROYAL CLUB AND ITS CHILDREN ---
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // 1. The Parent Button (remains the same)
+                                  _buildCategoryButton20(
+                                    'The Royal Eco City',
+                                    FontAwesomeIcons.crown,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  // 2. The new Tree List for Sub-Children
+                                  _buildTreeListItem(
+                                    child: _buildCategoryButton22('The Royal Agro Eco Tourism', FontAwesomeIcons.seedling),
+                                    isLast: false,
+                                  ),
+                                  _buildTreeListItem(
+                                    child: _buildCategoryButton23('The Royal Palace', FontAwesomeIcons.landmark),
+                                    isLast: false,
+                                  ),
+                                  _buildTreeListItem(
+                                    child: _buildCategoryButton24('The Royal North-Bengal Club', FontAwesomeIcons.users),
+                                    isLast: true, // Mark the last item
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -1787,201 +1746,191 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                 //  Properties For You (Static cards)
                 Container(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'PROPERTIES YOU MAY INVEST',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                //Navigator.pop(context); // Close the drawer or dialog if needed
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                    const AllPropertiesPage(),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'See All',
-                                    style: TextStyle(color: Colors.orange),
-                                  ),
-                                  const Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.orange,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.32,
-                          child: FutureBuilder<AllPropertiesResponse>(
-                            future: fetchProperties(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.propertyPackages.isEmpty) {
-                                // Combined error and no-data checks for brevity
-                                return const Center(
-                                  child: Text("No properties found"),
-                                );
-                              }
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
 
-                              final propertyPackages = snapshot.data!.propertyPackages;
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16, top: 16),
+                            child: Text("PROPERTIES YOU MAY INVEST", style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF2E7D32),
+                                fontWeight: FontWeight.w600
+                            )),
+                          ),
+                          const SizedBox(height: 8),
 
-                              // Ensure you have enough data to display 2 items
-                              // If you have less than 2, the viewportFraction might look odd.
-                              final displayPackages = propertyPackages.take(propertyPackages.length);
-
-                              return CarouselSlider(
-                                options: CarouselOptions(
-                                  height: double.infinity,
-                                  autoPlay: true,
-                                  autoPlayInterval: const Duration(seconds: 5),
-
-                                  // 🏆 KEY CHANGE 1: Show two items simultaneously
-                                  viewportFraction: 0.5,
-
-                                  // 🏆 KEY CHANGE 2: Disable center enlargement since we show multiple
-                                  enlargeCenterPage: true,
-
-                                  enableInfiniteScroll: true,
-
-                                  // Add a little padding to the carousel itself for spacing (optional but recommended)
-                                  pageSnapping: true, // Optional: ensures snapping to whole pages (items)
-
-                                  // The sliding step remains 1 by default, which is exactly what you need.
+                          TextButton(
+                            onPressed: () {
+                              //Navigator.pop(context); // Close the drawer or dialog if needed
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                  const AllPropertiesPage(),
                                 ),
-
-                                // You should use the full list here, not just .take(3), to ensure infinite scroll works well.
-                                items: displayPackages.map((package) {
-                                  return Builder(
-                                    builder: (BuildContext context) {
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4.0), // Add padding between cards
-                                        child: _buildPropertyCard(
-                                          context: context,
-                                          imageUrl: "https://growupagro.tech${package.imageUrl}",
-                                          propertyName: package.propertyName,
-                                          packageName: package.packageName,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                }).toList(),
                               );
                             },
+                            child: Row(
+                              children: [
+                                Text(
+                                  'See All',
+                                  style: TextStyle(color: Colors.orange),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.orange,
+                                ),
+                              ],
+                            ),
                           ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.32,
+                        child: FutureBuilder<AllPropertiesResponse>(
+                          future: fetchProperties(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.propertyPackages.isEmpty) {
+                              // Combined error and no-data checks for brevity
+                              return const Center(
+                                child: Text("No properties found"),
+                              );
+                            }
+
+                            final propertyPackages = snapshot.data!.propertyPackages;
+
+                            // Ensure you have enough data to display 2 items
+                            // If you have less than 2, the viewportFraction might look odd.
+                            final displayPackages = propertyPackages.take(propertyPackages.length);
+
+                            return CarouselSlider(
+                              options: CarouselOptions(
+                                height: double.infinity,
+                                autoPlay: true,
+                                autoPlayInterval: const Duration(seconds: 5),
+
+                                // 🏆 KEY CHANGE 1: Show two items simultaneously
+                                viewportFraction: 0.5,
+
+                                // 🏆 KEY CHANGE 2: Disable center enlargement since we show multiple
+                                enlargeCenterPage: true,
+
+                                enableInfiniteScroll: true,
+
+                                // Add a little padding to the carousel itself for spacing (optional but recommended)
+                                pageSnapping: true, // Optional: ensures snapping to whole pages (items)
+
+                                // The sliding step remains 1 by default, which is exactly what you need.
+                              ),
+
+                              // You should use the full list here, not just .take(3), to ensure infinite scroll works well.
+                              items: displayPackages.map((package) {
+                                return Builder(
+                                  builder: (BuildContext context) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4.0), // Add padding between cards
+                                      child: _buildPropertyCard(
+                                        context: context,
+                                        imageUrl: "https://growupagro.tech${package.imageUrl}",
+                                        propertyName: package.propertyName,
+                                        packageName: package.packageName,
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
 
                 // Transactions
-                Card(
-                  elevation: 9,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Transaction title
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Transaction title
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'TRANSACTION',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                                fontSize: 16,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        WalletHistoryPage(),
-                                  ),
-                                );
-                              },
-                              child: const Row(
-                                children: [
-                                  Text(
-                                    'See All',
-                                    style: TextStyle(color: Colors.orange),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.orange,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, top: 16),
+                          child: Text("TRANSACTION", style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF2E7D32),
+                              fontWeight: FontWeight.w600
+                          )),
                         ),
-                        const Divider(thickness: 1.2, color: Colors.green),
-
-                        if (_walletTransactions.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: Text('No recent transactions.'),
-                          )
-                        else
-                          ..._walletTransactions.take(3).map((tx) {
-                            final String type =
-                                tx['type']?.toString().toLowerCase() ?? '';
-                            IconData icon;
-
-                            if (type == 'withdraw') {
-                              icon = Icons.arrow_downward;
-                            } else if (type == 'deposit') {
-                              icon = Icons.arrow_upward;
-                            } else if (type == 'investment') {
-                              icon = Icons.bar_chart;
-                            } else if (type == 'recharge') {
-                              icon = Icons.bolt;
-                            }
-                            else {
-                              icon = Icons.help_outline;
-                            }
-
-                            return _buildTransactionItem(
-                              icon,
-                              tx['type'].toString().toUpperCase(),
-                              tx['date'] ?? '',  // <- use 'date' not 'created_at'
-                              '${tx['amount']} Tk',
-                              tx['status'] ?? 'N/A',
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    WalletHistoryPage(),
+                              ),
                             );
-                          }).toList(),
+                          },
+                          child: const Row(
+                            children: [
+                              Text(
+                                'See All',
+                                style: TextStyle(color: Colors.orange),
+                              ),
+                              Icon(
+                                Icons.arrow_forward,
+                                color: Colors.orange,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
+                    const Divider(thickness: 1, color: Colors.grey),
+
+                    if (_walletTransactions.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Text('No recent transactions.'),
+                      )
+                    else
+                      ..._walletTransactions.take(3).map((tx) {
+                        final String type =
+                            tx['type']?.toString().toLowerCase() ?? '';
+                        IconData icon;
+
+                        if (type == 'withdraw') {
+                          icon = Icons.arrow_downward;
+                        } else if (type == 'deposit') {
+                          icon = Icons.arrow_upward;
+                        } else if (type == 'investment') {
+                          icon = Icons.bar_chart;
+                        } else if (type == 'recharge') {
+                          icon = Icons.bolt;
+                        }
+                        else {
+                          icon = Icons.help_outline;
+                        }
+
+                        return _buildTransactionItem(
+                          icon,
+                          tx['type'].toString().toUpperCase(),
+                          tx['date'] ?? '',  // <- use 'date' not 'created_at'
+                          '${tx['amount']} Tk',
+                          tx['status'] ?? 'N/A',
+                        );
+                      }).toList(),
+                  ],
                 ),
               ],
             ),
@@ -2175,7 +2124,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2183,7 +2132,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16 , color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
+            const SizedBox(width: 8), // space between icon & text
             Text(
               label,
               style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
@@ -2216,7 +2165,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2224,7 +2173,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16, color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
+            const SizedBox(width: 8), // space between icon & text
             Text(
               label,
               style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
@@ -2257,7 +2206,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2298,7 +2247,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2306,7 +2255,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18, color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
+            const SizedBox(width: 8), // space between icon & text
             Text(
               label,
               style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
@@ -2339,7 +2288,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2347,7 +2296,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18, color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
+            const SizedBox(width: 8), // space between icon & text
             Text(
               label,
               style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
@@ -2380,7 +2329,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(5),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2388,7 +2337,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18, color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
+            const SizedBox(width: 8), // space between icon & text
             Text(
               label,
               style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
@@ -2419,7 +2368,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(5),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
@@ -2429,11 +2378,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Icon(icon, color: Colors.green, size: 12), // ✅ use parameter
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
               Text(
                 title, // ✅ use parameter
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                   fontSize: 12,
                 ),
               ),
@@ -2463,7 +2413,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(5),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
@@ -2473,11 +2423,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Icon(icon, color: Colors.green, size: 12), // ✅ use parameter
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
               Text(
                 title, // ✅ use parameter
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                   fontSize: 12,
                 ),
               ),
@@ -2507,7 +2458,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(5),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
@@ -2517,11 +2468,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Icon(icon, color: Colors.green, size: 12), // ✅ use parameter
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
               Text(
                 title, // ✅ use parameter
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                   fontSize: 12,
                 ),
               ),
@@ -2758,8 +2710,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       width: cardWidth,
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.green.withValues(alpha: .04),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2767,8 +2719,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+              bottomLeft: Radius.circular(8),
+              bottomRight: Radius.circular(8),
+
             ),
             child: Image.network(
               imageUrl,
@@ -2832,12 +2787,28 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     }
 
 
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.green, size: 24),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: title.toLowerCase() == 'deposit' ||  title.toLowerCase() == 'investment'
+                  ? Colors.green.withValues(alpha: 0.15)
+                  : Colors.orange.withValues(alpha: 0.15), // light red background
+              borderRadius: BorderRadius.circular(4), // 4px rounded corners
+            ),
+            child: Icon(
+              icon,
+              color: title.toLowerCase() == 'deposit' ||  title.toLowerCase() == 'investment'
+                  ? Colors.green
+                  : Colors.orange,
+              size: 20,
+            ),
+          ),
+
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -2869,28 +2840,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               ),
               Container(
                 margin: const EdgeInsets.only(top: 2),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: status.toLowerCase() == 'approved'
-                      ? Colors.green
-                      : Colors.orange,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.9),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+
                 child: Text(
                   status.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     color: status.toLowerCase() == 'approved'
-                        ? Colors.black
-                        : Colors.black,
+                        ? Colors.green
+                        : Colors.orange,
                   ),
                 ),
               ),

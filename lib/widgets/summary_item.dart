@@ -26,7 +26,6 @@ class DashboardSummaryCard extends StatelessWidget {
     this.borderRadius = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     this.bgColor = Colors.white,
-    this.iconColor = const Color(0xFF2E7D32),
     this.valueColor = const Color(0xFF0F1A2A),
     this.labelColor = const Color(0xFF9AA3B2),
     this.dividerColor = const Color(0xFF8ED18F),
@@ -36,7 +35,6 @@ class DashboardSummaryCard extends StatelessWidget {
   final double borderRadius;
   final EdgeInsets padding;
   final Color bgColor;
-  final Color iconColor;
   final Color valueColor;
   final Color labelColor;
   final Color dividerColor;
@@ -60,7 +58,7 @@ class DashboardSummaryCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isTight = constraints.maxWidth < 360;
-            final iconSize = isTight ? 28.0 : 34.0;
+            final iconSize = isTight ? 28.0 : 44.0;
             final valueSize = isTight ? 14.0 : 20.0;
             final labelSize = isTight ? 10.0 : 13.0;
             final dividerHeight = isTight ? 66.0 : 78.0;
@@ -78,8 +76,8 @@ class DashboardSummaryCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconTheme(
-                          data: IconThemeData(size: iconSize, color: iconColor),
-                          child: _wrapIcon(item.icon, iconColor, iconSize),
+                          data: IconThemeData(size: iconSize, ),
+                          child: _wrapIcon(item.icon, iconSize),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -182,9 +180,9 @@ class DashboardSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _wrapIcon(Widget icon, Color color, double size) {
+  Widget _wrapIcon(Widget icon, double size) {
     if (icon is Icon) {
-      return Icon(icon.icon, size: size, color: icon.color ?? color);
+      return Icon(icon.icon, size: size,);
     }
     return SizedBox(height: size, width: size, child: FittedBox(child: icon));
   }

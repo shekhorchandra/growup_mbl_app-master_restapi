@@ -85,7 +85,8 @@ class CategoryGridCard extends StatelessWidget {
           children: [
             IconTheme(
               data: IconThemeData(size: 34, color: iconColor),
-              child: item.icon,
+              child: _wrapIcon(item.icon, 28),
+              
             ),
             const SizedBox(height: 0),
             // Fixed-height box to ensure all cards are equal height whether 1 or 2 lines
@@ -110,5 +111,11 @@ class CategoryGridCard extends StatelessWidget {
         ),
       ),
     );
+  }
+  Widget _wrapIcon(Widget icon, double size) {
+    if (icon is Icon) {
+      return Icon(icon.icon, size: size,);
+    }
+    return SizedBox(height: size, width: size, child: FittedBox(child: icon));
   }
 }
