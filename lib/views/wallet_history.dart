@@ -153,46 +153,66 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
     }
   }
 
-  Future<void> _openInvoiceInBrowser(
-    BuildContext context,
-    String invoiceNo,
-  ) async {
-    setState(() {
-      downloadingInvoices.add(invoiceNo);
-    });
-
-    final url = 'https://growupagro.tech/dashboard/invoice/pdf/$invoiceNo';
-
-    try {
-      final uri = Uri.parse(url);
-
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication, // open in default browser
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open invoice in browser.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error opening invoice: $e');
+  Future<void> _openInvoiceInBrowser(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to open invoice: $e'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Could not open invoice link')),
       );
-    } finally {
-      setState(() {
-        downloadingInvoices.remove(invoiceNo);
-      });
     }
   }
+
+  Future<void> _downloadInvoice(
+      BuildContext context,
+      String url,
+      String invoiceNo,
+      ) async {
+    try {
+      double progress = 0.0;
+      final dio = Dio();
+
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = '${dir.path}/$invoiceNo.pdf';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Starting download for $invoiceNo...')),
+      );
+
+      // 🔽 Download with progress callback
+      await dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            progress = (received / total) * 100;
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(milliseconds: 500),
+                content: Text('Downloading $invoiceNo... ${progress.toStringAsFixed(0)}%'),
+              ),
+            );
+          }
+        },
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('✅ Download complete: $invoiceNo.pdf')),
+      );
+
+      // 📂 Automatically open the downloaded file
+      await OpenFile.open(filePath);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Download failed: $e')),
+      );
+    }
+  }
+
+
+
 
   ///  Custom Status Chip
   Widget _getStatusChip(String? status) {
@@ -296,7 +316,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                           child: Card(
                             child: DataTable(
                               columnSpacing: 14,
-                              dataRowHeight: 80,
+                              dataRowHeight: 120,
                               headingRowColor: MaterialStateProperty.all(
                                 const Color(0xFF388E3C),
                               ),
@@ -330,13 +350,13 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                     DataCell(
                                       Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                            CrossAxisAlignment.center,
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
                                           Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.start,
                                             children: [
                                               Expanded(
                                                 child: Text.rich(
@@ -475,38 +495,69 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
                                     // DataCell(Text(item.note ?? 'N/A')),
                                     DataCell(
                                       item.status == "Approved"
-                                          ? (downloadingInvoices.contains(
-                                                  item.invoiceNo.toString(),
-                                                )
-                                                ? const SizedBox(
-                                                    width: 24,
-                                                    height: 24,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  )
-                                                : IconButton(
-                                                    icon: const Icon(
-                                                      Icons.download,
-                                                      color: Colors.green,
-                                                    ),
-                                                    tooltip:
-                                                        'Open Invoice in Browser',
-                                                    onPressed: () =>
-                                                        _openInvoiceInBrowser(
-                                                          context,
-                                                          item.invoiceNo
-                                                              .toString(),
-                                                        ),
-                                                  ))
-                                          : const Icon(
-                                              Icons.block,
-                                              color: Colors
-                                                  .red, // visually “disabled” look
-                                              size: 24,
+                                          ? Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          // 👁️ View Button
+                                          ElevatedButton(
+                                            onPressed: () => _openInvoiceInBrowser(
+                                              context,
+                                              item.invoice_view_url.toString(), // ✅ correct param
                                             ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.blueGrey[200],
+                                              foregroundColor: Colors.black,
+                                              elevation: 2,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                              minimumSize: const Size(0, 0),
+                                            ),
+                                            child: const Text(
+                                              'View',
+                                              style: TextStyle(fontSize: 10),
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 2),
+
+                                          // 💾 Download Button
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              if (item.invoice_download_url == null ||
+                                                  item.invoice_download_url!.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Download URL not available')),
+                                                );
+                                                return;
+                                              }
+
+                                              _downloadInvoice(
+                                                context,
+                                                item.invoice_download_url!,
+                                                item.invoiceNo.toString(),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.amber[200],
+                                              foregroundColor: Colors.black,
+                                              elevation: 2,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                              minimumSize: const Size(0, 0),
+                                            ),
+                                            child: const Text(
+                                              'Download',
+                                              style: TextStyle(fontSize: 10),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                          : const Icon(Icons.block, color: Colors.red, size: 24),
                                     ),
+
+
+
+
+
+
                                   ],
                                 );
                               }),

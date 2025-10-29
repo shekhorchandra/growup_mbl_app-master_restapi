@@ -289,21 +289,59 @@ class _ProjectInvestmentDetailPageState extends State<ProjectInvestmentDetailPag
                                     // Actions (View, Download)
                                     DataCell(
                                       item['invoice_no'] != null && item['invoice_no'] != 0
-                                          ? (downloadingInvoices.contains(item['invoice_no'].toString())
-                                          ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                          ? Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          // 👁️ View Button
+                                          ElevatedButton(
+                                            onPressed: () => _downloadInvoice(context, item['invoice_no'].toString()),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.blueGrey[200],
+                                              foregroundColor: Colors.black,
+                                              elevation: 2,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                              minimumSize: const Size(0, 0),
+                                            ),
+                                            child: const Text(
+                                              'View',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 4),
+/*
+                                          // 💾 Download Button or Loading Spinner
+                                          (downloadingInvoices.contains(item['invoice_no'].toString()))
+                                              ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          )
+                                              : ElevatedButton(
+                                            onPressed: () => _downloadInvoice(context, item['invoice_no'].toString()),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.blue[200],
+                                              foregroundColor: Colors.black,
+                                              elevation: 2,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                              minimumSize: const Size(0, 0),
+                                            ),
+                                            child: const Text(
+                                              'Download',
+                                              style: TextStyle(fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          */
+                                        ],
                                       )
-                                          : IconButton(
-                                        icon: const Icon(Icons.download, color: Colors.green),
-                                        tooltip: 'Open Invoice in Browser',
-                                        onPressed: () {
-                                          _downloadInvoice(context, item['invoice_no'].toString());
-                                        },
-                                      ))
                                           : const Text('N/A'),
-                                    )
+                                    ),
+
+
+
 
 
                                   ],

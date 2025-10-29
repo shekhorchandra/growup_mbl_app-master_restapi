@@ -1118,7 +1118,7 @@ class _DepositPageState extends State<DepositPage> {
                 fontWeight: FontWeight.bold,
               ),
               dataRowMinHeight: 48,
-              dataRowMaxHeight: 56,
+              dataRowMaxHeight: 60,
               columnSpacing: 12,
               columns: const [
                 DataColumn(label: Text('SL')),
@@ -1166,24 +1166,66 @@ class _DepositPageState extends State<DepositPage> {
                     ),
                     DataCell(Text(item.note ?? 'N/A')),
                     DataCell(
-                      item.status == "approved" && item.invoiceNo != null
-                          ? (downloadingInvoices.contains(item.invoiceNo)
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      item.status.toLowerCase() == "approved" && item.invoiceNo != null
+                          ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // 👁️ View Button
+                          ElevatedButton(
+                            onPressed: () => _openInvoiceInBrowser(item.invoiceNo!),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueGrey[200], // View button color
+                              foregroundColor: Colors.black,
+                              elevation: 2,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                              minimumSize: const Size(0, 0),
+                            ),
+                            child: const Text(
+                              'View',
+                              style: TextStyle(
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 2), // spacing between buttons
+/*
+                          // 💾 Download Button or Loading
+                          (downloadingInvoices.contains(item.invoiceNo))
+                              ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                              : ElevatedButton(
+                            onPressed: () => _openInvoiceInBrowser(item.invoiceNo!),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber[200], // Download button color
+                              foregroundColor: Colors.black,
+                              elevation: 2,
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                              minimumSize: const Size(0, 0),
+                            ),
+                            child: const Text(
+                              'Download',
+                              style: TextStyle(
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          */
+                        ],
                       )
-                          : IconButton(
-                        icon: const Icon(Icons.download, color: Colors.green, size: 20),
-                        tooltip: 'Open Invoice in Browser',
-                        onPressed: () => _openInvoiceInBrowser(item.invoiceNo ?? " "),
-                      ))
                           : const Icon(
                         Icons.block,
                         color: Colors.red,
                         size: 24,
                       ),
                     )
+
+
 
 
                   ],

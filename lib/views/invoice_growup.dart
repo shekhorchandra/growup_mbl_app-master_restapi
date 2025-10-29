@@ -210,7 +210,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                       elevation: 3,
                       child: DataTable(
                         columnSpacing: 28,
-                        dataRowHeight: 80,
+                        dataRowHeight: 70,
                         headingRowHeight: 60,
                         headingRowColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
                         headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -345,8 +345,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                               // ),
                               DataCell(
                                 (item.invoiceNo == null || item.invoiceNo.isEmpty)
-                                    ? IconButton(
-                                  icon: const Icon(Icons.block, color: Colors.green, size: 24),
+                                    ? ElevatedButton(
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
@@ -356,21 +355,67 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                                       ),
                                     );
                                   },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade300,
+                                    foregroundColor: Colors.white,
+                                    elevation: 1,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    minimumSize: const Size(0, 0),
+                                  ),
+                                  child: const Text('No Invoice'),
                                 )
-                                    : (_isDownloading[item.invoiceNo] == true
-                                    ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                                    : IconButton(
-                                  icon: const Icon(Icons.download, color: Colors.green, size: 20),
-                                  onPressed: () => downloadInvoicePdf(context, item.invoiceNo),
-                                )),
+                                    : Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // 👁️ View Button
+                                    ElevatedButton(
+                                      onPressed: () => downloadInvoicePdf(
+                                        context,
+                                        item.invoiceNo.toString(),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueGrey[200], // button color
+                                        foregroundColor: Colors.black,
+                                        elevation: 2,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                        minimumSize: const Size(0, 0),
+                                      ),
+                                      child: const Text(
+                                        'View',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+                                    /*
+                                    // 💾 Download Button
+                                    (_isDownloading[item.invoiceNo] == true)
+                                        ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                        : ElevatedButton(
+                                      onPressed: () => downloadInvoicePdf(context, item.invoiceNo),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue[200] ,
+                                        foregroundColor: Colors.black,
+                                        elevation: 2,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        minimumSize: const Size(0, 0),
+                                      ),
+                                      child: const Text(
+                                        'Download',
+                                        style: TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                    */
+                                  ],
+                                ),
                               )
-
-
-
 
                             ],
                           );

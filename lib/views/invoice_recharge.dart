@@ -274,24 +274,88 @@ class _InvoiceRechargePageState extends State<InvoiceRechargePage> {
                             DataCell(Text(item.note)),
                             DataCell(
                               (item.invoiceDownloadUrl != null && item.invoiceNo != "N/A")
-                                  ? (_isDownloading[item.invoiceNo] == true
-                                  ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                  ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // 👁️ View Button
+                                  ElevatedButton(
+                                    onPressed: () => downloadInvoicePdf(
+                                      context,
+                                      item.invoiceNo.toString(),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blueGrey[200], // same as first DataCell
+                                      foregroundColor: Colors.black,
+                                      elevation: 2,
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                      minimumSize: const Size(0, 0),
+                                    ),
+                                    child: const Text(
+                                      'View',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 2),
+                                  /*
+
+                                  // 💾 Download Button
+                                  (_isDownloading[item.invoiceNo] == true)
+                                      ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                      : ElevatedButton(
+                                    onPressed: () async {
+                                      await downloadInvoicePdf(context, item.invoiceNo);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue[200], // same as first DataCell
+                                      foregroundColor: Colors.black,
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 4),
+                                      minimumSize: const Size(0, 0),
+                                    ),
+                                    child: const Text(
+                                      'Download',
+                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                  */
+                                ],
                               )
-                                  : IconButton(
-                                icon: const Icon(Icons.download, color: Colors.green),
-                                onPressed: () async {
-                                  await downloadInvoicePdf(context, item.invoiceNo);
+                                  : ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("No invoice available"),
+                                      backgroundColor: Colors.red,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
                                 },
-                              ))
-                                  : const Icon(
-                                Icons.block,
-                                color: Colors.red,
-                                size: 24,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade300,
+                                  foregroundColor: Colors.white,
+                                  elevation: 1,
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  minimumSize: const Size(0, 0),
+                                ),
+                                child: const Text(
+                                  'No Invoice',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
                               ),
-                            )
+                            ),
+
+
 
 
 

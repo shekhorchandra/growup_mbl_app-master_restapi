@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
+import '../models/investor_profile_model.dart';
+
 class InvestorProfilePage extends StatefulWidget {
   const InvestorProfilePage({super.key});
 
@@ -17,6 +19,8 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   final _formKeyBank = GlobalKey<FormState>();
   final _formKeyMobileBank = GlobalKey<FormState>();
   final _formKeyNominee = GlobalKey<FormState>();
+  InvestorProfileResponse? investorProfile;
+
 
   bool isLoading = true;
   String? profileImageUrl;
@@ -61,6 +65,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   String email = '';
   String nid = '';
   String address = '';
+  String? nidFrontUrl;
+  String? nidBackUrl;
+
 
   // Nominee Info
   String nomineeName = '';
@@ -120,36 +127,46 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
               ? 'https://growupagro.tech/storage/${investor['image']}'
               : null;
 
+          // ✅ Correct NID keys
+          nidFrontUrl = (investor['nid_front'] != null && investor['nid_front'].toString().isNotEmpty)
+              ? 'https://growupagro.tech/storage/${investor['nid_front']}'
+              : null;
+
+          nidBackUrl = (investor['nid_back'] != null && investor['nid_back'].toString().isNotEmpty)
+              ? 'https://growupagro.tech/storage/${investor['nid_back']}'
+              : null;
+
+          // Debug prints
+          print('NID Front URL: $nidFrontUrl');
+          print('NID Back URL: $nidBackUrl');
+
+          // Investor fields
           phone = investor['phone'] ?? '';
           email = investor['email'] ?? '';
           nid = investor['nid'] ?? '';
           address = investor['address'] ?? '';
 
-          // Convert district_id to int safely
+          // District
           selectedDistrictId = investor['district_id'] != null
               ? int.tryParse(investor['district_id'].toString())
               : null;
 
-          // Default district if null
           if (selectedDistrictId == null && districts.isNotEmpty) {
             selectedDistrictId = int.tryParse(districts.first['id'].toString());
           }
 
-          // Filter upazilas based on selected district (String -> int safe)
+          // Filter upazilas for this district
           filteredUpazilas = allUpazilas
               .where((u) => u['district_id'].toString() == selectedDistrictId.toString())
               .toList();
 
-
-          // Set selectedUpazilaId safely
           selectedUpazilaId = investor['upazila_id'] != null
               ? int.tryParse(investor['upazila_id'].toString())
               : null;
 
           if (selectedUpazilaId == null ||
               !filteredUpazilas.any((u) => u['id'] == selectedUpazilaId)) {
-            selectedUpazilaId =
-            filteredUpazilas.isNotEmpty ? filteredUpazilas.first['id'] : null;
+            selectedUpazilaId = filteredUpazilas.isNotEmpty ? filteredUpazilas.first['id'] : null;
           }
 
           // Nominee Info
@@ -186,8 +203,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
 
           missingFields = profileCompletionData != null
               ? List<String>.from(
-            (profileCompletionData['missing_fields'] ?? [])
-                .whereType<String>(),
+            (profileCompletionData['missing_fields'] ?? []).whereType<String>(),
           )
               : [];
 
@@ -202,6 +218,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
       setState(() => isLoading = false);
     }
   }
+
 
 
   Future<void> updateInvestorInfo() async {
@@ -810,13 +827,84 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                       : null,
                   validator: null, // <- no validation if optional
                 ),
+                        // NID Front & Back Images (always visible)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // NID Front
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'NID Front',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        nidFrontUrl ?? 'https://via.placeholder.com/150?text=NID+Front',
+                                        width: double.infinity,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: double.infinity,
+                                          height: 120,
+                                          color: Colors.grey.shade300,
+                                          child: const Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(width: 12), // spacing between images
+
+                              // NID Back
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'NID Back',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        nidBackUrl ?? 'https://via.placeholder.com/150?text=NID+Back',
+                                        width: double.infinity,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: double.infinity,
+                                          height: 120,
+                                          color: Colors.grey.shade300,
+                                          child: const Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
 
 
 
-
-
-
-                buildEditableField(
+                        buildEditableField(
                           'NID Number',
                           nid,
                           (val) => setState(() => nid = val),

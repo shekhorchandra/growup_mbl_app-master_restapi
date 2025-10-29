@@ -169,7 +169,7 @@ class ApiConstants {
       "$baseUrl/capital-returns?investor_code=$investorCode";
 
   static String capitalReturnInvoiceDownload(String invoiceNo) =>
-      "$baseUrl/capital-return-invoice-download/$invoiceNo";
+      "https://growupagro.tech/dashboard/invoice/pdf/$invoiceNo";
 
   // Invoice endpoints
   // static String invoicePdf(String invoiceNo) => "$baseUrl/invoice/pdf/$invoiceNo";
@@ -186,7 +186,7 @@ class ApiConstants {
   static String roiListinvoice(String investorCode) => "$baseUrl/rois?investor_code=$investorCode";
 
 // ROI invoice download
-  static String roiInvoiceDownload(String invoiceNo) => "$baseUrl/roi-invoice-download/$invoiceNo";
+  static String roiInvoiceDownload(String invoiceNo) => "https://growupagro.tech/dashboard/invoice/pdf/$invoiceNo";
 
 // Pop-up projects for investor
   static String investorPopUpProjects(String investorCode) =>

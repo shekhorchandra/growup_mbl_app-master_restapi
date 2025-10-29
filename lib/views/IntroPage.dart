@@ -146,6 +146,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 32 * textScale,
+                                            fontFamily: 'Fontappbar',
                                           ),
                                         ),
                                         TextSpan(
@@ -153,6 +154,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             fontSize: 32 * textScale,
+                                            fontFamily: 'Fontappbar',
                                             height: 1.5, // increase line spacing here
                                           ),
                                         ),
@@ -175,6 +177,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 32 * textScale,
                                       letterSpacing: 1.2,
+                                      fontFamily: 'Fontappbar',
 
                                       height: 0.9, // reduce vertical space
                                     ),
@@ -296,3 +299,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     );
   }
 }
+
+
+
+

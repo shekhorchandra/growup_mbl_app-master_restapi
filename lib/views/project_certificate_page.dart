@@ -162,13 +162,14 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
                               item.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.green,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -183,24 +184,33 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                                     _launchURL(item.viewUrl);
                                   },
                                   icon: const Icon(Icons.remove_red_eye),
-                                  label: const Text('View'),
+                                  label: const Text(
+                                    'View',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.blueGrey[200], // button color
+                                    foregroundColor: Colors.black, // text color
+                                    elevation: 2, // set desired elevation
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    minimumSize: const Size(0, 0),
                                   ),
                                 ),
-                                const Spacer(),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    _launchURL(item.downloadUrl);
-                                  },
-                                  icon: const Icon(Icons.download),
-                                  label: const Text('Download'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
+
+                                // const Spacer(),
+                                // ElevatedButton.icon(
+                                //   onPressed: () {
+                                //     _launchURL(item.downloadUrl);
+                                //   },
+                                //   icon: const Icon(Icons.download),
+                                //   label: const Text('Download'),
+                                //   style: ElevatedButton.styleFrom(
+                                //     backgroundColor: Colors.blue,
+                                //     foregroundColor: Colors.white,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],

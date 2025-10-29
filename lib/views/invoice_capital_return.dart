@@ -105,61 +105,67 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
   }
 
   Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() {
+      _isDownloading[invoiceNo] = true;
+    });
+
     try {
-      setState(() => _isDownloading[invoiceNo] = true); // start loading
-
+      // Get token from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication token missing.')),
-        );
-        setState(() => _isDownloading[invoiceNo] = false);
-        return;
+      final token = prefs.getString('auth_token') ?? '';
+      if (token.isEmpty) {
+        throw Exception('Missing token. Please log in again.');
       }
-      // final url = "https://growupagro.tech/api/capital-return-invoice-download/$invoiceNo";
 
-      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo); // use constant
+      // Build download URL
+      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo);
 
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/Invoice-$invoiceNo.pdf';
+      // Debug the URL
+      debugPrint('Download URL: $url');
+
+      // Use external storage directory
+      Directory dir = (await getExternalStorageDirectory())!;
+      final savePath = '${dir.path}/Invoice-$invoiceNo.pdf';
+
 
       final dio = Dio();
-      final response = await dio.get(
+      dio.options.headers['Authorization'] = 'Bearer $token';
+
+      await dio.download(
         url,
+        savePath,
+        // onReceiveProgress: (received, total) {
+        //   if (total != -1) {
+        //     debugPrint('Progress: ${(received / total * 100).toStringAsFixed(0)}%');
+        //   }
+        // },
         options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
+          responseType: ResponseType.bytes, // Critical: treat as binary
+          followRedirects: true,
         ),
       );
 
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
 
-      await OpenFile.open(filePath);
+
+      // Optionally open the file after download
+      await OpenFile.open(savePath);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded to $filePath'),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text('Invoice downloaded to $savePath')),
       );
     } catch (e) {
       debugPrint("Download error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: something went wrong'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Download failed: $e')),
       );
     } finally {
-      setState(() => _isDownloading[invoiceNo] = false); // stop loading
+      setState(() {
+        _isDownloading[invoiceNo] = false;
+      });
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +222,7 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                       elevation: 3,
                       child: DataTable(
                         columnSpacing: 28,
-                        dataRowHeight: 65,
+                        dataRowHeight: 100,
                         headingRowHeight: 60,
                         headingRowColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
                         headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -286,19 +292,62 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                             DataCell(Text(currencyFormatter.format(double.tryParse(item.capitalReturn) ?? 0))),
                             DataCell(Text(item.invoiceNo)),
                             DataCell(
-                              _isDownloading[item.invoiceNo] == true
-                                  ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                                  : IconButton(
-                                icon: const Icon(Icons.download, color: Colors.green),
-                                onPressed: () async {
-                                  await downloadInvoicePdf(context, item.invoiceNo);
-                                },
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // 👁️ View Button
+                                  ElevatedButton(
+                                    onPressed: () => downloadInvoicePdf(
+                                      context,
+                                      item.invoiceNo.toString(),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blueGrey[200],
+                                      foregroundColor: Colors.black,
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                      minimumSize: const Size(0, 0),
+                                    ),
+                                    child: const Text(
+                                      'View',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 4), // spacing between buttons
+
+                                  // 💾 Download Button
+                                  (_isDownloading[item.invoiceNo] == true)
+                                      ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                      : ElevatedButton(
+                                    onPressed: () async {
+                                      await downloadInvoicePdf(context, item.invoiceNo);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue[200],
+                                      foregroundColor: Colors.black,
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                      minimumSize: const Size(0, 0),
+                                    ),
+                                    child: const Text(
+                                      'Download',
+                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+
+                                ],
                               ),
-                            ),
+                            )
+
+
                           ]);
                         }).toList(),
                       ),

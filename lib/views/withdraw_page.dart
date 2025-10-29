@@ -649,7 +649,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
               child: DataTable(
                 columnSpacing: 12,
                 dataRowMinHeight: 48,
-                dataRowMaxHeight: 56,
+                dataRowMaxHeight: 60,
                 headingRowColor: MaterialStateProperty.all(
                   const Color(0xFF388E3C),
                 ),
@@ -694,24 +694,64 @@ class _WithdrawPageState extends State<WithdrawPage> {
                     )),
                     DataCell(Text(item.note ?? 'N/A')),
                     DataCell(
-                      hasInvoice && item.status == "approved"
-                          ? (downloadingInvoices.contains(invoiceNo.toString())
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      hasInvoice && item.status.toLowerCase() == "approved"
+                          ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // 👁️ View Button
+                          ElevatedButton(
+                            onPressed: () => _openInvoiceInBrowser(invoiceNo.toString()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueGrey[200], // View button color
+                              foregroundColor: Colors.black,
+                              elevation: 2,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              minimumSize: const Size(0, 0),
+                            ),
+                            child: const Text(
+                              'View',
+                              style: TextStyle(
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 4), // spacing between buttons
+/*
+                          // 💾 Download Button or Loading Spinner
+                          (downloadingInvoices.contains(invoiceNo.toString()))
+                              ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                              : ElevatedButton(
+                            onPressed: () => _openInvoiceInBrowser(invoiceNo.toString()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber[200], // Download button color
+                              foregroundColor: Colors.black,
+                              elevation: 2,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              minimumSize: const Size(0, 0),
+                            ),
+                            child: const Text(
+                              'Download',
+                              style: TextStyle(
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          */
+                        ],
                       )
-                          : IconButton(
-                        icon: const Icon(Icons.download, color: Colors.green, size: 20),
-                        tooltip: 'Open Invoice in Browser',
-                        onPressed: () => _openInvoiceInBrowser(invoiceNo.toString()),
-                      ))
                           : const Icon(
                         Icons.block, // blocked / no access
                         color: Colors.red,
                         size: 24,
                       ),
                     )
+
                   ]);
                 }),
               ),

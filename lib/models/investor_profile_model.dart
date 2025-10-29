@@ -99,6 +99,9 @@ class Investor {
   final String? address;
   final String? image;
 
+  final String? nidFront;  // ✅ new
+  final String? nidBack;   // ✅ new
+
   Investor({
     required this.investorCode,
     required this.name,
@@ -109,6 +112,9 @@ class Investor {
     this.upazilaId,
     this.address,
     this.image,
+
+    this.nidFront,
+    this.nidBack,
   });
 
   factory Investor.fromJson(Map<String, dynamic> json) {
@@ -122,6 +128,9 @@ class Investor {
       upazilaId: json['upazila_id'],
       address: json['address'],
       image: json['image'],
+
+      nidFront: json['nid_front'],  // ✅ parse NID front
+      nidBack: json['nid_back'],    // ✅ parse NID back
     );
   }
 }

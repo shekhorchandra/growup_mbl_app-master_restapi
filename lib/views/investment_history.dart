@@ -206,7 +206,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                     child: Card(
                       child: DataTable(
                         columnSpacing: 10,
-                        dataRowHeight: 130,
+                        dataRowHeight: 180,
                         headingRowHeight: 60,
                         headingRowColor: MaterialStateProperty.all(
                           const Color(0xFF388E3C),
@@ -488,13 +488,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                     // --- Bottom Buttons with no spacing ---
                                     Tooltip(
                                       message: 'All Investments',
-                                      child: TextButton(
-                                        style: TextButton.styleFrom(
-                                          padding: EdgeInsets.zero,       // remove internal padding
-                                          minimumSize: const Size(0, 0),  // remove default min size
-                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-                                        ),
+                                      child: ElevatedButton(
                                         onPressed: () {
                                           Navigator.push(
                                             context,
@@ -507,23 +501,26 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                             ),
                                           );
                                         },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green[200], // button color
+                                          foregroundColor: Colors.black,      // text color
+                                          elevation: 2,                        // set desired elevation
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          minimumSize: const Size(0, 0),       // compact
+                                        ),
                                         child: const Text(
                                           'All Investments',
-                                          style: TextStyle(fontSize: 12, color: Colors.green),
+                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
+
+                                    const SizedBox(height: 6),
+
                                     if (investorCode != null)
                                       Tooltip(
                                         message: 'Total ROI',
-                                        child: TextButton(
-                                          style: TextButton.styleFrom(
-                                            padding: EdgeInsets.zero,
-                                            minimumSize: const Size(0, 0),
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-                                          ),
+                                        child: ElevatedButton(
                                           onPressed: () {
                                             Navigator.push(
                                               context,
@@ -535,12 +532,20 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                               ),
                                             );
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue[200],
+                                            foregroundColor: Colors.black,
+                                            elevation: 2,
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                            minimumSize: const Size(0, 0),
+                                          ),
                                           child: const Text(
                                             'Total ROI',
-                                            style: TextStyle(fontSize: 12, color: Colors.blue),
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                                           ),
                                         ),
                                       ),
+
                                   ],
                                 ),
                               ),

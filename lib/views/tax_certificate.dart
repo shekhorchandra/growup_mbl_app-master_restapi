@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/views/pdf_viewer_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -91,52 +93,116 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     });
   }
 
-  Future<void> downloadCertificate(BuildContext context, String url, String fileName) async {
-    try {
-      setState(() => _isDownloading[url] = true);
 
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/$fileName.pdf';
+  Future<void> downloadPdf(
+      BuildContext context, String downloadUrl, String fiscalYearStart) async {
+    setState(() {
+      _isDownloading[downloadUrl] = true;
+    });
+
+    try {
+      // Get token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+      if (token.isEmpty) {
+        throw Exception('Missing token. Please log in again.');
+      }
 
       final dio = Dio();
-      final response = await dio.get(
-        url,
-        options: Options(responseType: ResponseType.bytes),
-      );
+      dio.options.headers['Authorization'] = 'Bearer $token';
 
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
-      await OpenFile.open(filePath);
+      // Get app-specific external storage directory
+      Directory dir = (await getExternalStorageDirectory())!;
+
+      // Create GrowUp folder inside app-specific storage
+      final growUpDir = Directory('${dir.path}/GrowUp/All_Tax_Certificates');
+      if (!await growUpDir.exists()) {
+        await growUpDir.create(recursive: true);
+      }
+
+      // Set file path
+      final savePath = '${growUpDir.path}/tax-certificate-$fiscalYearStart.pdf';
+
+      // Download file
+      await dio.download(
+        downloadUrl,
+        savePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            print('Progress: ${(received / total * 100).toStringAsFixed(0)}%');
+          }
+        },
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Downloaded successfully: $fileName.pdf'),
-          backgroundColor: Colors.green,
+          content: Text('Downloaded to: $savePath'),
+          backgroundColor: Colors.green, // Green color
+          duration: Duration(seconds: 10), // Show for 10 seconds
         ),
       );
+
     } catch (e) {
-      debugPrint('Download error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to download'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Download failed: $e')),
       );
     } finally {
-      setState(() => _isDownloading[url] = false);
+      setState(() {
+        _isDownloading[downloadUrl] = false;
+      });
     }
   }
 
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the link.')),
-      );
-    }
-  }
+
+
+
+
+  // Future<void> viewPdf(BuildContext context, String previewUrl, String fiscalYearStart) async {
+  //   try {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Loading PDF...')),
+  //     );
+  //
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final token = prefs.getString('auth_token') ?? '';
+  //     if (token.isEmpty) throw Exception('Missing token');
+  //
+  //     final dio = Dio();
+  //     dio.options.headers['Authorization'] = 'Bearer $token';
+  //
+  //     final dir = await getTemporaryDirectory();
+  //     final filePath = '${dir.path}/temp-view-$fiscalYearStart.pdf';
+  //
+  //     // Fetch bytes and save
+  //     final response = await dio.get<List<int>>(
+  //       previewUrl,
+  //       options: Options(responseType: ResponseType.bytes),
+  //     );
+  //
+  //     final file = File(filePath);
+  //     await file.writeAsBytes(response.data!);
+  //
+  //     print('PDF saved to: $filePath, size: ${file.lengthSync()} bytes');
+  //
+  //     // Open PDF
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (_) => PdfViewerPage(filePath: filePath),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Failed to load PDF: $e')),
+  //     );
+  //   }
+  // }
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +274,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                           ],
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Always visible part
                             Text(
@@ -224,13 +290,13 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                             AnimatedCrossFade(
                               firstChild: const SizedBox.shrink(),
                               secondChild: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   const SizedBox(height: 10),
                                   ...projects.map((proj) => Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Text('Project: ${proj['name']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
                                         Text('Investment: ${proj['total_investment']} BDT'),
@@ -241,22 +307,26 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                                   )),
                                   const Divider(height: 20, thickness: 1),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () => _launchURL(previewUrl),
-                                        icon: const Icon(Icons.visibility),
-                                        label: const Text('View'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                      ),
+                                      // ElevatedButton.icon(
+                                      //   onPressed: () => viewPdf(context, previewUrl, fiscal['start']),
+                                      //   icon: const Icon(Icons.visibility),
+                                      //   label: const Text('View'),
+                                      //   style: ElevatedButton.styleFrom(
+                                      //     backgroundColor: Colors.green,
+                                      //     foregroundColor: Colors.white,
+                                      //   ),
+                                      // ),
+
+
+
+
                                       ElevatedButton.icon(
                                         onPressed: _isDownloading[downloadUrl] == true
                                             ? null
                                             : () async {
-                                          await downloadCertificate(context, downloadUrl, fiscal['start']);
+                                          await downloadPdf(context, downloadUrl, fiscal['start']);
                                         },
                                         icon: _isDownloading[downloadUrl] == true
                                             ? const SizedBox(
@@ -267,12 +337,13 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                                             : const Icon(Icons.download),
                                         label: Text(_isDownloading[downloadUrl] == true ? 'Downloading...' : 'Download'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.blue,
+                                          backgroundColor: Colors.green,
                                           foregroundColor: Colors.white,
                                         ),
                                       ),
                                     ],
                                   ),
+
                                 ],
                               ),
                               crossFadeState: expanded

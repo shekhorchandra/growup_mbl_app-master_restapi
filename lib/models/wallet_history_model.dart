@@ -19,6 +19,8 @@ class WalletHistoryModel {
   final String updatedAt;
   final String? status;
   final String? actionedBy;
+  final String? invoice_download_url;
+  final String? invoice_view_url;
 
   WalletHistoryModel({
     required this.id,
@@ -41,6 +43,8 @@ class WalletHistoryModel {
     required this.updatedAt,
     this.status,
     this.actionedBy,
+    required this.invoice_download_url,
+    required this.invoice_view_url,
   });
 
   factory WalletHistoryModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +69,8 @@ class WalletHistoryModel {
       updatedAt: json['updated_at']?.toString() ?? '',
       status: json['status']?.toString(),
       actionedBy: json['actioned_by']?.toString(),
+      invoice_download_url: json['invoice_download_url'] ?? '', // ✅ add here
+      invoice_view_url: json['invoice_view_url'] ?? '', // ✅ add here
     );
   }
 }
