@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:growup_agro/models/invoice_capital_return_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 
 class CapitalReturnPage extends StatefulWidget {
   const CapitalReturnPage({super.key});
@@ -148,7 +148,7 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
 
 
       // Optionally open the file after download
-      await OpenFile.open(savePath);
+      await OpenFilex.open(savePath);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Invoice downloaded to $savePath')),

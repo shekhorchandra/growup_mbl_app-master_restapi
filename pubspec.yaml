@@ -45,7 +45,6 @@ dependencies:
   flutter_secure_storage: ^9.0.0 # check for latest version
   package_info_plus: ^8.3.0
   webview_flutter: ^4.9.0
-  open_file: ^3.2.1
   font_awesome_flutter: ^10.10.0
   flutter_pdfview: ^1.2.3
   carousel_slider: ^5.1.1
@@ -53,6 +52,8 @@ dependencies:
   in_app_update: ^4.2.5
   flutter_svg: ^2.0.17
   video_player: ^2.10.0
+  open_filex: ^4.7.0
+  flutter_file_dialog: ^3.0.2
 
 
 

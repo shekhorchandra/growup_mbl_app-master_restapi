@@ -1,21 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:shurjopay/models/config.dart';
-import 'package:shurjopay/models/shurjopay_request_model.dart';
-import 'package:shurjopay/shurjopay.dart';
-import 'package:shurjopay/utilities/functions.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/deposit_model.dart';

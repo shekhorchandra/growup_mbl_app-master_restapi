@@ -3,7 +3,7 @@ import 'dart:io' show Directory, File;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -163,7 +163,7 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
       final file = File(filePath);
       await file.writeAsBytes(response.data);
 
-      await OpenFile.open(filePath);
+      await OpenFilex.open(filePath);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

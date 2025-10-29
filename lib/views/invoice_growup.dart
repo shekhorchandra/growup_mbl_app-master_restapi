@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/utils/api_constants.dart';
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -27,7 +28,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
   int currentPage = 1;
   final int rowsPerPage = 10;
   Map<String, bool> _isDownloading = {};
-
+  Map<String, bool> _isViewing = {};
 
   @override
   void initState() {
@@ -64,8 +65,9 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
 
   List<GrowupInvoice> get currentPageItems {
     final startIndex = (currentPage - 1) * rowsPerPage;
-    final endIndex =
-    (startIndex + rowsPerPage) > filteredList.length ? filteredList.length : (startIndex + rowsPerPage);
+    final endIndex = (startIndex + rowsPerPage) > filteredList.length
+        ? filteredList.length
+        : (startIndex + rowsPerPage);
     return filteredList.sublist(startIndex, endIndex);
   }
 
@@ -114,12 +116,13 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
     }
   }
 
-
-  Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
-    setState(() => _isDownloading[invoiceNo] = true); // show loader
+  Future<void> viewInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() => _isViewing[invoiceNo] = true); // show loader
 
     try {
-      final url = ApiConstants.invoicePdf(invoiceNo); // e.g., https://growupagro.tech/api/invoice/pdf/{invoiceNo}
+      final url = ApiConstants.invoicePdf(
+        invoiceNo,
+      ); // e.g., https://growupagro.tech/api/invoice/pdf/{invoiceNo}
       final uri = Uri.parse(url);
 
       if (await canLaunchUrl(uri)) {
@@ -144,11 +147,93 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
         ),
       );
     } finally {
-      setState(() => _isDownloading[invoiceNo] = false); // hide loader
+      setState(() => _isViewing[invoiceNo] = false); // hide loader
     }
   }
 
+  Future<void> downloadInvoicePdf(
+    BuildContext context,
+    String invoiceNo,
+  ) async {
+    setState(() => _isViewing[invoiceNo] = true); // show loader
 
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 60),
+        responseType: ResponseType.bytes,
+        followRedirects: true,
+        validateStatus: (s) => s != null && s >= 200 && s < 400,
+      ),
+    );
+
+    try {
+      // 1) Build URL (e.g. https://growupagro.tech/dashboard/invoice/pdf/{invoiceNo})
+      final url = ApiConstants.invoicePdf(invoiceNo);
+      //final url = "https://www.antennahouse.com/hubfs/xsl-fo-sample/pdf/basic-link-1.pdf";
+      //final url = "https://growupagro.tech/dashboard/invoice/pdf/PIW-45-12447";
+
+      final uri = Uri.parse(url);
+
+      // 2) Download to a temporary file first
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
+
+      final response = await dio.getUri<List<int>>(
+        uri,
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            // You can hook this up to a progress UI if you want
+            // final percent = (received / total * 100).toStringAsFixed(0);
+            // debugPrint('Downloading: $percent%');
+          }
+        },
+      );
+
+      if (response.data == null || response.data!.isEmpty) {
+        throw Exception('Empty response while downloading PDF.');
+      }
+
+      final f = File(tempPath);
+      await f.writeAsBytes(response.data!, flush: true);
+
+      // 3) Ask user where to save (works on Android & iOS, no permissions)
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: 'invoice_$invoiceNo.pdf',
+          // On Android this opens SAF; on iOS the Files sheet.
+        ),
+      );
+
+      if (savedPath == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Saved to: $savedPath')));
+      }
+
+      // 4) (Optional) Open the saved file right away
+      await OpenFilex.open(savedPath);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to download: $e')));
+      }
+    } finally {
+      setState(() => _isViewing[invoiceNo] = false); // hide loader
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -212,8 +297,13 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                         columnSpacing: 28,
                         dataRowHeight: 70,
                         headingRowHeight: 60,
-                        headingRowColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
-                        headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        headingRowColor: MaterialStateProperty.all(
+                          const Color(0xFF388E3C),
+                        ),
+                        headingTextStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                         columns: const [
                           DataColumn(label: Text('SL')),
                           DataColumn(label: Text('Project')),
@@ -224,110 +314,118 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                         rows: currentPageItems.asMap().entries.map((entry) {
                           final index = entry.key;
                           final item = entry.value;
-                          final slNumber = ((currentPage - 1) * rowsPerPage) + index + 1;
+                          final slNumber =
+                              ((currentPage - 1) * rowsPerPage) + index + 1;
 
                           return DataRow(
                             cells: [
                               DataCell(Text('$slNumber')),
                               // Project stacked info
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(item.project.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Category: ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: item.project.category,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ],
+                              DataCell(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      item.project.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Project ID: ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Category: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                        TextSpan(
-                                          text: item.project.code,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                          TextSpan(
+                                            text: item.project.category,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-
-                                ],
-                              )),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Project ID: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: item.project.code,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               // Investment stacked info
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Amount: ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
+                              DataCell(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Amount: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        TextSpan(
-                                          text: '${item.amount}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
+                                          TextSpan(
+                                            text: '${item.amount}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Created: ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Created: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                        TextSpan(
-                                          text: '${item.createdAt}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                          TextSpan(
+                                            text: '${item.createdAt}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-
-                                ],
-                              )),
+                                  ],
+                                ),
+                              ),
                               DataCell(Text(item.invoiceNo)),
                               // DataCell(
                               //   _isDownloading[item.invoiceNo] == true
@@ -344,79 +442,102 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                               //   ),
                               // ),
                               DataCell(
-                                (item.invoiceNo == null || item.invoiceNo.isEmpty)
+                                (item.invoiceNo == null ||
+                                        item.invoiceNo.isEmpty)
                                     ? ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("No invoice available"),
-                                        backgroundColor: Colors.red,
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey.shade300,
-                                    foregroundColor: Colors.white,
-                                    elevation: 1,
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    minimumSize: const Size(0, 0),
-                                  ),
-                                  child: const Text('No Invoice'),
-                                )
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "No invoice available",
+                                              ),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.grey.shade300,
+                                          foregroundColor: Colors.white,
+                                          elevation: 1,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          minimumSize: const Size(0, 0),
+                                        ),
+                                        child: const Text('No Invoice'),
+                                      )
+                                    : (_isViewing[item.invoiceNo] == true)
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
                                     : Column(
-                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // 👁️ View Button
-                                    ElevatedButton(
-                                      onPressed: () => downloadInvoicePdf(
-                                        context,
-                                        item.invoiceNo.toString(),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blueGrey[200], // button color
-                                        foregroundColor: Colors.black,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                      child: const Text(
-                                        'View',
-                                        style: TextStyle(
-                                          fontSize: 10,
+                                    InkWell(
+                                      onTap: () {
+                                        viewInvoicePdf(
+                                          context,
+                                          item.invoiceNo.toString(),
+                                        );
+                                      },
+                                      child: Container(
+                                        height: 20,
+                                        width: 100, // optional width
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E7D32), // green
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            "View",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-
-                                    const SizedBox(height: 4),
-                                    /*
-                                    // 💾 Download Button
-                                    (_isDownloading[item.invoiceNo] == true)
-                                        ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                        : ElevatedButton(
-                                      onPressed: () => downloadInvoicePdf(context, item.invoiceNo),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue[200] ,
-                                        foregroundColor: Colors.black,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                      child: const Text(
-                                        'Download',
-                                        style: TextStyle(fontWeight: FontWeight.w600),
+                                    const SizedBox(height: 6),
+                                    InkWell(
+                                      onTap: () {
+                                        downloadInvoicePdf(
+                                          context,
+                                          item.invoiceNo.toString(),
+                                        );
+                                      },
+                                      child: Container(
+                                        height: 20,
+                                        width: 100, // optional width
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFFA24C), // orange
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            "Download",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    */
                                   ],
                                 ),
-                              )
-
+                              ),
                             ],
                           );
                         }).toList(),
@@ -429,7 +550,10 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
               Transform.translate(
                 offset: const Offset(0, -52), // move upward slightly
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper padding
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 30,
+                  ), // proper padding
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -439,38 +563,54 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                           onPressed: currentPage > 1 ? _previousPage : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 7px border radius
+                              borderRadius: BorderRadius.circular(
+                                5,
+                              ), // 7px border radius
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          child: const Text('Previous', style: TextStyle(fontSize: 14)),
+                          child: const Text(
+                            'Previous',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 24), // space between button and text
+                      const SizedBox(width: 24),
+                      // space between button and text
                       Text(
                         'Page $currentPage of ${(filteredList.length / rowsPerPage).ceil()}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      const SizedBox(width: 24), // space between text and button
+                      const SizedBox(width: 24),
+                      // space between text and button
                       SizedBox(
                         height: 26, // smaller button height
                         child: ElevatedButton(
-                          onPressed: currentPage * rowsPerPage < filteredList.length ? _nextPage : null,
+                          onPressed:
+                              currentPage * rowsPerPage < filteredList.length
+                              ? _nextPage
+                              : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 7px border radius
+                              borderRadius: BorderRadius.circular(
+                                5,
+                              ), // 7px border radius
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          child: const Text('Next', style: TextStyle(fontSize: 14)),
+                          child: const Text(
+                            'Next',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              )
-
-
+              ),
             ],
           );
         },

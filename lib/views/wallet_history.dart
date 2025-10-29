@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/models/wallet_history_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -169,45 +170,74 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
       String url,
       String invoiceNo,
       ) async {
+    final dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 60),
+      responseType: ResponseType.bytes,
+      followRedirects: true,
+      validateStatus: (s) => s != null && s >= 200 && s < 400,
+    ));
+
     try {
-      double progress = 0.0;
-      final dio = Dio();
 
-      final dir = await getApplicationDocumentsDirectory();
-      final filePath = '${dir.path}/$invoiceNo.pdf';
+      final uri = Uri.parse(url);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Starting download for $invoiceNo...')),
-      );
+      // 2) Download to a temporary file first
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
 
-      // 🔽 Download with progress callback
-      await dio.download(
-        url,
-        filePath,
+      final response = await dio.getUri<List<int>>(
+        uri,
+        options: Options(responseType: ResponseType.bytes),
         onReceiveProgress: (received, total) {
           if (total != -1) {
-            progress = (received / total) * 100;
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(milliseconds: 500),
-                content: Text('Downloading $invoiceNo... ${progress.toStringAsFixed(0)}%'),
-              ),
-            );
+            // You can hook this up to a progress UI if you want
+            // final percent = (received / total * 100).toStringAsFixed(0);
+            // debugPrint('Downloading: $percent%');
           }
         },
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Download complete: $invoiceNo.pdf')),
+      if (response.data == null || response.data!.isEmpty) {
+        throw Exception('Empty response while downloading PDF.');
+      }
+
+      final f = File(tempPath);
+      await f.writeAsBytes(response.data!, flush: true);
+
+      // 3) Ask user where to save (works on Android & iOS, no permissions)
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: 'invoice_$invoiceNo.pdf',
+          // On Android this opens SAF; on iOS the Files sheet.
+        ),
       );
 
-      // 📂 Automatically open the downloaded file
-      await OpenFile.open(filePath);
+      if (savedPath == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to: $savedPath')),
+        );
+      }
+
+      await OpenFilex.open(savedPath);
+
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Download failed: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download: $e')),
+        );
+      }
+    } finally {
     }
   }
 
