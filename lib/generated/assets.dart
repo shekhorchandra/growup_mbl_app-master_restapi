@@ -22,7 +22,7 @@ class Assets {
   static const String assetsImagesPlaceholder1 = 'assets/images/placeholder1.jpg';
   static const String assetsImagesRegister = 'assets/images/register.jpg';
   static const String assetsScreen = 'assets/screen.jpeg';
-  static const String assetsVideosGrowUp = 'assets/videos/GrowUp.mov';
+  static const String assetsVideosIntro = 'assets/videos/intro.mov';
   static const String fontsOpenSansItalic = 'assets/fonts/OpenSans-Italic.ttf';
   static const String fontsOpenSansRegular = 'assets/fonts/OpenSans-Regular.ttf';
   static const String fontsPoppinsBoldItalic = 'assets/fonts/Poppins-BoldItalic.ttf';
@@ -61,6 +61,6 @@ class Assets {
   static const String imagesIntropage = 'assets/images/intropage.jpg';
   static const String imagesPlaceholder1 = 'assets/images/placeholder1.jpg';
   static const String imagesRegister = 'assets/images/register.jpg';
-  static const String videosGrowUp = 'assets/videos/GrowUp.mov';
+  static const String videosIntro = 'assets/videos/intro.mov';
 
 }

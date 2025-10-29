@@ -1,60 +1,78 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:growup_agro/views/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
+
+import 'package:growup_agro/views/login.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  _OnboardingScreenState createState() => _OnboardingScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int currentPage = 0;
 
+  // Onboarding pages (first one is video)
   final List<Map<String, dynamic>> pages = [
+
     {
       "icon": Icons.grass,
       "title": "The Future of Farming, Today.",
       "subtitle":
-      "Join a community of modern farmers. Get insights, manage your crops, and grow your business.",
+      "Join a community of modern farmers. Get insights, manage crops, and grow your business.",
       "image": "assets/images/futurefram.jpg"
     },
     {
       "icon": Icons.show_chart,
       "title": "Invest in Agro-Projects",
       "subtitle":
-      "Fund promising agricultural projects and become a trusted partner in their success, all in a few taps.",
+      "Fund promising agricultural projects and become a trusted partner in their success.",
       "image": "assets/images/animal.jpg"
     },
     {
       "icon": Icons.home,
       "title": "Own Your Farmland",
       "subtitle":
-      "Buy or invest in agricultural land. Build your dream farm and move towards a sustainable future.",
+      "Buy or invest in agricultural land. Build your dream farm for a sustainable future.",
       "image": "assets/images/fram.jpg"
     },
     {
       "icon": Icons.shopping_cart,
       "title": "Shop for Agri-essentials",
       "subtitle":
-      "From seeds and fertilizers to modern machinery, get all your farming needs from our trusted marketplace.",
+      "Seeds, fertilizers, and machinery—get all your farming needs from our trusted marketplace.",
       "image": "assets/images/agriessn.jpg"
+    },
+    {
+      "isVideo": true,
+      "videoSource": "asset",
+      "videoPath": "assets/videos/intro.mov",
     },
   ];
 
-  void _onButtonTap() async {
-    if (currentPage == pages.length - 1) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('seenOnboarding', true);
+  VideoPlayerController? _videoController;
+  bool _videoReady = false;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MyLogin()),
-      );
+  int get _videoPageIndex => pages.indexWhere((p) => p['isVideo'] == true);
+
+  // ───────────────────────────────────────────────────────────────
+  Future<void> _complete() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('seenOnboarding', true);
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const MyLogin()),
+    );
+  }
+
+  void _onNextTap() {
+    if (currentPage == pages.length - 1) {
+      _complete();
     } else {
       _controller.nextPage(
         duration: const Duration(milliseconds: 400),
@@ -63,37 +81,87 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  // ───────────────────────────────────────────────────────────────
+  @override
+  void initState() {
+    super.initState();
+    final i = _videoPageIndex;
+    if (i != -1) {
+      final isAsset = (pages[i]['videoSource'] ?? 'asset') == 'asset';
+      _videoController = isAsset
+          ? VideoPlayerController.asset(pages[i]['videoPath'])
+          : VideoPlayerController.networkUrl(Uri.parse(pages[i]['videoPath']));
+
+      _videoController!
+        ..setLooping(true)
+        ..setVolume(0.0) // 🔇 Mute
+        ..initialize().then((_) {
+          if (!mounted) return;
+          setState(() => _videoReady = true);
+          if (currentPage == i) _videoController!.play();
+        });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.pause();
+    _videoController?.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // ───────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Stack(
         children: [
-          // PageView with backgrounds
           PageView.builder(
             controller: _controller,
             itemCount: pages.length,
             onPageChanged: (index) {
               setState(() => currentPage = index);
+
+              final i = _videoPageIndex;
+              if (_videoController != null && i != -1) {
+                if (index == i) {
+                  if (_videoReady) _videoController!.play();
+                } else {
+                  _videoController!.pause();
+                }
+              }
             },
             itemBuilder: (context, index) {
+              final data = pages[index];
+              final isVideo = data['isVideo'] == true;
+
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    pages[index]["image"]!,
-                    fit: BoxFit.cover,
-                  ),
-                  // 👇 Add BackdropFilter for blur
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4), // little blur
-                    child: Container(
-                      color: Colors.black.withOpacity(0.3), // keeps dark overlay
+                  // 🎥 Background media
+                  if (isVideo)
+                    _VideoBackground(
+                      controller: _videoController,
+                      ready: _videoReady,
+                    )
+                  else
+                    Image.asset(
+                      data["image"]!,
+                      fit: BoxFit.cover,
                     ),
-                  ),
 
+                  // Dark blur overlay
+                  if (!isVideo)
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: Container(color: Colors.black.withOpacity(0.30)),
+                    )
+                  else
+                    Container(color: Colors.black.withOpacity(0.25)), // no blur
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -107,52 +175,55 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  // Card in center
-                  Align(
-                    alignment: const Alignment(0, -0.1),
-                    child: Card(
-                      color: Colors.black.withOpacity(0.65),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: screenHeight * 0.04,
-                          horizontal: screenWidth * 0.06,
+
+                  // 📝 Text card (skip for video page)
+                  if (!isVideo)
+                    Align(
+                      alignment: const Alignment(0, -0.1),
+                      child: Card(
+                        color: Colors.black.withOpacity(0.65),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start, // 👈 left aligned
-                          children: [
-                            Icon(
-                              pages[index]["icon"],
-                              color: Colors.white,
-                              size: screenWidth * 0.15,
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            Text(
-                              pages[index]["title"]!,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.06,
-                                fontWeight: FontWeight.bold,
+                        margin:
+                        EdgeInsets.symmetric(horizontal: screenW * 0.08),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: screenH * 0.04,
+                            horizontal: screenW * 0.06,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                data["icon"] ?? Icons.info,
                                 color: Colors.white,
+                                size: screenW * 0.15,
                               ),
-                            ),
-                            SizedBox(height: screenHeight * 0.015),
-                            Text(
-                              pages[index]["subtitle"]!,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.white70,
-                                height: 1.4,
+                              SizedBox(height: screenH * 0.02),
+                              Text(
+                                data["title"] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenW * 0.06,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: screenH * 0.015),
+                              Text(
+                                data["subtitle"] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenW * 0.04,
+                                  color: Colors.white70,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               );
             },
@@ -160,17 +231,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
           // Skip button
           Positioned(
-            top: screenHeight * 0.06,
-            right: screenWidth * 0.05,
+            top: screenH * 0.06,
+            right: screenW * 0.05,
             child: TextButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenOnboarding', true);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MyLogin()),
-                );
-              },
+              onPressed: _complete,
               child: const Text(
                 "Skip",
                 style: TextStyle(
@@ -181,9 +245,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Bottom controls
+          // Dots + Next button
           Positioned(
-            bottom: screenHeight * 0.08,
+            bottom: screenH * 0.08,
             left: 0,
             right: 0,
             child: Column(
@@ -193,37 +257,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     pages.length,
-                        (index) => AnimatedContainer(
+                        (i) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
-                      width: currentPage == index ? screenWidth * 0.06 : screenWidth * 0.025,
-                      height: screenHeight * 0.01,
+                      margin: EdgeInsets.symmetric(horizontal: screenW * 0.01),
+                      width:
+                      currentPage == i ? screenW * 0.06 : screenW * 0.025,
+                      height: screenH * 0.01,
                       decoration: BoxDecoration(
-                        color: currentPage == index ? Colors.green : Colors.white54,
+                        color: currentPage == i
+                            ? Colors.green
+                            : Colors.white54,
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: screenHeight * 0.03),
+                SizedBox(height: screenH * 0.03),
 
-                // Next/Get Started button
+                // Next / Get Started button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.3,
-                      vertical: screenHeight * 0.018,
+                      horizontal: screenW * 0.3,
+                      vertical: screenH * 0.018,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: _onButtonTap,
+                  onPressed: _onNextTap,
                   child: Text(
-                    currentPage == pages.length - 1 ? "Get Started" : "Next",
+                    currentPage == pages.length - 1
+                        ? "Get Started"
+                        : "Next",
                     style: TextStyle(
-                      fontSize: screenWidth * 0.045,
+                      fontSize: screenW * 0.045,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -233,6 +302,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// 🔇 Video background (muted, no controls)
+class _VideoBackground extends StatelessWidget {
+  const _VideoBackground({required this.controller, required this.ready});
+  final VideoPlayerController? controller;
+  final bool ready;
+
+  @override
+  Widget build(BuildContext context) {
+    if (controller == null || !ready || !controller!.value.isInitialized) {
+      return Container(color: Colors.black);
+    }
+
+    final value = controller!.value;
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: value.size.width,
+        height: value.size.height,
+        child: VideoPlayer(controller!),
       ),
     );
   }

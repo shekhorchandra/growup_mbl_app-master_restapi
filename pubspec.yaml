@@ -52,7 +52,7 @@ dependencies:
   share_plus: ^12.0.0
   in_app_update: ^4.2.5
   flutter_svg: ^2.0.17
-
+  video_player: ^2.10.0
 
 
 
@@ -118,7 +118,7 @@ flutter:
     - assets/images/animal.jpg
     - assets/images/fram.jpg
     - assets/images/agriessn.jpg
-    - assets/videos/GrowUp.mov
+    - assets/videos/intro.mov
     - assets/
     - assets/fonts/
     - assets/icons/
