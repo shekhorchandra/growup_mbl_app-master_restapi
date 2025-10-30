@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
@@ -9,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+
 import '../models/invoice_growup_model.dart';
 
 class InvoiceGrowupPage extends StatefulWidget {
@@ -27,8 +30,12 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
 
   int currentPage = 1;
   final int rowsPerPage = 10;
-  Map<String, bool> _isDownloading = {};
-  Map<String, bool> _isViewing = {};
+
+  // Button states
+  final Map<String, bool> _isViewing = {};
+  final Map<String, bool> _isDownloading = {};
+  // null => preparing; 0..1 => actual progress
+  final Map<String, double?> _downloadProgress = {};
 
   @override
   void initState() {
@@ -46,15 +53,16 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
   }
 
   void _filterList(String query) {
+    final q = query.toLowerCase().trim();
     final filtered = fullList.where((item) {
-      final projectName = item.project.name.toLowerCase();
-      final projectCategory = item.project.category.toLowerCase();
-      final projectCode = item.project.code.toLowerCase();
-      final invoiceNo = item.invoiceNo.toLowerCase();
-      return projectName.contains(query.toLowerCase()) ||
-          projectCategory.contains(query.toLowerCase()) ||
-          projectCode.contains(query.toLowerCase()) ||
-          invoiceNo.contains(query.toLowerCase());
+      final projectName = (item.project.name).toLowerCase();
+      final projectCategory = (item.project.category).toLowerCase();
+      final projectCode = (item.project.code).toLowerCase();
+      final invoiceNo = (item.invoiceNo ?? '').toLowerCase();
+      return projectName.contains(q) ||
+          projectCategory.contains(q) ||
+          projectCode.contains(q) ||
+          invoiceNo.contains(q);
     }).toList();
 
     setState(() {
@@ -87,8 +95,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    // final url = "https://growupagro.tech/api/invoices?investor_code=$investorCode";
-    final url = ApiConstants.invoices(investorCode); // ✅ use constant
+    final url = ApiConstants.invoices(investorCode);
 
     try {
       final response = await http.get(
@@ -102,7 +109,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          final List<dynamic> list = data['investments'];
+          final List<dynamic> list = data['investments'] ?? [];
           return list.map((e) => GrowupInvoice.fromJson(e)).toList();
         } else {
           return [];
@@ -117,19 +124,13 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
   }
 
   Future<void> viewInvoicePdf(BuildContext context, String invoiceNo) async {
-    setState(() => _isViewing[invoiceNo] = true); // show loader
-
+    setState(() => _isViewing[invoiceNo] = true); // loader for View only
     try {
-      final url = ApiConstants.invoicePdf(
-        invoiceNo,
-      ); // e.g., https://growupagro.tech/api/invoice/pdf/{invoiceNo}
+      final url = ApiConstants.invoicePdf(invoiceNo);
       final uri = Uri.parse(url);
 
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication, // opens in default browser
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -140,22 +141,33 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
       }
     } catch (e) {
       debugPrint("Error opening invoice: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to open invoice.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open invoice.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isViewing[invoiceNo] = false); // hide loader
+      setState(() => _isViewing[invoiceNo] = false);
     }
   }
 
+  bool _looksLikePdf(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    final header = String.fromCharCodes(bytes.sublist(0, 4));
+    return header == '%PDF';
+  }
+
   Future<void> downloadInvoicePdf(
-    BuildContext context,
-    String invoiceNo,
-  ) async {
-    setState(() => _isViewing[invoiceNo] = true); // show loader
+      BuildContext context,
+      String invoiceNo,
+      ) async {
+    setState(() {
+      _isDownloading[invoiceNo] = true;     // loader for Download
+      _downloadProgress[invoiceNo] = null;  // preparing
+    });
 
     final dio = Dio(
       BaseOptions(
@@ -168,71 +180,201 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
     );
 
     try {
-      // 1) Build URL (e.g. https://growupagro.tech/dashboard/invoice/pdf/{invoiceNo})
       final url = ApiConstants.invoicePdf(invoiceNo);
-      //final url = "https://www.antennahouse.com/hubfs/xsl-fo-sample/pdf/basic-link-1.pdf";
-      //final url = "https://growupagro.tech/dashboard/invoice/pdf/PIW-45-12447";
-
       final uri = Uri.parse(url);
-
-      // 2) Download to a temporary file first
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
 
       final response = await dio.getUri<List<int>>(
         uri,
         options: Options(responseType: ResponseType.bytes),
         onReceiveProgress: (received, total) {
-          if (total != -1) {
-            // You can hook this up to a progress UI if you want
-            // final percent = (received / total * 100).toStringAsFixed(0);
-            // debugPrint('Downloading: $percent%');
+          if (total > 0) {
+            setState(() => _downloadProgress[invoiceNo] =
+                (received / total).clamp(0, 1));
           }
         },
       );
 
-      if (response.data == null || response.data!.isEmpty) {
+      final bytes = Uint8List.fromList(response.data ?? []);
+      if (bytes.isEmpty) {
         throw Exception('Empty response while downloading PDF.');
       }
+      if (!_looksLikePdf(bytes)) {
+        throw Exception('The server did not return a PDF (HTML or other).');
+      }
 
-      final f = File(tempPath);
-      await f.writeAsBytes(response.data!, flush: true);
+      // Save to temp first
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
+      await File(tempPath).writeAsBytes(bytes, flush: true);
 
-      // 3) Ask user where to save (works on Android & iOS, no permissions)
+      // Ask user where to save
       final savedPath = await FlutterFileDialog.saveFile(
         params: SaveFileDialogParams(
           sourceFilePath: tempPath,
           fileName: 'invoice_$invoiceNo.pdf',
-          // On Android this opens SAF; on iOS the Files sheet.
         ),
       );
 
       if (savedPath == null) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
         }
         return;
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Saved to: $savedPath')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to: $savedPath')),
+        );
       }
 
-      // 4) (Optional) Open the saved file right away
       await OpenFilex.open(savedPath);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to download: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download: $e')),
+        );
       }
     } finally {
-      setState(() => _isViewing[invoiceNo] = false); // hide loader
+      setState(() {
+        _isDownloading[invoiceNo] = false;
+        _downloadProgress.remove(invoiceNo);
+      });
     }
+  }
+
+  bool _hasInvoice(GrowupInvoice item) {
+    final no = item.invoiceNo;
+    return no != null && no.isNotEmpty && no != 'N/A';
+  }
+
+  Widget _viewButton(BuildContext context, GrowupInvoice item) {
+    if (!_hasInvoice(item)) return const SizedBox.shrink(); // hide View
+
+    final busy = _isViewing[item.invoiceNo] == true;
+    return InkWell(
+      onTap: busy
+          ? null
+          : () => viewInvoicePdf(
+        context,
+        item.invoiceNo!,
+      ),
+      child: Container(
+        height: 24,
+        width: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2E7D32),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: busy
+              ? const SizedBox(
+            height: 14,
+            width: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+              : const Text(
+            "View",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _downloadButton(BuildContext context, GrowupInvoice item) {
+    if (!_hasInvoice(item)) {
+      return ElevatedButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("No invoice available"),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey.shade300,
+          foregroundColor: Colors.white,
+          elevation: 1,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimumSize: const Size(100, 24),
+        ),
+        child: const Text('No Invoice'),
+      );
+    }
+
+    final downloading = _isDownloading[item.invoiceNo] == true;
+    final progress = _downloadProgress[item.invoiceNo];
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: downloading
+              ? null
+              : () => downloadInvoicePdf(context, item.invoiceNo!),
+          child: Container(
+            height: 24,
+            width: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFA24C),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Center(
+              child: () {
+                if (!downloading) {
+                  return const Text(
+                    "Download",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }
+                if (progress == null) {
+                  // preparing
+                  return const SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                } else {
+                  final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+                  return Text(
+                    "$pct%",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                }
+              }(),
+            ),
+          ),
+        ),
+        if (downloading && (progress ?? -1) >= 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: SizedBox(
+              width: 100,
+              height: 4,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(value: progress),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -320,7 +462,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                           return DataRow(
                             cells: [
                               DataCell(Text('$slNumber')),
-                              // Project stacked info
+                              // Project
                               DataCell(
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +519,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                                   ],
                                 ),
                               ),
-                              // Investment stacked info
+                              // Investment
                               DataCell(
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,115 +568,15 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                                   ],
                                 ),
                               ),
-                              DataCell(Text(item.invoiceNo)),
-                              // DataCell(
-                              //   _isDownloading[item.invoiceNo] == true
-                              //       ? const SizedBox(
-                              //     width: 24,
-                              //     height: 24,
-                              //     child: CircularProgressIndicator(strokeWidth: 2),
-                              //   )
-                              //       : IconButton(
-                              //     icon: const Icon(Icons.download, color: Colors.green),
-                              //     onPressed: () async {
-                              //       await downloadInvoicePdf(context, item.invoiceNo);
-                              //     },
-                              //   ),
-                              // ),
+                              DataCell(Text(item.invoiceNo ?? '-')),
                               DataCell(
-                                (item.invoiceNo == null ||
-                                        item.invoiceNo.isEmpty)
-                                    ? ElevatedButton(
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                "No invoice available",
-                                              ),
-                                              backgroundColor: Colors.red,
-                                              duration: Duration(seconds: 2),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.grey.shade300,
-                                          foregroundColor: Colors.white,
-                                          elevation: 1,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8,
-                                          ),
-                                          minimumSize: const Size(0, 0),
-                                        ),
-                                        child: const Text('No Invoice'),
-                                      )
-                                    : (_isViewing[item.invoiceNo] == true)
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Column(
+                                Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    InkWell(
-                                      onTap: () {
-                                        viewInvoicePdf(
-                                          context,
-                                          item.invoiceNo.toString(),
-                                        );
-                                      },
-                                      child: Container(
-                                        height: 20,
-                                        width: 100, // optional width
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2E7D32), // green
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            "View",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                    _viewButton(context, item),
                                     const SizedBox(height: 6),
-                                    InkWell(
-                                      onTap: () {
-                                        downloadInvoicePdf(
-                                          context,
-                                          item.invoiceNo.toString(),
-                                        );
-                                      },
-                                      child: Container(
-                                        height: 20,
-                                        width: 100, // optional width
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFFFA24C), // orange
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            "Download",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                    _downloadButton(context, item),
                                   ],
                                 ),
                               ),
@@ -546,65 +588,54 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 45),
               Transform.translate(
-                offset: const Offset(0, -52), // move upward slightly
+                offset: const Offset(0, -52),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 16,
                     horizontal: 30,
-                  ), // proper padding
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
                           onPressed: currentPage > 1 ? _previousPage : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                5,
-                              ), // 7px border radius
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          child: const Text(
-                            'Previous',
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          child: const Text('Previous',
+                              style: TextStyle(fontSize: 14)),
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      // space between button and text
                       Text(
                         'Page $currentPage of ${(filteredList.length / rowsPerPage).ceil()}',
                         style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
+                            fontSize: 14, fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(width: 24),
-                      // space between text and button
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
-                          onPressed:
-                              currentPage * rowsPerPage < filteredList.length
+                          onPressed: currentPage * rowsPerPage <
+                              filteredList.length
                               ? _nextPage
                               : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                5,
-                              ), // 7px border radius
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          child: const Text(
-                            'Next',
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          child:
+                          const Text('Next', style: TextStyle(fontSize: 14)),
                         ),
                       ),
                     ],

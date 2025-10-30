@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/models/invoice_capital_return_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +10,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CapitalReturnPage extends StatefulWidget {
   const CapitalReturnPage({super.key});
@@ -17,15 +21,19 @@ class CapitalReturnPage extends StatefulWidget {
 
 class _CapitalReturnPageState extends State<CapitalReturnPage> {
   late Future<List<CapitalReturn>> futureCapitalReturns;
+
   List<CapitalReturn> fullList = [];
   List<CapitalReturn> filteredList = [];
   int currentPage = 1;
   final int rowsPerPage = 10;
   final TextEditingController _searchController = TextEditingController();
-  final currencyFormatter =
-  NumberFormat.currency(locale: 'en_US', symbol: '৳');
+  final currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '৳');
 
-  Map<String, bool> _isDownloading = {}; // track downloading status
+  // Button states
+  final Map<String, bool> _isViewing = {};
+  final Map<String, bool> _isDownloading = {};
+  // null => preparing; 0..1 => progress
+  final Map<String, double?> _downloadProgress = {};
 
   @override
   void initState() {
@@ -43,9 +51,10 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
   }
 
   void _filterList(String query) {
+    final q = query.toLowerCase().trim();
     final filtered = fullList.where((item) {
       final name = item.projectName.toLowerCase();
-      return name.contains(query.toLowerCase());
+      return name.contains(q);
     }).toList();
 
     setState(() {
@@ -56,8 +65,9 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
 
   List<CapitalReturn> get currentPageItems {
     final startIndex = (currentPage - 1) * rowsPerPage;
-    final endIndex =
-    (startIndex + rowsPerPage) > filteredList.length ? filteredList.length : (startIndex + rowsPerPage);
+    final endIndex = (startIndex + rowsPerPage) > filteredList.length
+        ? filteredList.length
+        : (startIndex + rowsPerPage);
     return filteredList.sublist(startIndex, endIndex);
   }
 
@@ -77,10 +87,8 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    // final String url =
-    //     "https://growupagro.tech/api/capital-returns?investor_code=$investorCode";
 
-    final String url = ApiConstants.capitalReturns(investorCode); // use constant
+    final String url = ApiConstants.capitalReturns(investorCode);
 
     try {
       final response = await Dio().get(
@@ -89,10 +97,14 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
       );
 
       if (response.statusCode == 200 && response.data['status'] == true) {
-        final List<dynamic> list = response.data['data'];
-        for (var item in list) {
-          final invoiceNo = item['invoice_no'] ?? '';
-          if (invoiceNo.isNotEmpty) _isDownloading[invoiceNo] = false;
+        final List<dynamic> list = response.data['data'] ?? [];
+        // initialize button states for each available invoice
+        for (final e in list) {
+          final invoiceNo = (e['invoice_no'] ?? '').toString();
+          if (invoiceNo.isNotEmpty && invoiceNo != 'N/A') {
+            _isDownloading[invoiceNo] = false;
+            _isViewing[invoiceNo] = false;
+          }
         }
         return list.map((e) => CapitalReturn.fromJson(e)).toList();
       } else {
@@ -104,74 +116,261 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
     }
   }
 
-  Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
+  bool _hasInvoice(CapitalReturn item) {
+    final no = item.invoiceNo;
+    return no.isNotEmpty && no != 'N/A';
+  }
+
+  Future<void> viewInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() => _isViewing[invoiceNo] = true); // loader for View only
+    try {
+      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo);
+      final uri = Uri.parse(url);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error opening invoice: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open invoice.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isViewing[invoiceNo] = false);
+    }
+  }
+
+  bool _looksLikePdf(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    final header = String.fromCharCodes(bytes.sublist(0, 4));
+    return header == '%PDF';
+  }
+
+  Future<void> downloadInvoicePdf(
+      BuildContext context,
+      String invoiceNo,
+      ) async {
     setState(() {
-      _isDownloading[invoiceNo] = true;
+      _isDownloading[invoiceNo] = true;     // loader for Download
+      _downloadProgress[invoiceNo] = null;  // preparing
     });
 
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 60),
+        responseType: ResponseType.bytes,
+        followRedirects: true,
+        validateStatus: (s) => s != null && s >= 200 && s < 400,
+      ),
+    );
+
     try {
-      // Get token from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token') ?? '';
-      if (token.isEmpty) {
-        throw Exception('Missing token. Please log in again.');
+      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo);
+      final uri = Uri.parse(url);
+
+      final response = await dio.getUri<List<int>>(
+        uri,
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total > 0) {
+            setState(() => _downloadProgress[invoiceNo] =
+                (received / total).clamp(0, 1));
+          }
+        },
+      );
+
+      final bytes = Uint8List.fromList(response.data ?? []);
+      if (bytes.isEmpty) {
+        throw Exception('Empty response while downloading PDF.');
+      }
+      if (!_looksLikePdf(bytes)) {
+        throw Exception('The server did not return a PDF (HTML or other).');
       }
 
-      // Build download URL
-      final url = ApiConstants.capitalReturnInvoiceDownload(invoiceNo);
+      // Save to temp first
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
+      await File(tempPath).writeAsBytes(bytes, flush: true);
 
-      // Debug the URL
-      debugPrint('Download URL: $url');
-
-      // Use external storage directory
-      Directory dir = (await getExternalStorageDirectory())!;
-      final savePath = '${dir.path}/Invoice-$invoiceNo.pdf';
-
-
-      final dio = Dio();
-      dio.options.headers['Authorization'] = 'Bearer $token';
-
-      await dio.download(
-        url,
-        savePath,
-        // onReceiveProgress: (received, total) {
-        //   if (total != -1) {
-        //     debugPrint('Progress: ${(received / total * 100).toStringAsFixed(0)}%');
-        //   }
-        // },
-        options: Options(
-          responseType: ResponseType.bytes, // Critical: treat as binary
-          followRedirects: true,
+      // Ask user where to save
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: 'invoice_$invoiceNo.pdf',
         ),
       );
 
+      if (savedPath == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
+        }
+        return;
+      }
 
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to: $savedPath')),
+        );
+      }
 
-      // Optionally open the file after download
-      await OpenFilex.open(savePath);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invoice downloaded to $savePath')),
-      );
+      await OpenFilex.open(savedPath);
     } catch (e) {
-      debugPrint("Download error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Download failed: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download: $e')),
+        );
+      }
     } finally {
       setState(() {
         _isDownloading[invoiceNo] = false;
+        _downloadProgress.remove(invoiceNo);
       });
     }
   }
 
+  Widget _viewButton(BuildContext context, CapitalReturn item) {
+    if (!_hasInvoice(item)) return const SizedBox.shrink(); // hide View
 
+    final busy = _isViewing[item.invoiceNo] == true;
+    return InkWell(
+      onTap: busy ? null : () => viewInvoicePdf(context, item.invoiceNo),
+      child: Container(
+        height: 24,
+        width: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2E7D32),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: busy
+              ? const SizedBox(
+            height: 14,
+            width: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+              : const Text(
+            "View",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _downloadButton(BuildContext context, CapitalReturn item) {
+    if (!_hasInvoice(item)) {
+      return ElevatedButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("No invoice available"),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey.shade300,
+          foregroundColor: Colors.white,
+          elevation: 1,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimumSize: const Size(100, 24),
+        ),
+        child: const Text('No Invoice'),
+      );
+    }
+
+    final downloading = _isDownloading[item.invoiceNo] == true;
+    final progress = _downloadProgress[item.invoiceNo];
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: downloading ? null : () => downloadInvoicePdf(context, item.invoiceNo),
+          child: Container(
+            height: 24,
+            width: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFA24C),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Center(
+              child: () {
+                if (!downloading) {
+                  return const Text(
+                    "Download",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }
+                if (progress == null) {
+                  // preparing / unknown total
+                  return const SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                } else {
+                  final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+                  return Text(
+                    "$pct%",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                }
+              }(),
+            ),
+          ),
+        ),
+        if (downloading && (progress ?? -1) >= 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: SizedBox(
+              width: 100,
+              height: 4,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(value: progress),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capital Returns Invoices', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Capital Returns Invoices',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFF2E7D32),
       ),
@@ -234,120 +433,61 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                           DataColumn(label: Text('Actions')),
                         ],
                         rows: currentPageItems.map((item) {
-                          final slNumber = ((currentPage - 1) * rowsPerPage) + currentPageItems.indexOf(item) + 1;
+                          final slNumber = ((currentPage - 1) * rowsPerPage) +
+                              currentPageItems.indexOf(item) + 1;
 
                           return DataRow(cells: [
                             DataCell(Text('$slNumber')),
-                            // DataCell(Text(item.projectName)),
-                            DataCell(Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(item.projectName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      const TextSpan(
-                                        text: 'Category: ',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
+                            DataCell(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(item.projectName,
+                                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        const TextSpan(
+                                          text: 'Category: ',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
                                         ),
-                                      ),
-                                      TextSpan(
-                                        text: item.projectCategory,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
+                                        TextSpan(
+                                          text: item.projectCategory,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                ],
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                currencyFormatter.format(
+                                  double.tryParse(item.capitalReturn) ?? 0,
                                 ),
-                                // Text.rich(
-                                //   TextSpan(
-                                //     children: [
-                                //       const TextSpan(
-                                //         text: 'Project ID: ',
-                                //         style: TextStyle(
-                                //           fontSize: 12,
-                                //           fontWeight: FontWeight.bold,
-                                //           color: Colors.grey,
-                                //         ),
-                                //       ),
-                                //       TextSpan(
-                                //         text: item.projectCode,
-                                //         style: const TextStyle(
-                                //           fontSize: 12,
-                                //           color: Colors.grey,
-                                //         ),
-                                //       ),
-                                //     ],
-                                //   ),
-                                // ),
-
-                              ],
-                            )),
-                            DataCell(Text(currencyFormatter.format(double.tryParse(item.capitalReturn) ?? 0))),
+                              ),
+                            ),
                             DataCell(Text(item.invoiceNo)),
                             DataCell(
                               Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // 👁️ View Button
-                                  ElevatedButton(
-                                    onPressed: () => downloadInvoicePdf(
-                                      context,
-                                      item.invoiceNo.toString(),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blueGrey[200],
-                                      foregroundColor: Colors.black,
-                                      elevation: 2,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                      minimumSize: const Size(0, 0),
-                                    ),
-                                    child: const Text(
-                                      'View',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 4), // spacing between buttons
-
-                                  // 💾 Download Button
-                                  (_isDownloading[item.invoiceNo] == true)
-                                      ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                      : ElevatedButton(
-                                    onPressed: () async {
-                                      await downloadInvoicePdf(context, item.invoiceNo);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue[200],
-                                      foregroundColor: Colors.black,
-                                      elevation: 2,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                      minimumSize: const Size(0, 0),
-                                    ),
-                                    child: const Text(
-                                      'Download',
-                                      style: TextStyle(fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-
+                                  _viewButton(context, item),
+                                  const SizedBox(height: 6),
+                                  _downloadButton(context, item),
                                 ],
                               ),
-                            )
-
-
+                            ),
                           ]);
                         }).toList(),
                       ),
@@ -357,19 +497,19 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
               ),
               const SizedBox(height: 45),
               Transform.translate(
-                offset: const Offset(0, -52), // move upward slightly
+                offset: const Offset(0, -52),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper padding
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // space between buttons and text
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
                           onPressed: currentPage > 1 ? _previousPage : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 5px border radius
+                              borderRadius: BorderRadius.circular(5),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
@@ -381,12 +521,12 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                       ),
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
                           onPressed: currentPage * rowsPerPage < filteredList.length ? _nextPage : null,
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 5px border radius
+                              borderRadius: BorderRadius.circular(5),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
@@ -397,8 +537,6 @@ class _CapitalReturnPageState extends State<CapitalReturnPage> {
                   ),
                 ),
               )
-
-
             ],
           );
         },

@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:io' show Directory, File;
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/invoice_roi_model.dart';
 
@@ -26,8 +30,12 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
 
   int currentPage = 1;
   final int rowsPerPage = 10;
-  Map<String, bool> _isDownloading = {};
 
+  // Button states
+  final Map<String, bool> _isViewing = {};
+  final Map<String, bool> _isDownloading = {};
+  // null => preparing; 0..1 => actual progress
+  final Map<String, double?> _downloadProgress = {};
 
   @override
   void initState() {
@@ -45,15 +53,16 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
   }
 
   void _filterList(String query) {
+    final q = query.toLowerCase().trim();
     final filtered = fullList.where((item) {
       final projectName = item.projectName.toLowerCase();
       final projectCategory = item.projectCategory.toLowerCase();
       final projectCode = item.projectCode.toLowerCase();
-      final invoiceNo = item.invoiceNo.toLowerCase();
-      return projectName.contains(query.toLowerCase()) ||
-          projectCategory.contains(query.toLowerCase()) ||
-          projectCode.contains(query.toLowerCase()) ||
-          invoiceNo.contains(query.toLowerCase());
+      final invoiceNo = (item.invoiceNo).toLowerCase();
+      return projectName.contains(q) ||
+          projectCategory.contains(q) ||
+          projectCode.contains(q) ||
+          invoiceNo.contains(q);
     }).toList();
 
     setState(() {
@@ -64,8 +73,9 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
 
   List<RoiInvoice> get currentPageItems {
     final startIndex = (currentPage - 1) * rowsPerPage;
-    final endIndex =
-    (startIndex + rowsPerPage) > filteredList.length ? filteredList.length : (startIndex + rowsPerPage);
+    final endIndex = (startIndex + rowsPerPage) > filteredList.length
+        ? filteredList.length
+        : (startIndex + rowsPerPage);
     return filteredList.sublist(startIndex, endIndex);
   }
 
@@ -85,12 +95,9 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
-    // final url =
-    //     "https://growupagro.tech/api/rois?investor_code=$investorCode";
-
     if (token.isEmpty || investorCode.isEmpty) return [];
 
-    final url = Uri.parse(ApiConstants.roiListinvoice(investorCode)); // ✅ use constant and Uri.parse
+    final url = Uri.parse(ApiConstants.roiListinvoice(investorCode));
 
     try {
       final response = await http.get(
@@ -108,7 +115,6 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
               .map((e) => RoiInvoice.fromJson(e))
               .toList();
 
-          // Assign fullList and filteredList here
           setState(() {
             fullList = list;
             filteredList = list;
@@ -124,66 +130,251 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
     }
   }
 
+  bool _hasInvoice(RoiInvoice item) {
+    final no = item.invoiceNo;
+    return no.isNotEmpty && no != 'N/A';
+  }
 
-  Future<void> downloadInvoicePdf(BuildContext context, String invoiceNo) async {
+  Future<void> viewInvoicePdf(BuildContext context, String invoiceNo) async {
+    setState(() => _isViewing[invoiceNo] = true); // loader for View only
     try {
-      setState(() => _isDownloading[invoiceNo] = true); // start loading
-
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication token missing.')),
-        );
-        setState(() => _isDownloading[invoiceNo] = false);
-        return;
-      }
-
-      // final url = "https://growupagro.tech/api/roi-invoice-download/$invoiceNo";
-
       final url = ApiConstants.roiInvoiceDownload(invoiceNo);
+      final uri = Uri.parse(url);
 
-
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/Invoice-$invoiceNo.pdf';
-
-      final dio = Dio();
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/pdf",
-          },
-          responseType: ResponseType.bytes,
-        ),
-      );
-
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
-
-      await OpenFilex.open(filePath);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invoice downloaded to $filePath'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open invoice in browser.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
-      debugPrint("Download error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Download failed: something went wrong'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      debugPrint("Error opening invoice: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open invoice.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isDownloading[invoiceNo] = false); // stop loading
+      setState(() => _isViewing[invoiceNo] = false);
     }
   }
 
+  bool _looksLikePdf(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    final header = String.fromCharCodes(bytes.sublist(0, 4));
+    return header == '%PDF';
+  }
+
+  Future<void> downloadInvoicePdf(
+      BuildContext context,
+      String invoiceNo,
+      ) async {
+    setState(() {
+      _isDownloading[invoiceNo] = true;     // loader for Download
+      _downloadProgress[invoiceNo] = null;  // preparing
+    });
+
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 60),
+        responseType: ResponseType.bytes,
+        followRedirects: true,
+        validateStatus: (s) => s != null && s >= 200 && s < 400,
+      ),
+    );
+
+    try {
+      final url = ApiConstants.roiInvoiceDownload(invoiceNo);
+      final uri = Uri.parse(url);
+
+      final response = await dio.getUri<List<int>>(
+        uri,
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total > 0) {
+            setState(() => _downloadProgress[invoiceNo] =
+                (received / total).clamp(0, 1));
+          }
+        },
+      );
+
+      final bytes = Uint8List.fromList(response.data ?? []);
+      if (bytes.isEmpty) {
+        throw Exception('Empty response while downloading PDF.');
+      }
+      if (!_looksLikePdf(bytes)) {
+        throw Exception('The server did not return a PDF (HTML or other).');
+      }
+
+      // Save to temp first
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
+      await File(tempPath).writeAsBytes(bytes, flush: true);
+
+      // Ask user where to save
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: 'invoice_$invoiceNo.pdf',
+        ),
+      );
+
+      if (savedPath == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to: $savedPath')),
+        );
+      }
+
+      await OpenFilex.open(savedPath);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download: $e')),
+        );
+      }
+    } finally {
+      setState(() {
+        _isDownloading[invoiceNo] = false;
+        _downloadProgress.remove(invoiceNo);
+      });
+    }
+  }
+  Widget _viewButton(BuildContext context, RoiInvoice item) {
+    if (!_hasInvoice(item)) return const SizedBox.shrink(); // hide View
+
+    final busy = _isViewing[item.invoiceNo] == true;
+    return InkWell(
+      onTap: busy ? null : () => viewInvoicePdf(context, item.invoiceNo),
+      child: Container(
+        height: 24,
+        width: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2E7D32),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: busy
+              ? const SizedBox(
+            height: 14,
+            width: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+              : const Text(
+            "View",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _downloadButton(BuildContext context, RoiInvoice item) {
+    if (!_hasInvoice(item)) {
+      return ElevatedButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("No invoice available"),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey.shade300,
+          foregroundColor: Colors.white,
+          elevation: 1,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimumSize: const Size(100, 24),
+        ),
+        child: const Text('No Invoice'),
+      );
+    }
+
+    final downloading = _isDownloading[item.invoiceNo] == true;
+    final progress = _downloadProgress[item.invoiceNo];
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: downloading ? null : () => downloadInvoicePdf(context, item.invoiceNo),
+          child: Container(
+            height: 24,
+            width: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFA24C),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Center(
+              child: () {
+                if (!downloading) {
+                  return const Text(
+                    "Download",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }
+                if (progress == null) {
+                  // preparing / unknown total
+                  return const SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                } else {
+                  final pct = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+                  return Text(
+                    "$pct%",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                }
+              }(),
+            ),
+          ),
+        ),
+        if (downloading && (progress ?? -1) >= 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: SizedBox(
+              width: 100,
+              height: 4,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(value: progress),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +399,6 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
           if (fullList.isEmpty) {
             return const Center(child: Text("No ROI invoices found."));
           }
-
 
           return Column(
             children: [
@@ -263,119 +453,49 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
                             cells: [
                               DataCell(Text('$slNumber')),
                               // Project stacked info
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(item.projectName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Category: ',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
+                              DataCell(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(item.projectName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Category: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                        TextSpan(
-                                          text: item.projectCategory,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                          TextSpan(
+                                            text: item.projectCategory,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  // Text.rich(
-                                  //   TextSpan(
-                                  //     children: [
-                                  //       const TextSpan(
-                                  //         text: 'Project ID:',
-                                  //         style: TextStyle(
-                                  //           fontSize: 12,
-                                  //           fontWeight: FontWeight.bold,
-                                  //           color: Colors.grey,
-                                  //         ),
-                                  //       ),
-                                  //       TextSpan(
-                                  //         text: item.projectCode,
-                                  //         style: const TextStyle(
-                                  //           fontSize: 12,
-                                  //           color: Colors.grey,
-                                  //         ),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  // ),
-
-                                ],
-                              )),
-                              DataCell(Text('৳${double.parse(item.totalRoi).toStringAsFixed(2)}')),
-
-
+                                  ],
+                                ),
+                              ),
+                              DataCell(Text('৳${double.tryParse(item.totalRoi)?.toStringAsFixed(2) ?? item.totalRoi}')),
                               DataCell(Text(item.invoiceNo)),
                               DataCell(
                                 Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // 👁️ View Button
-                                    ElevatedButton(
-                                      onPressed: () => downloadInvoicePdf(
-                                        context,
-                                        item.invoiceNo.toString(),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blueGrey[200], // View button color
-                                        foregroundColor: Colors.black,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                      child: const Text(
-                                        'View',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 4), // spacing between buttons
-                          /*
-
-                                    // 💾 Download Button or loading spinner
-                                    (_isDownloading[item.invoiceNo] == true)
-                                        ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                        : ElevatedButton(
-                                      onPressed: () async {
-                                        await downloadInvoicePdf(context, item.invoiceNo);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue[200], // Download button color
-                                        foregroundColor: Colors.black,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                      child: const Text(
-                                        'Download',
-                                        style: TextStyle(fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                    */
+                                    _viewButton(context, item),
+                                    const SizedBox(height: 6),
+                                    _downloadButton(context, item),
                                   ],
                                 ),
-                              )
-
-
-// Action column empty
+                              ),
                             ],
                           );
                         }).toList(),
@@ -384,22 +504,21 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 45),
               Transform.translate(
-                offset: const Offset(0, -52), // move upward slightly
+                offset: const Offset(0, -52),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper padding
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // space between buttons and text
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
                           onPressed: currentPage > 1 ? _previousPage : null,
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 5px border radius
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
                           child: const Text('Previous', style: TextStyle(fontSize: 14)),
@@ -410,13 +529,11 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                       ),
                       SizedBox(
-                        height: 26, // smaller button height
+                        height: 26,
                         child: ElevatedButton(
                           onPressed: currentPage * rowsPerPage < filteredList.length ? _nextPage : null,
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // 5px border radius
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
                           child: const Text('Next', style: TextStyle(fontSize: 14)),
@@ -426,8 +543,6 @@ class _InvoiceRoiPageState extends State<InvoiceRoiPage> {
                   ),
                 ),
               )
-
-
             ],
           );
         },
