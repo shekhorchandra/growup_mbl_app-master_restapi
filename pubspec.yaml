@@ -41,6 +41,7 @@ dependencies:
   permission_handler: ^12.0.1
   flutter_html: ^3.0.0
   shurjopay: ^2.0.8
+  flutter_sslcommerz: ^3.0.1
   get: ^4.6.6 # You used Get.context
   flutter_secure_storage: ^9.0.0 # check for latest version
   package_info_plus: ^8.3.0

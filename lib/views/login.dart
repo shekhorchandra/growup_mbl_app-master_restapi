@@ -122,8 +122,8 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     final width = size.width;
 
     // ⚙️ Default demo credentials
-    usernameController.text = "01833933567";
-    passwordController.text = "ja!1ma!3Pa#2";
+    // usernameController.text = "01833933567";
+    // passwordController.text = "ja!1ma!3Pa#2";
 
     return Container(
       decoration: const BoxDecoration(

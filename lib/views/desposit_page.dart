@@ -50,6 +50,7 @@ class _DepositPageState extends State<DepositPage> {
     'Cash Payment',
     'Bank Transfer',
     "Online payment (Shurjo Pay)",
+    "Online payment Gateway (SslCommerz)",
   ];
 
   final Map<String, Map<String, String>> _bankAccounts = {
@@ -602,6 +603,142 @@ class _DepositPageState extends State<DepositPage> {
   }
 
 
+  Future<void> _handleSslCommerzPay() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final investorId = prefs.getString('investor_id') ?? '';
+    final email = prefs.getString('investor_email') ?? 'default@email.com';
+    final investorName = prefs.getString('investor_name') ?? '';
+    final investorPhone = prefs.getString('investor_phone') ?? '';
+    final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
+
+    final enteredAmount = _amountController.text.trim();
+    if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
+      _showSnack("Please enter a valid deposit amount.");
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final amount = double.parse(enteredAmount);
+
+    try {
+      // -----------------------------
+      // Step 1: Initiate transaction (same as before)
+      // -----------------------------
+      final initiateResponse = await http.post(
+        Uri.parse('https://growupagro.tech/api/transaction-initiate'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          "amount": amount,
+          "type": "deposit",
+          "note": "ok",
+        }),
+      );
+
+      if (initiateResponse.statusCode != 200 &&
+          initiateResponse.statusCode != 201) {
+        _showSnack("Failed to initiate transaction.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final initiateData = jsonDecode(initiateResponse.body);
+      if (initiateData['success'] != true) {
+        _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final walletTransaction = initiateData['data']?['wallet_transaction'];
+      final transactionId = walletTransaction?['id']?.toString();
+      if (transactionId == null || transactionId.isEmpty) {
+        _showSnack("Transaction ID missing from server response.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      print("✅ Transaction ID: $transactionId");
+
+      // -----------------------------
+      // Step 2: Initiate SSLCommerz Payment
+      // -----------------------------
+      const storeId = "datab67593a46c4062";
+      const storePassword = "datab67593a46c4062@ssl";
+
+      final sslInitUrl = "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
+
+      final sslRequestBody = {
+        "store_id": storeId,
+        "store_passwd": storePassword,
+        "total_amount": amount.toString(),
+        "currency": "BDT",
+        "tran_id": "growup_txn_${transactionId.toString()}",
+        "success_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
+        "fail_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
+        "cancel_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
+        "emi_option": "0",
+        "cus_name": investorName.toString(),
+        "cus_email": email.toString(),
+        "cus_add1": investorAddress.toString(),
+        "cus_city": "Dhaka",
+        "cus_country": "Bangladesh",
+        "cus_phone": investorPhone.toString(),
+        "shipping_method": "NO",
+        "product_name": "Wallet Recharge",
+        "product_category": "Food",
+        "product_profile": "general",
+        "value_a": investorId.toString(),
+        "value_b": "wallet_deposit",
+        "value_c": transactionId.toString(),
+        "value_d": "growup",
+      };
+
+
+      final sslResponse = await http.post(
+        Uri.parse(sslInitUrl),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: sslRequestBody.map((key, value) => MapEntry(key, value.toString())),
+      );
+
+
+      print('🔹 SSLCommerz Init Status: ${sslResponse.statusCode}');
+      print('🔹 SSLCommerz Response: ${sslResponse.body}');
+
+      if (sslResponse.statusCode != 200) {
+        _showSnack("Failed to connect to SSLCOMMERZ.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final sslData = jsonDecode(sslResponse.body);
+      final gatewayUrl = sslData['GatewayPageURL'];
+
+      if (gatewayUrl != null && gatewayUrl.toString().startsWith('http')) {
+        final uri = Uri.parse(gatewayUrl);
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          _showSnack("Could not open SSLCOMMERZ page.");
+        }
+      } else {
+        _showSnack("Invalid payment gateway URL from SSLCOMMERZ.");
+      }
+    } catch (e) {
+      print("❌ SSLCommerz error: $e");
+      _showSnack("Error during SSLCOMMERZ payment: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+
   Future<void> _submitDeposit() async {
     final amount = int.tryParse(_amountController.text.trim()) ?? 0;
     final method = _selectedMethod.toLowerCase();
@@ -807,20 +944,31 @@ class _DepositPageState extends State<DepositPage> {
                 : SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: method == 'banktransfer'
-                    ? _submitDeposit
-                    : method == 'onlinepayment(shurjopay)'
-                    ? _handleShurjoPay
-                    : _submitDeposit,
+                onPressed: () {
+                  if (method == 'banktransfer') {
+                    _submitDeposit();
+                  } else if (method == 'onlinepayment(shurjopay)') {
+                    _handleShurjoPay();
+                  } else if (method == 'onlinepayment(sslcommerz)') {
+                    _handleSslCommerzPay();
+                  } else {
+                    _submitDeposit();
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 child: Text(
-                  method == 'onlinepayment(shurjopay)' ? 'Pay with ShurjoPay' : 'Deposit',
+                  method == 'onlinepayment(shurjopay)'
+                      ? 'Pay with ShurjoPay'
+                      : method == 'onlinepayment(sslcommerz)'
+                      ? 'Pay with SSLCOMMERZ'
+                      : 'Deposit',
                   style: const TextStyle(color: Colors.white),
                 ),
-              ),
+              )
+
             ),
           const SizedBox(height: 12),
 

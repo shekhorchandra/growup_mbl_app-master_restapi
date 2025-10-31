@@ -26,7 +26,7 @@ class DashboardSummaryCard extends StatelessWidget {
     this.borderRadius = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     this.bgColor = Colors.white,
-    this.valueColor = const Color(0xFF0F1A2A),
+    this.valueColor = const Color(0xFFED6E2F),
     this.labelColor = const Color(0xFF9AA3B2),
     this.dividerColor = const Color(0xFF8ED18F),
   }) : assert(items.length >= 2 && items.length <= 4, 'Use 2–4 items for best fit');
@@ -58,8 +58,8 @@ class DashboardSummaryCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isTight = constraints.maxWidth < 360;
-            final iconSize = isTight ? 28.0 : 44.0;
-            final valueSize = isTight ? 14.0 : 20.0;
+            final iconSize = isTight ? 28.0 : 35.0;
+            final valueSize = isTight ? 14.0 : 18.0;
             final labelSize = isTight ? 10.0 : 13.0;
             final dividerHeight = isTight ? 66.0 : 78.0;
 

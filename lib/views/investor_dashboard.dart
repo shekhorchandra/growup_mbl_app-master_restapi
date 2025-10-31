@@ -1401,16 +1401,16 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ],
                 ),
 
-                SizedBox(height: 16,),
-
-                const CompanyCertificationsCarousel(),
-
                 SizedBox(height: 8,),
+
+                const CertificationsSection(),
+
+                // SizedBox(height: 8,),
 
                 // The single container holding all four counter items.
                 // The new parent Container adds the margin.
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 16),
+                  padding: const EdgeInsets.only(left: 16, top: 14),
                   child: Text("ACHIEVEMENT", style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF2E7D32),
@@ -2165,7 +2165,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2206,7 +2206,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2247,7 +2247,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2288,7 +2288,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2329,7 +2329,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2370,7 +2370,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(50),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -2395,7 +2395,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       alignment: Alignment.centerLeft,
       child: SizedBox(
         height: 35.0,
-        width: 250.0,
+        width: double.infinity,
         child: OutlinedButton(
           onPressed: () {
             Navigator.push(
@@ -2409,7 +2409,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(50),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
@@ -2440,7 +2440,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       alignment: Alignment.centerLeft,
       child: SizedBox(
         height: 35.0,
-        width: 250.0,
+        width: double.infinity,
         child: OutlinedButton(
           onPressed: () {
             Navigator.push(
@@ -2454,7 +2454,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(50),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
@@ -2485,7 +2485,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       alignment: Alignment.centerLeft,
       child: SizedBox(
         height: 35.0,
-        width: 250.0,
+        width: double.infinity,
         child: OutlinedButton(
           onPressed: () {
             Navigator.push(
@@ -2499,7 +2499,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             backgroundColor: Colors.transparent,
             side: const BorderSide(color: Colors.grey, width: 1),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(50),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             minimumSize: Size.zero,
