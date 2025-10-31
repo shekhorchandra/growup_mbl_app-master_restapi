@@ -473,25 +473,41 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     final int investmentGoalValue =
         double.tryParse(project.investmentGoal.toString().replaceAll(',', ''))?.toInt() ?? 0;
 
-    // ---- date setup ----
-    final DateTime? startDate = _parseDate(project.project_start_date);
-    final DateTime? roiStartDate = _parseDate(project.roiStartDate);
+    final DateTime? rawStartDate = _parseDate(project.project_start_date);
+    final DateTime? rawRoiStartDate = _parseDate(project.roiStartDate);
     final DateTime today = DateTime.now();
 
-    // ---- active investment logic ----
-    final bool isInvestmentActive = project.status == 1 &&
-        startDate != null &&
-        roiStartDate != null &&
-        !today.isBefore(startDate) &&       // today >= start
-        today.isBefore(roiStartDate) &&     // today < roi start
-        raised <= investmentGoalValue;
+// ---- strip time part (keep only year, month, day) ----
+    final DateTime? startDate = rawStartDate != null
+        ? DateTime(rawStartDate.year, rawStartDate.month, rawStartDate.day)
+        : null;
+    final DateTime? roiStartDate = rawRoiStartDate != null
+        ? DateTime(rawRoiStartDate.year, rawRoiStartDate.month, rawRoiStartDate.day)
+        : null;
 
-    debugPrint('today: $today');
-    debugPrint('startDate: $startDate');
-    debugPrint('roiStartDate: $roiStartDate');
-    debugPrint('raised: $raised');
-    debugPrint('goal: $investmentGoalValue');
-    debugPrint('isInvestmentActive: $isInvestmentActive');
+    final DateTime todayDate = DateTime(today.year, today.month, today.day);
+
+// ---- active investment logic (pure date check) ----
+    final bool isInvestmentActive =
+        startDate != null &&
+            roiStartDate != null &&
+            !todayDate.isBefore(startDate) && // today >= startDate
+            todayDate.isBefore(roiStartDate) && // today < roiStartDate
+            raised <= investmentGoalValue;
+
+// ---- DEBUG PRINTS ----
+    final dateFormatter = DateFormat('yyyy-MM-dd');
+    debugPrint('-------------------------------------------');
+    debugPrint('🕒 Today: ${dateFormatter.format(todayDate)}');
+    debugPrint('📅 Start Date: ${startDate != null ? dateFormatter.format(startDate) : "null"}');
+    debugPrint('💰 ROI Start Date: ${roiStartDate != null ? dateFormatter.format(roiStartDate) : "null"}');
+    debugPrint('📊 Raised: $raised');
+    debugPrint('🎯 Goal: $investmentGoalValue');
+    debugPrint('✅ isInvestmentActive: $isInvestmentActive');
+    debugPrint('-------------------------------------------');
+
+
+
 
     // ---- UI ----
     return Card(
@@ -547,17 +563,17 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 'Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%'),
             InfoRow(
               title: 'Project Duration',
-              value: '${project.projectDurationViewer}',
+              value: '${project.projectDurationViewer} Months',
             ),
 
-            // InfoRow(
-            //   title: 'Project Status',
-            //   value: project.status == 1 ? 'Running' : 'Closed',
-            //   style: TextStyle(
-            //     color: project.status == 1 ? Colors.green : Colors.red,
-            //     fontWeight: FontWeight.bold,
-            //   ),
-            // ),
+            InfoRow(
+              title: 'Project Status',
+              value: project.status == 1 ? 'Running' : 'Closed',
+              style: TextStyle(
+                color: project.status == 1 ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
 
             // ---- conditional buttons ----

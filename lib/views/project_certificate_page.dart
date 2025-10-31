@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/models/project_certificate_model.dart';
+import 'package:growup_agro/views/web_view_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -88,13 +89,18 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     });
   }
 
-  void _launchURL(String url) async {
-    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+  Future<void> launchInBrowser(BuildContext context, String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not open link')),
       );
     }
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -181,23 +187,39 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    _launchURL(item.viewUrl);
+                                    if (item.previewUrl.isNotEmpty) {
+                                      try {
+                                        // Try opening in WebView
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PreviewPage(url: item.previewUrl),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        print('WebView failed, opening in browser: $e');
+                                        launchInBrowser(context, item.previewUrl); // fallback
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Preview URL not available')),
+                                      );
+                                    }
                                   },
                                   icon: const Icon(Icons.remove_red_eye),
-                                  label: const Text(
-                                    'View',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                    ),
-                                  ),
+                                  label: const Text('View', style: TextStyle(fontSize: 10)),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blueGrey[200], // button color
-                                    foregroundColor: Colors.black, // text color
-                                    elevation: 2, // set desired elevation
+                                    backgroundColor: Colors.blueGrey[200],
+                                    foregroundColor: Colors.black,
+                                    elevation: 2,
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                     minimumSize: const Size(0, 0),
                                   ),
                                 ),
+
+
+
+
 
                                 // const Spacer(),
                                 // ElevatedButton.icon(

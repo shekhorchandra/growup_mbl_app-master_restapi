@@ -22,6 +22,7 @@ class CategoryGridCard extends StatelessWidget {
     this.minCrossAxisCount = 3,
     this.maxCrossAxisCount = 4,
     this.titleFontSize = 10,
+    this.aspectRatio,
   });
 
   final List<CategoryItem> items;
@@ -31,6 +32,7 @@ class CategoryGridCard extends StatelessWidget {
   final int minCrossAxisCount; // used on narrow screens
   final int maxCrossAxisCount; // used on wide screens
   final double titleFontSize;
+  final double? aspectRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,9 @@ class CategoryGridCard extends StatelessWidget {
 
         // Card aspect ratio so the reserved title area + icon fit nicely
         // You can tweak this if you want taller/shorter cards.
-        final childAspectRatio = c.maxWidth < 520 ? 1.62 : 1.3;
+        final childAspectRatio = aspectRatio ??
+            (c.maxWidth < 520 ? 1.62 : 1.3);
+
 
         return GridView.builder(
           shrinkWrap: true,

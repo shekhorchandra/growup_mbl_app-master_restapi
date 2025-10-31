@@ -76,6 +76,12 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   String nomineeAddress = '';
   int? selectedRelationId;
   int? nomineeId;
+  String? nomineebankAccountName;
+  String? nomineebankName;
+  String? nomineebranch;
+  String? nomineeaccountNo;
+
+
 
   // Bank Info
   String bankHolder = '';
@@ -286,20 +292,20 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         'nid': nomineeNid,
         'relation': selectedRelationId.toString(),
         'address': nomineeAddress,
+        // Include nominee bank info
+        'bank_account_name': nomineebankAccountName,
+        'bank_name': nomineebankName,
+        'branch_name': nomineebranch,
+        'account_number': nomineeaccountNo,
       };
 
-      // final url = nomineeId == null
-      //     ? Uri.parse('https://growupagro.tech/api/investor/nominee/info/create')
-      //     : Uri.parse(ApiConstants.updateNomineeInfo);
-
-      // Determine URL: create or update
       final url = Uri.parse(
         nomineeId == null
             ? ApiConstants.createNomineeInfo()
             : ApiConstants.updateNomineeInfo,
       );
 
-      // If updating, include nominee_id
+      // Include nominee_id if updating
       if (nomineeId != null) {
         body['nominee_id'] = nomineeId.toString();
       }
@@ -309,9 +315,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
-          'Content-Type': 'application/json', // ✅ important for JSON
+          'Content-Type': 'application/json',
         },
-        body: jsonEncode(body), // ✅ send as JSON
+        body: jsonEncode(body),
       );
 
       final result = json.decode(response.body);
@@ -326,7 +332,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           ),
         );
 
-        // Save the newly created nominee id if it was created
+        // Save newly created nominee ID
         if (nomineeId == null && result['nominee'] != null) {
           setState(() {
             nomineeId = result['nominee']['id'];
@@ -1107,6 +1113,37 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                           isEditingNominee,
                           validator: requiredValidator,
                         ),
+                        buildEditableField(
+                          'Account Holder Name',
+                          nomineebankAccountName ?? '',
+                              (val) => setState(() => nomineebankAccountName = val),
+                          isEditingNominee,
+                          validator: requiredValidator,
+                        ),
+                        buildEditableField(
+                          'Bank Name',
+                          nomineebankName ?? '',
+                              (val) => setState(() => nomineebankName = val),
+                          isEditingNominee,
+                          validator: requiredValidator,
+                        ),
+                        buildEditableField(
+                          'Branch Name',
+                          nomineebranch ?? '',                    // <-- fixed
+                              (val) => setState(() => nomineebranch = val),  // <-- fixed
+                          isEditingNominee,
+                          validator: requiredValidator,
+                        ),
+                        buildEditableField(
+                          'Account Number',
+                          nomineeaccountNo ?? '',                 // <-- fixed
+                              (val) => setState(() => nomineeaccountNo = val), // <-- fixed
+                          isEditingNominee,
+                          validator: requiredValidator,
+                        ),
+
+
+
                       ],
                     ),
                   ],

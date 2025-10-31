@@ -1036,55 +1036,63 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ],
                       ),
-                      ExpansionTile(
-                        leading: Icon(
-                          FontAwesomeIcons.infoCircle,
-                          color: Colors.green,
-                          size: 20, // main icon size
-                        ),
-                        title: Text(
-                          'About',
-                          style: TextStyle(
-                            fontSize: 14, // main text size
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
-                        dense: true,
-                        children: <Widget>[
-                          ListTile(
-                            dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                            visualDensity: const VisualDensity(vertical: -4),
-                            leading: Icon(
-                              FontAwesomeIcons.infoCircle,
-                              size: 16,
-                              color: Colors.green,
-                            ),
-                            title: Text(
-                              'About Us',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                            onTap: () => Navigator.pushNamed(context, '/about_us'),
-                          ),
-                          ListTile(
-                            dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                            visualDensity: const VisualDensity(vertical: -4),
-                            leading: Icon(
-                              FontAwesomeIcons.fileAlt,
-                              size: 16, // reduced from 28
-                              color: Colors.green,
-                            ),
-                            title: Text(
-                              'Certificates',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                            onTap: () => Navigator.pushNamed(context, '/certificate'),
-                          ),
-                        ],
+                      // ExpansionTile(
+                      //   leading: Icon(
+                      //     FontAwesomeIcons.infoCircle,
+                      //     color: Colors.green,
+                      //     size: 20, // main icon size
+                      //   ),
+                      //   title: Text(
+                      //     'About',
+                      //     style: TextStyle(
+                      //       fontSize: 14, // main text size
+                      //       fontWeight: FontWeight.w500,
+                      //     ),
+                      //   ),
+                      //   tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                      //   childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                      //   dense: true,
+                      //   children: <Widget>[
+                      //     ListTile(
+                      //       dense: true,
+                      //       contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                      //       visualDensity: const VisualDensity(vertical: -4),
+                      //       leading: Icon(
+                      //         FontAwesomeIcons.infoCircle,
+                      //         size: 16,
+                      //         color: Colors.green,
+                      //       ),
+                      //       title: Text(
+                      //         'About Us',
+                      //         style: TextStyle(fontSize: 13),
+                      //       ),
+                      //       onTap: () => Navigator.pushNamed(context, '/about_us'),
+                      //     ),
+                      //     ListTile(
+                      //       dense: true,
+                      //       contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                      //       visualDensity: const VisualDensity(vertical: -4),
+                      //       leading: Icon(
+                      //         FontAwesomeIcons.fileAlt,
+                      //         size: 16, // reduced from 28
+                      //         color: Colors.green,
+                      //       ),
+                      //       title: Text(
+                      //         'Certificates',
+                      //         style: TextStyle(fontSize: 13),
+                      //       ),
+                      //       onTap: () => Navigator.pushNamed(context, '/certificate'),
+                      //     ),
+                      //   ],
+                      // ),
+
+                      _buildDrawerItem(
+                        FontAwesomeIcons.infoCircle,
+                        'About Us',
+                        context,
+                        '/about_us',
                       ),
+
                       _buildDrawerItem(
                         FontAwesomeIcons.newspaper,
                         'News',
@@ -1413,18 +1421,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                 AchievementCard(),
 
-                // Growup Investment by category
-
-                SizedBox(height: 8,),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 16),
-                  child: Text("INVESTMENT BY CATEGORY", style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF2E7D32),
-                      fontWeight: FontWeight.w600
-                  )),
-                ),
-
                 SizedBox(height: 8,),
 
                 Container(
@@ -1436,56 +1432,98 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   child: Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Image.asset(
-                              'assets/images/GrowupLogo.png',
-                              width: 60,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  'assets/images/GrowupLogo.png',
+                                  width: 70,
+                                ),
+                                // const SizedBox(height: 2), // smaller gap (can make 0 or remove)
+                                const Text(
+                                  "INVESTMENT BY CATEGORY",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF2E7D32),
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.0, //  tighten line height slightly
+                                  ),
+                                ),
+                              ],
                             ),
                             Image.asset(
                               'assets/icons/Shariah.png',
-                              width: 60,
+                              width: 70,
                             ),
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 12),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: CategoryGridCard(
-                          items: [
-                            CategoryItem(icon: SvgPicture.asset(Assets.iconsLiveProject, color: Colors.green),        title: 'Live Projects', onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const LiveProjectsPage()),
-                              );
-                            }),
-                            CategoryItem(icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green), title: 'Long Duration', onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const LongProjectsPage()),
-                              );
-                            }),
-                            CategoryItem(icon: SvgPicture.asset(Assets.iconsSort, color: Colors.green),     title: 'Short Duration', onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const ShortProjectsPage()),
-                              );
-                            }),
-                            CategoryItem(icon: SvgPicture.asset(Assets.iconsMach, color: Colors.green),             title: 'Matured Projects', onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const CompletedProjectsPage()),
-                              );
-                            }),
-                            CategoryItem(icon: SvgPicture.asset(Assets.iconsEarning, color: Colors.green), title: 'All GrowUp Projects', onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const AllProjectsPage()),
-                              );
-                            }),
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // First row (3 cards)
+                            CategoryGridCard(
+                              minCrossAxisCount: 3,
+                              maxCrossAxisCount: 3,
+                              aspectRatio: 2.0, //  same ratio for consistent height
+                              items: [
+                                CategoryItem(
+                                  icon: SvgPicture.asset(Assets.iconsLiveProject, color: Colors.green),
+                                  title: 'Live Projects',
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveProjectsPage()));
+                                  },
+                                ),
+                                CategoryItem(
+                                  icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green),
+                                  title: 'Long Duration',
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LongProjectsPage()));
+                                  },
+                                ),
+                                CategoryItem(
+                                  icon: SvgPicture.asset(Assets.iconsSort, color: Colors.green),
+                                  title: 'Short Duration',
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ShortProjectsPage()));
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // ✅ Second row (2 cards, same height as first row)
+                            CategoryGridCard(
+                              minCrossAxisCount: 2,
+                              maxCrossAxisCount: 2,
+                              aspectRatio: 3.0, //  same as above
+                              items: [
+                                CategoryItem(
+                                  icon: SvgPicture.asset(Assets.iconsMach, color: Colors.green),
+                                  title: 'Matured Projects',
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedProjectsPage()));
+                                  },
+                                ),
+                                CategoryItem(
+                                  icon: SvgPicture.asset(Assets.iconsEarning, color: Colors.green),
+                                  title: 'All GrowUp Projects',
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AllProjectsPage()));
+                                  },
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -1504,7 +1542,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min, // ✅ shrink to fit
+                      mainAxisSize: MainAxisSize.min, // shrink to fit
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

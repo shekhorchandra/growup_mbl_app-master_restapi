@@ -176,6 +176,11 @@ class NomineeInformation {
   final String contact;
   final String nid;
   final String address;
+  final String? nomineebankAccountName;
+  final String? nomineebankName;
+  final String? nomineebranchName;
+  final String? nomineeaccountNumber;
+
 
   NomineeInformation({
     required this.name,
@@ -183,6 +188,11 @@ class NomineeInformation {
     required this.contact,
     required this.nid,
     required this.address,
+    required this.nomineebankAccountName,
+    required this.nomineebankName,
+    required this.nomineebranchName,
+    required this.nomineeaccountNumber,
+
   });
 
   factory NomineeInformation.fromJson(Map<String, dynamic> json) {
@@ -192,6 +202,10 @@ class NomineeInformation {
       contact: json['contact'] ?? '',
       nid: json['nid'] ?? '',
       address: json['address'] ?? '',
+      nomineebankAccountName: json['bank_account_name'] ?? '',
+      nomineebankName: json['bank_name'] ?? '',
+      nomineebranchName: json['branch_name'] ?? '',
+      nomineeaccountNumber: json['account_number'] ?? '',
     );
   }
 }
