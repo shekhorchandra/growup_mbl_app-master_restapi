@@ -1567,45 +1567,48 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                             final projects = snapshot.data!;
                             // Use CarouselSlider instead of SingleChildScrollView + Row
-                            return CarouselSlider(
-                              options: CarouselOptions(
-                                height: MediaQuery.of(context).size.height * 0.20,
-                                autoPlay: true,
-                                autoPlayInterval: const Duration(seconds: 5),
-                                enlargeCenterPage: true,
-                                viewportFraction: 1.0,
-                                enableInfiniteScroll: true,
-                              ),
-                              items: projects.map((project) {
-                                return Builder(
-                                  builder: (BuildContext context) {
-                                    return Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: const Color(0xFF2E7D32), // deep green border
-                                          width: 1,
+                            return SizedBox(
+                              height: 180,
+                              child: CarouselSlider(
+                                options: CarouselOptions(
+                                  height: MediaQuery.of(context).size.height * 0.20,
+                                  autoPlay: true,
+                                  autoPlayInterval: const Duration(seconds: 5),
+                                  enlargeCenterPage: true,
+                                  viewportFraction: 1.0,
+                                  enableInfiniteScroll: true,
+                                ),
+                                items: projects.map((project) {
+                                  return Builder(
+                                    builder: (BuildContext context) {
+                                      return Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: const Color(0xFF2E7D32), // deep green border
+                                            width: 1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
                                         ),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: _buildProjectCard(
-                                        context: context,
-                                        imageUrl: project.imageUrl ?? '',
-                                        projectId: project.id?.toString() ?? '',
-                                        name: project.projectName ?? 'N/A',
-                                        type: project.investmentType_name ?? "N/A",
-                                        goal: '${project.investmentGoal ?? '0'} Tk',
-                                        duration: project.project_duration_viewer ?? 'N/A',
-                                        minInvestment: '${project.min_investment_amount ?? '0'} Tk',
-                                        time: '${project.remaining_opportunity_days ?? 0} Days',
-                                        roi: '${project.annualRoi ?? 0}%',
-                                        isTablet: MediaQuery.of(context).size.width >= 600,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }).toList(),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: _buildProjectCard(
+                                          context: context,
+                                          imageUrl: project.imageUrl ?? '',
+                                          projectId: project.id?.toString() ?? '',
+                                          name: project.projectName ?? 'N/A',
+                                          type: project.investmentType_name ?? "N/A",
+                                          goal: '${project.investmentGoal ?? '0'} Tk',
+                                          duration: project.project_duration_viewer ?? 'N/A',
+                                          minInvestment: '${project.min_investment_amount ?? '0'} Tk',
+                                          time: '${project.remaining_opportunity_days ?? 0} Days',
+                                          roi: '${project.annualRoi ?? 0}%',
+                                          isTablet: MediaQuery.of(context).size.width >= 600,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                              ),
                             );
 
                           },
@@ -2554,70 +2557,36 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    vertical: screenHeight * 0.028,
-                    horizontal: screenWidth * 0.01,
+                    vertical: screenHeight * 0.018,
+                    horizontal: screenWidth * 0.02,
                   ),
                   child: Column(
-                    // mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // prevent overflow
                     children: [
-                      // Title
-                      Text(
-                        name,
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                          // fontSize: screenWidth * 0.036,
-                          fontSize: isTablet
-                              ? screenWidth * 0.022
-                              : screenWidth * 0.036,
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: isTablet ? screenWidth * 0.022 : screenWidth * 0.036,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: screenHeight * 0.005),
-
-                      // Info fields
-                      _infoRow(
-                        label: 'Type:',
-                        value: type,
-                        fontSize: isTablet
-                            ? screenWidth * 0.022
-                            : screenWidth * 0.028,
-                      ),
-                      _infoRow(
-                        label: 'Goal:',
-                        value: goal,
-                        fontSize: isTablet
-                            ? screenWidth * 0.022
-                            : screenWidth * 0.028,
-                      ),
-                      _infoRow(
-                        label: 'Duration:',
-                        value: duration,
-                        fontSize: isTablet
-                            ? screenWidth * 0.022
-                            : screenWidth * 0.028,
-                      ),
-                      _infoRow(
-                        label: 'Min Invest:',
-                        value: minInvestment,
-                        fontSize: isTablet
-                            ? screenWidth * 0.022
-                            : screenWidth * 0.028,
-                      ),
-                      _infoRow(
-                        label: 'Time:',
-                        value: time,
-                        fontSize: isTablet
-                            ? screenWidth * 0.022
-                            : screenWidth * 0.028,
-                      ),
+                      SizedBox(height: screenHeight * 0.004),
+                      ...[
+                        _infoRow(label: 'Type:', value: type),
+                        _infoRow(label: 'Goal:', value: goal),
+                        _infoRow(label: 'Duration:', value: duration),
+                        _infoRow(label: 'Min Invest:', value: minInvestment),
+                        _infoRow(label: 'Time:', value: time),
+                      ],
                     ],
                   ),
                 ),
-
-                // ROI Badge
                 Positioned(
                   top: 0,
                   right: 0,
@@ -2635,22 +2604,14 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.trending_up,
-                          size: screenWidth * 0.03,
-                          color: Colors.white,
-                        ),
+                        Icon(Icons.trending_up, size: screenWidth * 0.03, color: Colors.white),
                         SizedBox(width: screenWidth * 0.01),
-                        Text(
-                          'ROI $roi',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isTablet
-                                ? screenWidth * 0.022
-                                : screenWidth * 0.03,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text('ROI $roi',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isTablet ? screenWidth * 0.022 : screenWidth * 0.03,
+                              fontWeight: FontWeight.bold,
+                            )),
                       ],
                     ),
                   ),

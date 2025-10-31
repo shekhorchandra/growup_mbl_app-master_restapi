@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:async';
-
-
-
 
 // Secure storage instance (global for this file)
 final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
@@ -22,7 +19,6 @@ class MyLogin extends StatefulWidget {
 }
 
 class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
-
   late AnimationController _logoController;
   late Animation<double> _logoOpacity;
   late Animation<Offset> _logoSlide;
@@ -38,43 +34,26 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
   bool isLoading = false;
   bool isForgotLoading = false;
   bool isSignUpLoading = false;
-  //Initialize and Load Checkbox State
+
   @override
-  void initState()  {
+  void initState() {
     super.initState();
-    print('initState called');
     _loadRememberMeValue();
-// Initialize animation controllers
-    _logoController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
-    _logoSlide = Tween<Offset>(begin: const Offset(0, -0.5), end: Offset.zero).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
-    );
 
-    _formController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    _formOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _formController, curve: Curves.easeIn),
-    );
-    _formSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _formController, curve: Curves.easeOut),
-    );
+    // Animation setup
+    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _logoSlide = Tween<Offset>(begin: const Offset(0, -0.5), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack));
 
-    // Stagger animation
-    Timer(const Duration(milliseconds: 200), () {
-      _logoController.forward();
-    });
-    Timer(const Duration(milliseconds: 800), () {
-      _formController.forward();
-    });
+    _formController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+    _formOpacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _formController, curve: Curves.easeIn));
+    _formSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
 
+    // Animate sequentially
+    Timer(const Duration(milliseconds: 200), () => _logoController.forward());
+    Timer(const Duration(milliseconds: 800), () => _formController.forward());
   }
 
   @override
@@ -86,40 +65,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     super.dispose();
   }
 
-
-
-
-  //forget pass start
-  Future<void> handleForgotPassword() async {
-    // final uri = Uri.parse('https://growupagro.tech/investor/forgot-password');
-    final uri = Uri.parse(ApiConstants.forgotPassword);
-
-    try {
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        final redirectUrl = data['redirect_url'];
-
-        if (redirectUrl != null) {
-          await launchUrlString(redirectUrl, mode: LaunchMode.externalApplication);
-        } else {
-          print('Redirect URL is null');
-        }
-
-      } else {
-        // Handle error response
-        print('Failed to call forgot password API: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error occurred: $e');
-    }
-  }
-
-  //forget pass end
-
-  //remember me cache
+  // Remember Me logic
   Future<void> _loadRememberMeValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool val = prefs.getBool('remember_me') ?? false;
@@ -127,27 +73,17 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     if (val) {
       String? storedUsername = await secureStorage.read(key: 'username');
       String? storedPassword = await secureStorage.read(key: 'password');
-
-      if (storedUsername != null) {
-        usernameController.text = storedUsername;
-      }
-      if (storedPassword != null) {
-        passwordController.text = storedPassword;
-      }
+      if (storedUsername != null) usernameController.text = storedUsername;
+      if (storedPassword != null) passwordController.text = storedPassword;
     }
 
-    setState(() {
-      rememberMe = val;
-    });
+    setState(() => rememberMe = val);
   }
-
 
   Future<void> _updateRememberMeValue(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('remember_me', value);
-    setState(() {
-      rememberMe = value;
-    });
+    setState(() => rememberMe = value);
 
     if (value) {
       await secureStorage.write(key: 'username', value: usernameController.text);
@@ -158,10 +94,26 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     }
   }
 
-  // Remember me cache end
-
-
-// finish Initialize and Load Checkbox State
+  // Forgot Password
+  Future<void> handleForgotPassword() async {
+    final uri = Uri.parse(ApiConstants.forgotPassword);
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final redirectUrl = data['redirect_url'];
+        if (redirectUrl != null) {
+          await launchUrlString(redirectUrl, mode: LaunchMode.externalApplication);
+        } else {
+          debugPrint('Redirect URL is null');
+        }
+      } else {
+        debugPrint('Failed to call forgot password API: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error occurred: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +121,9 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     final height = size.height;
     final width = size.width;
 
-    //usernameController.text = "01833933567";
-    //passwordController.text = "ja!1ma!3Pa#2";
+    // ⚙️ Default demo credentials
+    usernameController.text = "01833933567";
+    passwordController.text = "ja!1ma!3Pa#2";
 
     return Container(
       decoration: const BoxDecoration(
@@ -180,63 +133,60 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         ),
       ),
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: true, // ✅ Allows scroll when keyboard opens
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: height),
-              child: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    SizedBox(height: height * 0.06),
-                    FadeTransition(
-                      opacity: _logoOpacity,
-                      child: SlideTransition(
-                        position: _logoSlide,
-                        child: Column(
-                          children: [
-                            Image.asset(
-                              'assets/images/GrowupLogo.png',
-                              color: Colors.white,
-                              height: height * 0.23,
-                              width: width * 0.6,
-                              fit: BoxFit.contain,
-                            ),
-                            const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Welcome Back!',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom), // ✅ prevents bottom overflow
+            child: Column(
+              children: [
+                SizedBox(height: height * 0.06),
+                FadeTransition(
+                  opacity: _logoOpacity,
+                  child: SlideTransition(
+                    position: _logoSlide,
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'assets/images/GrowupLogo.png',
+                          color: Colors.white,
+                          height: height * 0.23,
+                          width: width * 0.6,
+                          fit: BoxFit.contain,
                         ),
-                      ),
+                        const Text(
+                          'Sign In',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'Welcome Back!',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    FadeTransition(
-                      opacity: _formOpacity,
-                      child: SlideTransition(
-                        position: _formSlide,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: width * 0.08),
-                          child: _buildLoginForm(context),
-                        ),
-                      ),
-                    )
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                FadeTransition(
+                  opacity: _formOpacity,
+                  child: SlideTransition(
+                    position: _formSlide,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width * 0.08),
+                      child: _buildLoginForm(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -280,10 +230,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
                       (states) => states.contains(MaterialState.selected) ? Colors.white : Colors.transparent),
               checkColor: Colors.black,
             ),
-            const Text(
-              'Remember me',
-              style: TextStyle(color: Colors.white, fontSize: 15),
-            ),
+            const Text('Remember me', style: TextStyle(color: Colors.white, fontSize: 15)),
           ],
         ),
         const SizedBox(height: 8),
@@ -304,19 +251,14 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
             setState(() => isLoading = true);
             try {
               final token = await login(context, username, password);
-              print('Token: $token'); // or store it
+              debugPrint('Token: $token');
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Login successful"), backgroundColor: Colors.green),
               );
               Navigator.pushReplacementNamed(context, '/mainscreen');
-
-              // Navigator.pushReplacementNamed(context, '/dashboard');
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Login Failed"),
-                  backgroundColor: Colors.red,
-                ),
+                const SnackBar(content: Text("Login Failed"), backgroundColor: Colors.red),
               );
             } finally {
               setState(() => isLoading = false);
@@ -336,16 +278,6 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
               : const Text('Login', style: TextStyle(color: Colors.white, fontSize: 18)),
         ),
         const SizedBox(height: 12),
-        // TextButton(
-        //   onPressed: () => handleForgotPassword(),
-        //   child: Column(
-        //     children: const [
-        //       Text('Forgot Password?', style: TextStyle(color: Colors.green, fontSize: 15)),
-        //       SizedBox(height: 2),
-        //       SizedBox(width: 130, child: Divider(color: Colors.white24, thickness: 1.2)),
-        //     ],
-        //   ),
-        // ),
         TextButton(
           onPressed: isForgotLoading
               ? null
@@ -369,17 +301,6 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           ),
         ),
         const SizedBox(height: 20),
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     const Text("Don't Have an Account?", style: TextStyle(color: Colors.white, fontSize: 15)),
-        //     TextButton(
-        //       onPressed: () => Navigator.pushNamed(context, 'register'),
-        //       child: const Text('Sign Up', style: TextStyle(color: Colors.green, fontSize: 15)),
-        //     ),
-        //   ],
-        // ),
-        // SIGN UP ROW
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -389,7 +310,6 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
                   ? null
                   : () async {
                 setState(() => isSignUpLoading = true);
-                // Simulate a delay if needed or just navigate
                 await Future.delayed(const Duration(milliseconds: 300));
                 setState(() => isSignUpLoading = false);
                 Navigator.pushNamed(context, 'register');
@@ -429,24 +349,16 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           child: Icon(icon, color: Colors.green, size: 18),
         ),
         suffixIcon: suffixIcon,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
         contentPadding: const EdgeInsets.symmetric(vertical: 10),
       ),
     );
   }
+
   Future<String> login(BuildContext context, String email, String password) async {
     try {
-      // 🕒 Add timeout to handle slow / unstable internet
       final response = await http
           .post(
         Uri.parse(ApiConstants.login),
@@ -454,20 +366,15 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'phone_email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'phone_email': email, 'password': password}),
       )
-          .timeout(const Duration(seconds: 15)); // ⏰ timeout safety
+          .timeout(const Duration(seconds: 15));
 
-      print("Status Code: ${response.statusCode}");
-      print("Raw Response: ${response.body}");
+      debugPrint("Status Code: ${response.statusCode}");
+      debugPrint("Raw Response: ${response.body}");
 
-      // 🟢 Success: Login OK
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        final data = json;
+        final data = jsonDecode(response.body);
         final token = data['token'];
         final investor = data['user'];
         final prefs = await SharedPreferences.getInstance();
@@ -480,7 +387,6 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         await prefs.setString('investor_id', investor['id'].toString());
         await prefs.setString('investor_image', investor['image'] ?? '');
         await prefs.setString('investor_address', investor['address'] ?? 'Dhaka');
-
         await prefs.setString('wallet_balance', data['wallet_balance']?.toString() ?? '0');
         await prefs.setString('total_transation', data['total_transation']?.toString() ?? '0');
         await prefs.setString('total_investment', data['total_investment']?.toString() ?? '0');
@@ -489,67 +395,40 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         await prefs.setString('total_projects', data['total_projects']?.toString() ?? '0');
 
         return token;
-      }
-
-      // 🔴 Invalid credentials (email/password)
-      else if (response.statusCode == 401 || response.statusCode == 400) {
+      } else if (response.statusCode == 401 || response.statusCode == 400) {
         final json = jsonDecode(response.body);
         final message = json['message'] ?? 'Invalid email or password.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
         throw Exception(message);
-      }
-
-      // 🟡 Other backend error (500 etc.)
-      else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid Email or Phone no. Please enter your valid email or phone no.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Invalid Email or Phone no. Please enter your valid email or phone no.'),
+          backgroundColor: Colors.red,
+        ));
         throw Exception('Invalid email or password');
       }
-
     } on SocketException {
-      // ❌ No internet connection or unstable network
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No internet connection. Please check your network.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('No internet connection. Please check your network.'),
+        backgroundColor: Colors.red,
+      ));
       throw Exception('No internet connection');
     } on TimeoutException {
-      // ❌ Network slow / unstable
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Connection timed out. Please try again later.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Connection timed out. Please try again later.'),
+        backgroundColor: Colors.red,
+      ));
       throw Exception('Connection timeout');
     } on HttpException {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Server error. Please try again later.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Server error. Please try again later.'),
+        backgroundColor: Colors.red,
+      ));
       throw Exception('Server error');
     } catch (e) {
-      // ❌ Unknown error
-      print("Login error: $e");
-      // ScaffoldMessenger.of(context).showSnackBar
-      //   const SnackBar(
-      //     content: Text('An unexpected error occurred. Please try again.'),
-      //     backgroundColor: Colors.red,
-      //   ),
-      // );
+      debugPrint("Login error: $e");
       throw Exception("Unexpected login error");
     }
   }
-
-
 }
