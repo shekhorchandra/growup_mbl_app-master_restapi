@@ -1474,7 +1474,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             CategoryGridCard(
                               minCrossAxisCount: 3,
                               maxCrossAxisCount: 3,
-                              aspectRatio: 2.0, //  same ratio for consistent height
+                              aspectRatio: 1.6, //  same ratio for consistent height
                               items: [
                                 CategoryItem(
                                   icon: SvgPicture.asset(Assets.iconsLiveProject, color: Colors.green),
@@ -1506,7 +1506,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             CategoryGridCard(
                               minCrossAxisCount: 2,
                               maxCrossAxisCount: 2,
-                              aspectRatio: 3.0, //  same as above
+                              aspectRatio: 2.5, //  same as above
                               items: [
                                 CategoryItem(
                                   icon: SvgPicture.asset(Assets.iconsMach, color: Colors.green),

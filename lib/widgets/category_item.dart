@@ -29,8 +29,8 @@ class CategoryGridCard extends StatelessWidget {
   final Color iconColor;
   final Color textColor;
   final Color bgColor;
-  final int minCrossAxisCount; // used on narrow screens
-  final int maxCrossAxisCount; // used on wide screens
+  final int minCrossAxisCount;
+  final int maxCrossAxisCount;
   final double titleFontSize;
   final double? aspectRatio;
 
@@ -38,14 +38,15 @@ class CategoryGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        // Simple responsive columns: 2 on narrow, 4 on wide
         final crossAxisCount = c.maxWidth < 520 ? minCrossAxisCount : maxCrossAxisCount;
 
-        // Card aspect ratio so the reserved title area + icon fit nicely
-        // You can tweak this if you want taller/shorter cards.
+        // ✅ Adjust aspect ratio dynamically to avoid overflow
         final childAspectRatio = aspectRatio ??
-            (c.maxWidth < 520 ? 1.62 : 1.3);
-
+            (c.maxWidth < 400
+                ? 1.1
+                : c.maxWidth < 520
+                ? 1.25
+                : 1.35);
 
         return GridView.builder(
           shrinkWrap: true,
@@ -64,50 +65,45 @@ class CategoryGridCard extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context, CategoryItem item) {
-    // Reserve space equal to exactly 2 lines of text (so 1-line titles won’t shrink the card).
-    // lineHeight ~ 1.25 for good readability.
-    final double lineHeight = 1.25;
-    final double twoLineBoxHeight = titleFontSize * lineHeight * 2;
-
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       onTap: item.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.09),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconTheme(
-              data: IconThemeData(size: 34, color: iconColor),
-              child: _wrapIcon(item.icon, 28),
-              
+            Flexible(
+              flex: 6,
+              child: IconTheme(
+                data: IconThemeData(size: 50, color: iconColor), // ⬆️ increased to 50
+                child: Center(child: _wrapIcon(item.icon, 50)),
+              ),
             ),
-            const SizedBox(height: 0),
-            // Fixed-height box to ensure all cards are equal height whether 1 or 2 lines
-            SizedBox(
-              height: twoLineBoxHeight,
-              child: Center(
-                child: Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: titleFontSize,
-                    height: lineHeight,
-                    fontWeight: FontWeight.w400,
-                    color: textColor,
-                  ),
+            const SizedBox(height: 6),
+            Flexible(
+              flex: 4,
+              child: Text(
+                item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  height: 1.25,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
                 ),
               ),
             ),
@@ -116,9 +112,10 @@ class CategoryGridCard extends StatelessWidget {
       ),
     );
   }
+
   Widget _wrapIcon(Widget icon, double size) {
     if (icon is Icon) {
-      return Icon(icon.icon, size: size,);
+      return Icon(icon.icon, size: size);
     }
     return SizedBox(height: size, width: size, child: FittedBox(child: icon));
   }
