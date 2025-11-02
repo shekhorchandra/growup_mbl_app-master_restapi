@@ -1,11 +1,17 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:growup_agro/models/project_certificate_model.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/views/web_view_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../models/project_certificate_model.dart';
 
 class ProjectCertificatesPage extends StatefulWidget {
   const ProjectCertificatesPage({super.key});
@@ -24,22 +30,25 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
 
   final TextEditingController _searchController = TextEditingController();
 
+  // Track download progress
+  Map<String, bool> _isDownloading = {};
+
   @override
   void initState() {
     super.initState();
-    _loadTokenAndFetch();
+    _certificatesFuture = _loadTokenAndFetch();
   }
 
-  Future<void> _loadTokenAndFetch() async {
+  Future<List<ProjectCertificate>> _loadTokenAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     token = prefs.getString('auth_token') ?? '';
-    _certificatesFuture = fetchCertificates();
-    _certificatesFuture.then((list) {
-      setState(() {
-        _allCertificates = list;
-        _filteredCertificates = list;
-      });
+
+    final list = await fetchCertificates();
+    setState(() {
+      _allCertificates = list;
+      _filteredCertificates = list;
     });
+    return list;
   }
 
   Future<List<ProjectCertificate>> fetchCertificates() async {
@@ -79,7 +88,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     setState(() {
       _filteredCertificates = _allCertificates.where((cert) {
         final name = cert.name.toLowerCase();
-        final code = cert.code.toLowerCase();
+        final code = cert.code.toString().toLowerCase();
         final roi = cert.roi.toString().toLowerCase();
         final search = query.toLowerCase();
         return name.contains(search) ||
@@ -98,8 +107,108 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     }
   }
 
+  Future<void> downloadCertificateWithFallback(
+      BuildContext context,
+      String downloadUrl,
+      String viewUrl,
+      String fileName,
+      ) async {
+    setState(() => _isDownloading[downloadUrl] = true);
 
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
 
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 60),
+        followRedirects: true,
+        validateStatus: (status) => true, // handle all status codes
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ));
+
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName.pdf';
+
+      final response = await dio.getUri<List<int>>(
+        Uri.parse(downloadUrl),
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            final percent = (received / total * 100).clamp(0, 100).toStringAsFixed(0);
+            debugPrint('Downloading $fileName: $percent%');
+          }
+        },
+      );
+
+      // Check for "Unauthenticated" in JSON response
+      if (response.statusCode == 401 ||
+          (response.data != null &&
+              response.data!.isNotEmpty &&
+              utf8.decode(response.data!).contains('Unauthenticated'))) {
+        throw Exception('Unauthenticated');
+      }
+
+      if (response.statusCode != 200 || response.data == null || response.data!.isEmpty) {
+        throw Exception(
+            'Server error: ${response.statusCode}. Unable to download file.');
+      }
+
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(response.data!, flush: true);
+
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: '$fileName.pdf',
+        ),
+      );
+
+      if (savedPath != null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Downloaded successfully: $savedPath'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        await OpenFilex.open(savedPath);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Download error: $e');
+
+      // Fallback: open viewUrl in WebView
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Direct download failed. Opening preview page.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PreviewPage(url: viewUrl),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isDownloading[downloadUrl] = false);
+    }
+  }
 
 
   @override
@@ -120,7 +229,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
       ),
       body: Column(
         children: [
-          // 🔍 Search Bar
+          // Search bar
           Padding(
             padding: const EdgeInsets.all(10),
             child: TextField(
@@ -141,7 +250,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
             ),
           ),
 
-          // 📜 Certificates List
+          // Certificates list
           Expanded(
             child: FutureBuilder<List<ProjectCertificate>>(
               future: _certificatesFuture,
@@ -159,6 +268,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                   itemCount: _filteredCertificates.length,
                   itemBuilder: (context, index) {
                     final item = _filteredCertificates[index];
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
                       elevation: 3,
@@ -184,55 +294,65 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                             Text("Ends: ${item.endDate}"),
                             const SizedBox(height: 12),
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
+                                // View button
                                 ElevatedButton.icon(
                                   onPressed: () {
                                     if (item.previewUrl.isNotEmpty) {
-                                      try {
-                                        // Try opening in WebView
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => PreviewPage(url: item.previewUrl),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        print('WebView failed, opening in browser: $e');
-                                        launchInBrowser(context, item.previewUrl); // fallback
-                                      }
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Preview URL not available')),
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PreviewPage(url: item.previewUrl),
+                                        ),
                                       );
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                          content: Text(
+                                              'Preview URL not available')));
                                     }
                                   },
                                   icon: const Icon(Icons.remove_red_eye),
-                                  label: const Text('View', style: TextStyle(fontSize: 10)),
+                                  label: const Text('View'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blueGrey[200],
                                     foregroundColor: Colors.black,
-                                    elevation: 2,
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    minimumSize: const Size(0, 0),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Download button with fallback
+                                ElevatedButton.icon(
+                                  onPressed: _isDownloading[item.downloadUrl] == true
+                                      ? null
+                                      : () async {
+                                    await downloadCertificateWithFallback(
+                                      context,
+                                      item.downloadUrl,
+                                      item.viewUrl,
+                                      item.name,
+                                    );
+                                  },
+                                  icon: _isDownloading[item.downloadUrl] == true
+                                      ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                      : const Icon(Icons.download),
+                                  label: Text(_isDownloading[item.downloadUrl] == true
+                                      ? 'Downloading...'
+                                      : 'Download'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
                                   ),
                                 ),
 
-
-
-
-
-                                // const Spacer(),
-                                // ElevatedButton.icon(
-                                //   onPressed: () {
-                                //     _launchURL(item.downloadUrl);
-                                //   },
-                                //   icon: const Icon(Icons.download),
-                                //   label: const Text('Download'),
-                                //   style: ElevatedButton.styleFrom(
-                                //     backgroundColor: Colors.blue,
-                                //     foregroundColor: Colors.white,
-                                //   ),
-                                // ),
                               ],
                             ),
                           ],

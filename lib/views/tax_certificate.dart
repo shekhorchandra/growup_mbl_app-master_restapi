@@ -2,10 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+
 
 class TaxCertificatePage extends StatefulWidget {
   const TaxCertificatePage({super.key});
@@ -90,52 +95,125 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     });
   }
 
-  Future<void> downloadCertificate(BuildContext context, String url, String fileName) async {
+
+
+  Future<void> downloadCertificate(
+      BuildContext context, String url, String fileName) async {
+    setState(() => _isDownloading[url] = true);
+
     try {
-      setState(() => _isDownloading[url] = true);
+      // Get auth token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
 
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/$fileName.pdf';
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 60),
+        followRedirects: true,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ));
 
-      final dio = Dio();
-      final response = await dio.get(
-        url,
+      // Temporary file path
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName.pdf';
+
+      // Download PDF
+      final uri = Uri.parse(url);
+      final response = await dio.getUri<List<int>>(
+        uri,
         options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            // Optional: show progress in UI
+            final percent = (received / total * 100).toStringAsFixed(0);
+            debugPrint('Downloading $fileName: $percent%');
+          }
+        },
       );
 
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
-      //await OpenFile.open(filePath);
+      if (response.data == null || response.data!.isEmpty) {
+        throw Exception('Empty response while downloading PDF.');
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Downloaded successfully: $fileName.pdf'),
-          backgroundColor: Colors.green,
+      // Write to temp file
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(response.data!, flush: true);
+
+      // Ask user where to save
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: '$fileName.pdf',
         ),
       );
+
+      if (savedPath == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Save cancelled.')),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Downloaded successfully: $savedPath'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Open file automatically
+      await OpenFilex.open(savedPath);
     } catch (e) {
       debugPrint('Download error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to download'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       setState(() => _isDownloading[url] = false);
     }
   }
 
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the link.')),
-      );
-    }
-  }
+
+  // Future<void> viewCertificate(BuildContext context, String url) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final token = prefs.getString('auth_token') ?? '';
+  //
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => Scaffold(
+  //         appBar: AppBar(title: const Text('Certificate Preview')),
+  //         body: WebView(
+  //           initialUrl: url,
+  //           javascriptMode: JavascriptMode.unrestricted,
+  //           initialHeaders: {
+  //             'Authorization': 'Bearer $token',
+  //             'Accept': 'application/pdf',
+  //           },
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -284,17 +362,17 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
                                   ),
                                   const Divider(height: 20, thickness: 1),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () => _launchURL(previewUrl),
-                                        icon: const Icon(Icons.visibility),
-                                        label: const Text('   View    '),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                      ),
+                                      // ElevatedButton.icon(
+                                      //   onPressed: () => viewCertificate(context, previewUrl),
+                                      //   icon: const Icon(Icons.visibility),
+                                      //   label: const Text('   View    '),
+                                      //   style: ElevatedButton.styleFrom(
+                                      //     backgroundColor: Colors.green,
+                                      //     foregroundColor: Colors.white,
+                                      //   ),
+                                      // ),
                                       ElevatedButton.icon(
                                         onPressed: _isDownloading[downloadUrl] == true
                                             ? null

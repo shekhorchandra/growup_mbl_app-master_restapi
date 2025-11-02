@@ -203,14 +203,48 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
             const SizedBox(height: 16),
             Text(project.projectName ?? 'No Title',
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text("Category: ${project.projectCategoryName ?? 'N/A'}"),
-            Text("Project Code: ${project.projectCode ?? 'N/A'}"),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Category: ${project.projectCategoryName ?? 'N/A'}",
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Project Code: ${project.projectCode ?? 'N/A'}",
+                    style: const TextStyle(
+                      color: Colors.purple,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+
             const Divider(height: 30),
             const Text("Project Overview:",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             Html(data: project.overviewHtml ?? ''),
-            const SizedBox(height: 10),
-            _buildKeyPointsCard(project),
+            // const SizedBox(height: 10),
+            // _buildKeyPointsCard(project),
 
             const SizedBox(height: 15),
             _buildSummaryCard(project),
@@ -236,26 +270,26 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     );
   }
 
-  Widget _buildKeyPointsCard(ProjectDetailsModel project) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Key Points", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            InfoRow(title: "Duration", value: _getKeyPoint("Duration of Investment")),
-            InfoRow(title: "Projected ROI", value: _getKeyPoint("Projected ROI (Return on Investment)")),
-            InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildKeyPointsCard(ProjectDetailsModel project) {
+  //   return Card(
+  //     elevation: 3,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     margin: const EdgeInsets.symmetric(vertical: 8),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text("Key Points", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+  //           const SizedBox(height: 8),
+  //           InfoRow(title: "Duration", value: _getKeyPoint("Duration of Investment")),
+  //           InfoRow(title: "Projected ROI", value: _getKeyPoint("Projected ROI (Return on Investment)")),
+  //           InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Widget _buildSummaryCard(ProjectDetailsModel project) {
   //   final int investmentGoalValue =
