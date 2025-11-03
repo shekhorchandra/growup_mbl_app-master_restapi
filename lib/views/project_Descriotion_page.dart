@@ -9,16 +9,10 @@ import 'package:growup_agro/utils/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:shurjopay/models/config.dart';
-import 'package:shurjopay/models/shurjopay_request_model.dart';
-import 'package:shurjopay/shurjopay.dart';
-import 'package:url_launcher/url_launcher.dart';
-// import 'package:shurjopay_sdk/shurjopay_sdk.dart';
-import 'package:get/get.dart'; // for Get.context
-import 'package:shurjopay/shurjopay.dart';
-
 import '../models/project_details_model.dart';
 import '../paymentService/payment_service.dart';
+import '../widgets/custom_button.dart'; // your CustomButton file
+import '../widgets/collapsible_html_text.dart'; // your CollapsibleHtmlText file
 
 class ProjectDescriptionPage extends StatefulWidget {
   final int projectId;
@@ -39,31 +33,16 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
   bool _loading = true;
   bool _isInvestLoading = false;
   bool _isShurjoLoading = false;
-
-
-
   late ScrollController _scrollController;
   bool _showScrollToTopButton = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _scrollController.addListener(() {
-      if (_scrollController.offset > 300) {
-        if (!_showScrollToTopButton) {
-          setState(() {
-            _showScrollToTopButton = true;
-          });
-        }
-      } else {
-        if (_showScrollToTopButton) {
-          setState(() {
-            _showScrollToTopButton = false;
-          });
-        }
-      }
-    });
+    _scrollController = ScrollController()
+      ..addListener(() {
+        setState(() => _showScrollToTopButton = _scrollController.offset > 300);
+      });
     _fetchProjectDetails();
   }
 
@@ -73,66 +52,58 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     super.dispose();
   }
 
-  Future<int> _fetchLatestWalletBalance(String token, String investorCode) async {
+  Future<int> _fetchLatestWalletBalance(
+    String token,
+    String investorCode,
+  ) async {
     try {
-      // final url = Uri.parse('https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode');
       final url = Uri.parse(ApiConstants.investorProfile(investorCode));
-      final response = await http.get(
+      final res = await http.get(
         url,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final balanceStr = data['data']?['investor']?['wallet']?['balance']?.toString().replaceAll(',', '') ?? '0';
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final balanceStr =
+            data['data']?['investor']?['wallet']?['balance']
+                ?.toString()
+                .replaceAll(',', '') ??
+            '0';
         return double.tryParse(balanceStr)?.toInt() ?? 0;
-      } else {
-        throw Exception("Failed to fetch wallet balance");
       }
+      throw Exception("Failed to fetch wallet balance");
     } catch (e) {
-      debugPrint("Error fetching wallet balance: $e");
-      return 0; // fallback
+      debugPrint("⚠ Wallet balance error: $e");
+      return 0;
     }
   }
 
   Future<void> _fetchProjectDetails() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+    if (token == null) return;
 
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication token not found')),
-      );
-      return;
-    }
-
-    // final url = Uri.parse(
-    //   'https://admin-growup.onebitstore.site/api/investor/project-details'
-    //       '?investor_code=${widget.investorCode}&project_id=${widget.projectId}',
-    // );
     final url = Uri.parse(
       ApiConstants.investorProjectDetails(
         widget.investorCode,
-        widget.projectId.toString(), // ✅ convert int → String
+        widget.projectId.toString(),
       ),
     );
 
-
     try {
-      final response = await http.get(
+      final res = await http.get(
         url,
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
+      final data = jsonDecode(res.body);
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
+      if (res.statusCode == 200 && data['success'] == true) {
         setState(() {
           _project = ProjectDetailsModel.fromJson(data);
           _loading = false;
@@ -140,22 +111,23 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
       } else {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Failed to load project details')),
+          SnackBar(
+            content: Text(data['message'] ?? 'Failed to load project details'),
+          ),
         );
       }
     } catch (e) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load project details')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load project details')));
     }
   }
 
-  String formatDate(String? isoDate) {
-    if (isoDate == null || isoDate.isEmpty) return 'N/A';
-    final parsedDate = DateTime.tryParse(isoDate);
-    if (parsedDate == null) return 'N/A';
-    return DateFormat('dd MMM yyyy').format(parsedDate);
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return 'N/A';
+    final parsed = DateTime.tryParse(date);
+    return parsed == null ? 'N/A' : DateFormat('dd MMM yyyy').format(parsed);
   }
 
   @override
@@ -163,294 +135,268 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     final project = _project;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Project Details', style: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: Colors.white),),
-        centerTitle: true,
+        title: const Text(
+          'Project Details',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF2E7D32),
+        centerTitle: true,
         foregroundColor: Colors.white,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
           : project == null
           ? const Center(child: Text('Project data not available'))
-          : SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (project.imageUrl != null && project.imageUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  project.imageUrl!,
-                  // height: 350,
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, size: 100),
+          : RefreshIndicator(
+              onRefresh: _fetchProjectDetails,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ✅ Adaptive Image
+                    if (project.imageUrl != null &&
+                        project.imageUrl!.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          project.imageUrl!,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const SizedBox(
+                              height: 180,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.green,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.broken_image, size: 80),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+
+                    // ✅ Header
+                    Text(
+                      project.projectName ?? 'No Title',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "Category: ${project.projectCategoryName ?? 'N/A'}",
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                    Text(
+                      "Project Code: ${project.projectCode ?? 'N/A'}",
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _sectionDivider("Overview"),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: _cardBoxDecoration(),
+                      child: CollapsibleHtmlText(
+                        htmlContent: project.overviewHtml ?? '',
+                        collapsedLines: 4,
+                        expandButtonColor: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _sectionDivider("Key Points"),
+                    _buildKeyPointsCard(project),
+                    const SizedBox(height: 16),
+
+                    _sectionDivider("Summary"),
+                    _buildSummaryCard(project),
+                    const SizedBox(height: 16),
+
+                    if (project.securityInformation.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionDivider("Security Information"),
+                          _buildSecurityCard(project),
+                        ],
+                      ),
+                    const SizedBox(height: 50),
+                  ],
                 ),
               ),
-            const SizedBox(height: 16),
-            Text(project.projectName ?? 'No Title',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text("Category: ${project.projectCategoryName ?? 'N/A'}"),
-            Text("Project Code: ${project.projectCode ?? 'N/A'}"),
-            const Divider(height: 30),
-            const Text("Project Overview:",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            Html(data: project.overviewHtml ?? ''),
-            const SizedBox(height: 10),
-            _buildKeyPointsCard(project),
-
-            const SizedBox(height: 15),
-            _buildSummaryCard(project),
-            const SizedBox(height: 15),
-            if (project.securityInformation.isNotEmpty) _buildSecurityCard(project),
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
+            ),
       floatingActionButton: _showScrollToTopButton
           ? FloatingActionButton(
-        backgroundColor: Colors.orange,
-        onPressed: () {
-          _scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        },
-        child: const Icon(Icons.arrow_upward, color: Colors.white,),
-      )
+              backgroundColor: Colors.orange,
+              onPressed: () => _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+              ),
+              child: const Icon(Icons.arrow_upward, color: Colors.white),
+            )
           : null,
     );
   }
 
-  Widget _buildKeyPointsCard(ProjectDetailsModel project) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Key Points", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            InfoRow(title: "Duration", value: _getKeyPoint("Duration of Investment")),
-            InfoRow(title: "Projected ROI", value: _getKeyPoint("Projected ROI (Return on Investment)")),
-            InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
-          ],
+  // ---- UI helpers ----
+  BoxDecoration _cardBoxDecoration() => BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(12),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black12,
+        blurRadius: 4,
+        offset: const Offset(0, 2),
+      ),
+    ],
+  );
+
+  Widget _sectionDivider(String title) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.green,
         ),
+      ),
+      SizedBox(height: 5, child: const Divider(thickness: .5)),
+      const SizedBox(height: 6),
+    ],
+  );
+
+  Widget _buildKeyPointsCard(ProjectDetailsModel project) {
+    return Container(
+      decoration: _cardBoxDecoration(),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(
+            title: "Duration",
+            value: _getKeyPoint("Duration of Investment"),
+          ),
+          InfoRow(
+            title: "Projected ROI",
+            value: _getKeyPoint("Projected ROI (Return on Investment)"),
+          ),
+          InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
+        ],
       ),
     );
   }
 
   Widget _buildSummaryCard(ProjectDetailsModel project) {
-    // ---- helper: parse any reasonable date string ----
-    DateTime? _parseDate(String? raw) {
-      if (raw == null || raw.trim().isEmpty) return null;
-      try {
-        // most backends send either "yyyy-MM-dd" or "yyyy-MM-dd HH:mm:ss"
-        if (raw.contains(' ')) {
-          return DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw, true).toLocal();
-        }
-        if (raw.contains('-')) {
-          return DateFormat('yyyy-MM-dd').parse(raw, true).toLocal();
-        }
-        if (raw.contains('/')) {
-          return DateFormat('dd/MM/yyyy').parse(raw, true).toLocal();
-        }
-      } catch (e) {
-        debugPrint('❌ date parse failed for "$raw": $e');
-      }
-      return null;
-    }
+    final nf = NumberFormat.decimalPattern();
 
-    // ---- numeric conversions ----
-    final int raised = project.rasied ?? 0;
-    final int investmentGoalValue =
-        double.tryParse(project.investmentGoal.toString().replaceAll(',', ''))?.toInt() ?? 0;
+    return Container(
+      decoration: _cardBoxDecoration(),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(title: 'Project Name', value: project.projectName),
+          InfoRow(title: 'Business Type', value: project.businessTypeName),
+          InfoRow(
+            title: 'Investment Time',
+            value: '${project.investment_time} days',
+          ),
+          InfoRow(
+            title: 'Start Date',
+            value: formatDate(project.project_start_date),
+          ),
+          InfoRow(
+            title: 'Mature Date',
+            value: formatDate(project.project_end_date),
+          ),
+          InfoRow(
+            title: 'ROI Start Date',
+            value: formatDate(project.roiStartDate),
+          ),
+          InfoRow(
+            title: 'Investment Goal',
+            value: '${nf.format(project.investmentGoal ?? 0)} Tk',
+          ),
+          InfoRow(
+            title: 'Min Investment',
+            value: '${nf.format(project.minInvestmentAmount ?? 0)} Tk',
+          ),
+          InfoRow(
+            title: 'In Waiting',
+            value: '${nf.format(project.in_waiting)} Tk',
+          ),
+          InfoRow(title: 'Raised', value: '${nf.format(project.rasied)} Tk'),
+          InfoRow(title: 'ROI (%)', value: 'Annually ${project.annualRoi}%'),
+          InfoRow(
+            title: 'Project Duration',
+            value: '${project.projectDurationViewer} Months',
+          ),
+          const SizedBox(height: 10),
 
-    final DateTime? rawStartDate = _parseDate(project.project_start_date);
-    final DateTime? rawRoiStartDate = _parseDate(project.roiStartDate);
-    final DateTime today = DateTime.now();
-
-// ---- strip time part (keep only year, month, day) ----
-    final DateTime? startDate = rawStartDate != null
-        ? DateTime(rawStartDate.year, rawStartDate.month, rawStartDate.day)
-        : null;
-    final DateTime? roiStartDate = rawRoiStartDate != null
-        ? DateTime(rawRoiStartDate.year, rawRoiStartDate.month, rawRoiStartDate.day)
-        : null;
-
-    final DateTime todayDate = DateTime(today.year, today.month, today.day);
-
-// ---- active investment logic (pure date check) ----
-    final bool isInvestmentActive =
-        startDate != null &&
-            roiStartDate != null &&
-            !todayDate.isBefore(startDate) && // today >= startDate
-            todayDate.isBefore(roiStartDate) && // today < roiStartDate
-            raised <= investmentGoalValue;
-
-// ---- DEBUG PRINTS ----
-    final dateFormatter = DateFormat('yyyy-MM-dd');
-    debugPrint('-------------------------------------------');
-    debugPrint('🕒 Today: ${dateFormatter.format(todayDate)}');
-    debugPrint('📅 Start Date: ${startDate != null ? dateFormatter.format(startDate) : "null"}');
-    debugPrint('💰 ROI Start Date: ${roiStartDate != null ? dateFormatter.format(roiStartDate) : "null"}');
-    debugPrint('📊 Raised: $raised');
-    debugPrint('🎯 Goal: $investmentGoalValue');
-    debugPrint('✅ isInvestmentActive: $isInvestmentActive');
-    debugPrint('-------------------------------------------');
-
-    // ---- UI ----
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Project Summary',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Divider(),
-            InfoRow(title: 'Project Name', value: project.projectName),
-            InfoRow(title: 'Business Type', value: project.businessTypeName),
-            InfoRow(
-                title: 'Investment Time',
-                value: '${project.investment_time.toString()} days'),
-            InfoRow(
-                title: 'Start Date',
-                value: formatDate(project.project_start_date)),
-            InfoRow(
-                title: 'Mature Date',
-                value: formatDate(project.project_end_date)),
-            InfoRow(
-                title: 'ROI Start Date',
-                value: formatDate(project.roiStartDate)),
-            // InfoRow(
-            //     title: 'Investment Goal',
-            //     value: '${project.investmentGoal} Tk'),
-
-            InfoRow(
-              title: 'Investment Goal',
-              value: '${NumberFormat.decimalPattern().format(project.investmentGoal ?? 0)} Tk',
-            ),
-
-            InfoRow(
-                title: 'Min Investment',
-                value:
-                '${NumberFormat.decimalPattern().format(project.minInvestmentAmount ?? 0)} Tk'),
-            InfoRow(
-                title: 'In Waiting',
-                value:
-                '${NumberFormat.decimalPattern().format(project.in_waiting)} Tk'),
-            InfoRow(
-                title: 'Raised',
-                value:
-                '${NumberFormat.decimalPattern().format(project.rasied)} Tk'),
-            InfoRow(title: 'Projected', value: project.projected),
-            InfoRow(
-                title: 'ROI (%)',
-                value:
-                'Annually ${double.tryParse(project.annualRoi)?.toStringAsFixed(2) ?? project.annualRoi}%'),
-            InfoRow(
-              title: 'Project Duration',
-              value: '${project.projectDurationViewer} Months',
-            ),
-
-            InfoRow(
-              title: 'Project Status',
-              value: project.status == 1 ? 'Running' : 'Closed',
-              style: TextStyle(
-                color: project.status == 1 ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
+          //Action buttons (CustomButton)
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Invest Now',
+                  icon: Icons.account_balance_wallet,
+                  backgroundColor: const Color(0xFFAECC00),
+                  height: 44,
+                  loading: _isInvestLoading,
+                  onPressed: _isInvestLoading
+                      ? null
+                      : () async {
+                          setState(() => _isInvestLoading = true);
+                          await _triggerInvestDialog();
+                          setState(() => _isInvestLoading = false);
+                        },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            // ---- conditional buttons ----
-            if (isInvestmentActive)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isInvestLoading || _isShurjoLoading
-                          ? null
-                          : () async {
-                        setState(() => _isInvestLoading = true);
-                        await _triggerInvestDialog();
-                        if (mounted) setState(() => _isInvestLoading = false);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFAECC00)),
-                      child: _isInvestLoading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                          : const Text('Invest Now',
-                          style:
-                          TextStyle(color: Colors.white, fontSize: 12)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isInvestLoading || _isShurjoLoading
-                          ? null
-                          : () async {
-                        setState(() => _isShurjoLoading = true);
-                        await _triggerShurjoInvestDialog();
-                        if (mounted) setState(() => _isShurjoLoading = false);
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                      child: _isShurjoLoading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                          : const Text('Pay with SSLCOMMERZ',
-                          style:
-                          TextStyle(color: Colors.white, fontSize: 12)),
-                    ),
-                  ),
-                ],
-              )
-            else
-              const SizedBox.shrink(),
-          ],
-        ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: CustomButton(
+                  text: 'Pay with SSLCOMMERZ',
+                  icon: Icons.payment,
+                  backgroundColor: Colors.green,
+                  height: 44,
+                  loading: _isShurjoLoading,
+                  onPressed: _isShurjoLoading
+                      ? null
+                      : () async {
+                          setState(() => _isShurjoLoading = true);
+                          await _triggerShurjoInvestDialog();
+                          setState(() => _isShurjoLoading = false);
+                        },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSecurityCard(ProjectDetailsModel project) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Project Security Information",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            ...project.securityInformation.map((item) => Padding(
+  Widget _buildSecurityCard(ProjectDetailsModel project) => Container(
+    decoration: _cardBoxDecoration(),
+    padding: const EdgeInsets.all(12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: project.securityInformation
+          .map(
+            (item) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,98 +405,184 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                   Expanded(child: Text(item['name'] ?? '')),
                 ],
               ),
-            )),
-          ],
-        ),
-      ),
+            ),
+          )
+          .toList(),
+    ),
+  );
+
+  String _getKeyPoint(String title) {
+    final project = _project;
+    if (project == null) return 'N/A';
+    final match = project.keyPointsData.firstWhere(
+      (p) => p['title']?.toString().toLowerCase() == title.toLowerCase(),
+      orElse: () => {},
+    );
+    return match['description'] ?? 'Not available';
+  }
+
+  // ✅ Investment & Payment dialogs
+  Future<void> _triggerInvestDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final investorCode = prefs.getString('investor_code');
+    if (token == null || investorCode == null) return;
+    final walletBalance = await _fetchLatestWalletBalance(token, investorCode);
+    final project = _project!;
+
+    final controller = TextEditingController(
+      text: project.minInvestmentAmount?.toString() ?? '0',
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool loading = false;
+        return StatefulBuilder(
+          builder: (ctx, setState) => AlertDialog(
+            title: const Text("Invest in this Project", style: TextStyle(fontSize: 16),),
+            backgroundColor: Colors.white,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Wallet Balance: ৳$walletBalance"),
+                Text("Min. Investment: ৳${project.minInvestmentAmount}"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Investment Amount",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: loading
+                    ? null
+                    : () async {
+                        final amount = int.tryParse(controller.text) ?? 0;
+                        if (amount < (project.minInvestmentAmount ?? 0)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Amount must be >= minimum investment.",
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        if (walletBalance < amount) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Insufficient balance."),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        setState(() => loading = true);
+                        try {
+                          final res = await http.post(
+                            Uri.parse(
+                              'https://growupagro.tech/api/investor/invest-now',
+                            ),
+                            headers: {
+                              'Authorization': 'Bearer $token',
+                              'Content-Type': 'application/json',
+                            },
+                            body: jsonEncode({
+                              'project_id': widget.projectId,
+                              'invest_amount': amount,
+                              'investment_media': 1,
+                              'investor_code': investorCode,
+                            }),
+                          );
+                          final data = jsonDecode(res.body);
+                          if (data['success'] == true) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Investment successful!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            _fetchProjectDetails();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  data['message'] ?? 'Investment failed',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } finally {
+                          setState(() => loading = false);
+                        }
+                      },
+                child: loading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Confirm"),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Future<void> _triggerShurjoInvestDialog() async {
-    final resData = await _showInvestDialog(isShurjoPay: true); // ✅ MARKED: Added isShurjoPay
+    final resData = await _showInvestDialog(
+      isShurjoPay: true,
+    ); // ✅ MARKED: Added isShurjoPay
 
     if (resData == null) return;
 
     if (resData['success'] == true ||
-        (resData['message']?.toString().toLowerCase().contains('success') ?? false)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Congratulations! Payment successful!'), backgroundColor: Colors.green),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(resData['message'] ?? 'Payment failed.'), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  Future<void> _triggerInvestDialog() async {
-    final resData = await _showInvestDialog();
-
-    if (resData == null) return; // dialog cancelled
-
-    if (resData['success'] == true ||
-        (resData['message']?.toString().toLowerCase().contains('success') ?? false)) {
+        (resData['message']?.toString().toLowerCase().contains('success') ??
+            false)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Congratulation! Investment successful!'),
+          content: Text('Congratulations! Payment successful!'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(resData['message'] ?? 'Investment failed.'),
+          content: Text(resData['message'] ?? 'Payment failed.'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  void _showSnack(String msg, {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  Future<void> _loadPaymentStatus(String transactionId, bool _isLoading, BuildContext dialogContext, String? status) async {
-    final result = await PaymentService.fetchPaymentSuccess(transactionId, status!);
-
-    if (status == 'VALID') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result == "success" ? "Transaction successful" : "Transaction failed"),
-          backgroundColor: result == "success" ? Colors.green : Colors.red,
-        ),
-      );
-    } else if (status == 'Closed') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Cancel by user"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } else{
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Payment failed"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-
-    print('Payment completed, gg TRX ID: ${result}');
-
-    setState(() {
-      _isLoading = false;
-    });
-    Navigator.pop(context);
-  }
-
-  Future<Map<String, dynamic>?> _showInvestDialog({bool isShurjoPay = false}) async {
+  Future<Map<String, dynamic>?> _showInvestDialog({
+    bool isShurjoPay = false,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final investorCode = prefs.getString('investor_code');
@@ -560,7 +592,10 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     final investorPhone = prefs.getString('investor_phone') ?? '';
     final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
 
-    if (token == null || investorId == null || investorCode == null || _project == null) {
+    if (token == null ||
+        investorId == null ||
+        investorCode == null ||
+        _project == null) {
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Missing data or login required.")),
@@ -593,17 +628,18 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 return true;
               },
               child: AlertDialog(
-                title: const Text("Invest in this Project"),
+                title: const Text("Invest in this Project", style: TextStyle(fontSize: 18),),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Wallet Balance: ৳$walletBalance"),
-                      Text("Min. Investment: ৳${project.minInvestmentAmount}"),
-                      Text("In Waiting: ৳${project.in_waiting}"),
-                      Text("Investment Time: ${project.investment_time} days"),
-                      const SizedBox(height: 12),
+                      InfoRow(title: "Wallet Balance", value: '৳$walletBalance', fontSize: 12, showDivider: false,),
+                      InfoRow(title: "Min. Investment", value: '৳${project.minInvestmentAmount}', fontSize: 12, showDivider: false,),
+                      InfoRow(title: "In Waiting", value: '৳${project.in_waiting}', fontSize: 12, showDivider: false,),
+                      InfoRow(title: "Investment Time", value: '${project.investment_time} days', fontSize: 12, showDivider: false,),
+
+                      const SizedBox(height: 24),
                       TextField(
                         controller: amountController,
                         keyboardType: TextInputType.number,
@@ -617,38 +653,47 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                   ),
                 ),
                 actions: [
-                  ElevatedButton(
+                  // Cancel Button
+                  CustomButton(
+                    text: "Cancel",
+                    icon: Icons.close,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    height: 40,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     onPressed: _isLoading
                         ? null
                         : () {
                       disposeController();
                       Navigator.pop(dialogContext);
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.white),
-                    ),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+
+                  // PAY / INVEST Button (uses loading spinner)
+                  CustomButton(
+                    text: isShurjoPay ? "PAY NOW" : "INVEST",
+                    icon: isShurjoPay ? Icons.payment : Icons.account_balance_wallet,
+                    backgroundColor: isShurjoPay ? Colors.green : Colors.blue,
+                    textColor: Colors.white,
+                    height: 40,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    loading: _isLoading,
                     onPressed: _isLoading
                         ? null
                         : () async {
-                      setState(() {
-                        _isLoading = true;
-                      });
+                      setState(() => _isLoading = true);
 
                       final amount = int.tryParse(amountController.text);
 
+                      // ------------------- VALIDATION CHECKS -------------------
                       if (amount == null || amount <= 0) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(outerContext).showSnackBar(
                           const SnackBar(content: Text("Enter a valid investment amount.")),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
@@ -656,13 +701,13 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                         if (!mounted) return;
                         ScaffoldMessenger.of(outerContext).showSnackBar(
                           SnackBar(
-                            content: Text("Invest amount must be at least ৳${project.minInvestmentAmount}"),
+                            content: Text(
+                              "Invest amount must be at least ৳${project.minInvestmentAmount}",
+                            ),
                             backgroundColor: Colors.red,
                           ),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
@@ -674,9 +719,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             backgroundColor: Colors.red,
                           ),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
@@ -688,9 +731,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             backgroundColor: Colors.red,
                           ),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
@@ -702,9 +743,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             backgroundColor: Colors.red,
                           ),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
@@ -716,12 +755,11 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             backgroundColor: Colors.red,
                           ),
                         );
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        setState(() => _isLoading = false);
                         return;
                       }
 
+                      // ------------------- PAYMENT LOGIC -------------------
                       if (isShurjoPay) {
                         try {
                           if (token == null || token.isEmpty) {
@@ -730,9 +768,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             return;
                           }
 
-                          // -----------------------------
-                          // Step 1: Initiate transaction
-                          // -----------------------------
+                          // 🔹 Step 1: Initiate transaction
                           final initiateResponse = await http.post(
                             Uri.parse('https://growupagro.online/api/transaction-initiate'),
                             headers: {
@@ -755,7 +791,9 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 
                           final initiateData = jsonDecode(initiateResponse.body);
                           if (initiateData['success'] != true) {
-                            _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
+                            _showSnack(
+                              initiateData['message'] ?? 'Transaction initiation failed.',
+                            );
                             setState(() => _isLoading = false);
                             return;
                           }
@@ -763,20 +801,20 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                           final walletTransaction = initiateData['data'];
                           final transactionId = walletTransaction?['transaction_id']?.toString();
                           final transactionAmount = walletTransaction?['amount'];
+
                           if (transactionId == null || transactionId.isEmpty) {
                             _showSnack("Transaction ID missing from server response.");
                             setState(() => _isLoading = false);
                             return;
                           }
 
-                          print("✅ Transaction ID: $transactionId");
-
+                          // Initialize SSLCommerz
                           Sslcommerz sslcommerz = Sslcommerz(
                             initializer: SSLCommerzInitialization(
                               multi_card_name: "visa,master,bkash",
                               currency: SSLCurrencyType.BDT,
                               product_category: "Digital Product",
-                              sdkType: SSLCSdkType.TESTBOX,
+                              sdkType: SSLCSdkType.TESTBOX, // Change to LIVE later
                               store_id: "datab67593a46c4062",
                               store_passwd: "datab67593a46c4062@ssl",
                               total_amount: transactionAmount.toDouble(),
@@ -786,60 +824,19 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 
                           final response = await sslcommerz.payNow();
 
-                          print("✅ Transaction status: ${response.status}");
-
-                          if (response.status == 'VALID') {
-                            print(jsonEncode(response));
-
-                            print('Payment completed, TRX ID: ${response.tranId}');
-                            print(response.tranDate);
-
-                            setState(() => _isLoading = true);
-
-                            Navigator.pop(dialogContext);
-
-                            showProcessingPaymentDialog(context);
-
-                            _loadPaymentStatus(transactionId, _isLoading, context, response.status);
-                          }
-
-                          if (response.status == 'Closed') {
-                            print('Payment closed');
-
-                            setState(() => _isLoading = true);
-
-                            Navigator.pop(dialogContext);
-
-                            showProcessingPaymentDialog(context);
-
-                            _loadPaymentStatus(transactionId, _isLoading, context, response.status);
-                          }
-
-                          if (response.status == 'FAILED') {
-                            print('Payment failed: ${response.toJson()}');
-
-                            setState(() => _isLoading = true);
-
-                            Navigator.pop(dialogContext);
-
-                            showProcessingPaymentDialog(context);
-
-                            _loadPaymentStatus(transactionId, _isLoading, context, response.status);
-                          }
+                          Navigator.pop(dialogContext);
+                          showProcessingPaymentDialog(context);
+                          _loadPaymentStatus(transactionId, _isLoading, context, response.status);
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(outerContext).showSnackBar(
                             SnackBar(content: Text('Payment failed: $e')),
                           );
                         } finally {
-                          if (mounted) {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          }
+                          if (mounted) setState(() => _isLoading = false);
                         }
                       } else {
-                        // Wallet payment flow (unchanged)
+                        // ------------------- WALLET FLOW -------------------
                         try {
                           final response = await http.post(
                             Uri.parse('https://growupagro.tech/api/investor/invest-now'),
@@ -863,14 +860,14 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                             Navigator.pop(dialogContext, resData);
                             ScaffoldMessenger.of(outerContext).showSnackBar(
                               const SnackBar(
-                                content: Text('Investment successful!'),
+                                content: Text('Payment successful!'),
                                 backgroundColor: Colors.green,
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(outerContext).showSnackBar(
                               SnackBar(
-                                content: Text(resData['message'] ?? 'Investment failed'),
+                                content: Text(resData['message'] ?? 'Payment failed'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -878,30 +875,16 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(outerContext).showSnackBar(
-                            SnackBar(content: Text('❌ Investment failed: $e')),
+                            SnackBar(content: Text('Payment failed')),
                           );
                         } finally {
-                          if (mounted) {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          }
+                          if (mounted) setState(() => _isLoading = false);
                         }
                       }
                     },
-                    child: _isLoading
-                        ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : Text(isShurjoPay ? "PAY NOW" : "INVEST",
-                        style: const TextStyle(color: Colors.white)),
                   ),
                 ],
+
               ),
             );
           },
@@ -910,16 +893,54 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     );
   }
 
-  String _getKeyPoint(String title) {
-    final project = _project;
-    if (project == null) return 'Not available';
-
-    final match = project.keyPointsData.firstWhere(
-          (point) => point['title']?.toString().trim().toLowerCase() == title.trim().toLowerCase(),
-      orElse: () => {},
+  Future<void> _loadPaymentStatus(
+    String transactionId,
+    bool _isLoading,
+    BuildContext dialogContext,
+    String? status,
+  ) async {
+    final result = await PaymentService.fetchPaymentSuccess(
+      transactionId,
+      status!,
     );
 
-    return match['description'] ?? 'Not available';
+    if (status == 'VALID') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result == "success"
+                ? "Transaction successful"
+                : "Transaction failed",
+          ),
+          backgroundColor: result == "success" ? Colors.green : Colors.red,
+        ),
+      );
+    } else if (status == 'Closed') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Cancel by user"), backgroundColor: Colors.red),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment failed"), backgroundColor: Colors.red),
+      );
+    }
+
+    print('Payment completed, gg TRX ID: ${result}');
+
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.pop(context);
+  }
+
+  void _showSnack(String msg, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   void showProcessingPaymentDialog(BuildContext context) {
@@ -959,27 +980,44 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 class InfoRow extends StatelessWidget {
   final String title;
   final String? value;
+  final double fontSize;
+  final bool showDivider;
   final TextStyle? style;
 
   const InfoRow({
     super.key,
     required this.title,
     required this.value,
+    this.fontSize = 14,
+    this.showDivider = true,
     this.style,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+  Widget build(BuildContext context) => Column(
+    children: [
+      Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(flex: 4, child: Text("$title:", style: const TextStyle(fontWeight: FontWeight.w600))),
-          Expanded(flex: 6, child: Text(value ?? "N/A", softWrap: true, style: style ?? const TextStyle())),
+          Expanded(
+            flex: 5,
+            child: Text(
+              "$title:",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
+            ),
+          ),
+          Expanded(
+            flex: 5,
+            child: Text(
+              value ?? "N/A",
+              textAlign: TextAlign.right,
+              style: style ?? const TextStyle(),
+            ),
+          ),
         ],
       ),
-    );
-  }
+      showDivider? const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)) : const SizedBox(),
+    ],
+  );
 }
-
