@@ -6,22 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/live_project_model.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LiveProjectsPage(),
-    );
-  }
-}
+import '../widgets/project_card.dart';
+import '../widgets/search_bar.dart';
 
 class LiveProjectsPage extends StatefulWidget {
   final bool hideAppBar;
@@ -33,7 +19,7 @@ class LiveProjectsPage extends StatefulWidget {
 
 class _LiveProjectsPageState extends State<LiveProjectsPage> {
   Set<int> _loadingProjectIds = {};
-  late Future<List<LiveProject>> futureShariahProjects;
+  late Future<List<LiveProject>> futureProjects;
   final ScrollController _scrollController = ScrollController();
   bool _showBackToTopButton = false;
 
@@ -44,7 +30,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
   @override
   void initState() {
     super.initState();
-    futureShariahProjects = fetchShariahProjects();
+    futureProjects = fetchLiveProjects();
     _searchController.addListener(_onSearchChanged);
 
     _scrollController.addListener(() {
@@ -80,7 +66,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
     );
   }
 
-  Future<List<LiveProject>> fetchShariahProjects() async {
+  Future<List<LiveProject>> fetchLiveProjects() async {
     final url = Uri.parse(ApiConstants.allProjects());
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -98,755 +84,57 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> decoded = json.decode(response.body);
-      final List<dynamic>? shariahProjects = decoded['projects']?['Live Projects'];
+      final List<dynamic>? projects = decoded['projects']?['Live Projects'];
 
-      if (shariahProjects == null) throw Exception('Live projects not found.');
+      if (projects == null) throw Exception('Live projects not found.');
 
-      _allProjects = shariahProjects
-          .map<LiveProject>((project) => LiveProject.fromJson(project))
-          .toList();
+      _allProjects =
+          projects.map<LiveProject>((p) => LiveProject.fromJson(p)).toList();
       _filteredProjects = _allProjects;
       return _allProjects;
     } else {
       throw Exception('Failed to load projects');
     }
   }
-  // String formatAmount1(double? value) {
-  //   if (value == null) return '0 Tk';
-  //   final formatter = NumberFormat('#,##0.00');
-  //   return '${formatter.format(value)} Tk';
-  // }
-
-
-  // String formatAmount(dynamic amount) {
-  //   if (amount == null || amount.toString().isEmpty) return '0 Tk';
-  //   final formatter = NumberFormat('#,##0');
-  //   return '${formatter.format(int.tryParse(amount.toString()) ?? 0)} Tk';
-  // }
-  String formatAmount(dynamic value) {
-    final number = double.tryParse(value.toString()) ?? 0;
-    final formatted = NumberFormat('#,##0').format(number);
-    return '$formatted Tk';
-  }
 
   String formatDate(String? rawDate) {
     if (rawDate == null || rawDate.isEmpty) return 'N/A';
     try {
-      final date = DateTime.parse(rawDate); // parse "2025-09-24"
-      return DateFormat('dd MMM yyyy').format(date); // → "24 Sep 2025"
+      final date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
     } catch (_) {
-      return rawDate; // fallback
+      return rawDate;
     }
   }
 
-  //
-  //
-  // Widget _buildProjectCard({required ShariahProject project, required BuildContext context}) {
-  //   return Card(
-  //     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     elevation: 5,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(4.0),
-  //       child: Column( // ⬅️ CHANGE 1: Use a Column here to stack content vertically
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           // 1. Content Row (Image + Details)
-  //           Row(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               // Left: Image
-  //               Expanded(
-  //                 flex: 1, // adjust ratio between image and table (e.g. 4:6)
-  //                 child: ClipRRect(
-  //                   borderRadius: BorderRadius.circular(8),
-  //                   child: Container(
-  //                     color: Colors.white, // background if aspect ratio doesn’t match
-  //                     child: project.imageUrl != null && project.imageUrl!.isNotEmpty
-  //                         ? Image.network(
-  //                       project.imageUrl!,
-  //                       fit: BoxFit.contain, // ✅ keeps full image visible
-  //                       errorBuilder: (_, __, ___) =>
-  //                           Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-  //                     )
-  //                         : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-  //                   ),
-  //                 ),
-  //               ),
-  //
-  //               const SizedBox(width: 12),
-  //               // Right: Table Details
-  //               Expanded(
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     Text(
-  //                       project.projectName ?? 'N/A',
-  //                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green),
-  //                     ),
-  //                     Table(
-  //                       columnWidths: const {
-  //                         0: FlexColumnWidth(4),
-  //                         1: FlexColumnWidth(4),
-  //                       },
-  //                       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-  //                       children: [
-  //                         _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
-  //                         _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
-  //                         _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
-  //                         _buildTableRow('Start Date', formatDate(project.project_start_date)),
-  //                         _buildTableRow('Mature Date', formatDate(project.project_end_date)),
-  //                         _buildTableRow('Investment Goal', formatAmount1(project.investmentGoal)),
-  //                         _buildTableRow(
-  //                           'Min. Investment',
-  //                           formatAmount1(project.min_investment_amount ?? 0),
-  //                         ),
-  //                         _buildTableRow('Raised', formatAmount(project.raised)),
-  //                         _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
-  //                         _buildTableRow('ROI', project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A'),
-  //                         _buildTableRow('Status', project.status == 1 ? 'Running' : 'Closed',
-  //                             valueColor: project.status == 1 ? Colors.green : Colors.red),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //
-  //           const SizedBox(height: 8), // ⬅️ Add spacing before the button
-  //
-  //           // 2. Full-Width Button (Moved Outside the Row)
-  //           SizedBox( // ⬅️ CHANGE 2: The button is now outside the content Row
-  //             width: double.infinity, // This makes it span the full width of the Card's padding
-  //             height: 35, // Adjusted height for better visibility (was 22)
-  //             child: ElevatedButton(
-  //               onPressed: _loadingProjectIds.contains(project.id)
-  //                   ? null
-  //                   : () async {
-  //                 final projectId = project.id;
-  //                 if (projectId == null) {
-  //                   ScaffoldMessenger.of(context).showSnackBar(
-  //                     const SnackBar(content: Text('Project ID is missing')),
-  //                   );
-  //                   return;
-  //                 }
-  //
-  //                 setState(() {
-  //                   _loadingProjectIds.add(projectId);
-  //                 });
-  //
-  //                 try {
-  //                   final prefs = await SharedPreferences.getInstance();
-  //                   final investorCode = prefs.getString('investor_code');
-  //                   if (investorCode == null || investorCode.isEmpty) {
-  //                     ScaffoldMessenger.of(context).showSnackBar(
-  //                       const SnackBar(content: Text('Investor code not found.')),
-  //                     );
-  //                     return;
-  //                   }
-  //
-  //                   Navigator.push(
-  //                     context,
-  //                     MaterialPageRoute(
-  //                       builder: (_) => ProjectDescriptionPage(
-  //                         projectId: projectId,
-  //                         investorCode: investorCode,
-  //                       ),
-  //                     ),
-  //                   );
-  //                 } finally {
-  //                   setState(() {
-  //                     _loadingProjectIds.remove(projectId);
-  //                   });
-  //                 }
-  //               },
-  //               style: ElevatedButton.styleFrom(
-  //                 backgroundColor: const Color(0xFF2E7D32),
-  //                 shape: RoundedRectangleBorder(
-  //                   borderRadius: BorderRadius.circular(8), // Optional: Match card border radius
-  //                 ),
-  //                 padding: const EdgeInsets.symmetric(vertical: 4),
-  //                 minimumSize: const Size(double.infinity, 35), // Ensure full width and minimum height
-  //               ),
-  //               child: _loadingProjectIds.contains(project.id)
-  //                   ? const SizedBox(
-  //                 width: 16,
-  //                 height: 16,
-  //                 child: CircularProgressIndicator(
-  //                   color: Colors.white,
-  //                   strokeWidth: 2,
-  //                 ),
-  //               )
-  //                   : const Text(
-  //                 'Invest Now',
-  //                 style: TextStyle(color: Colors.white, fontSize: 14), // Increased font size for better readability
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+  Future<void> _handleInvestNow(LiveProject project, BuildContext context) async {
+    final projectId = project.id;
+    if (projectId == null) return;
 
-  // Widget _buildProjectCard({required LiveProject project, required BuildContext context}) {
-  //   // Parse project start date safely
-  //   DateTime? startDate;
-  //   if (project.project_start_date != null && project.project_start_date!.isNotEmpty) {
-  //     try {
-  //       startDate = DateTime.parse(project.project_start_date!);
-  //     } catch (_) {}
-  //   }
-  //
-  //   final today = DateTime.now();
-  //
-  //   // Show button only if today < startDate
-  //   final bool showInvestButton = (startDate != null && today.isBefore(startDate));
-  //
-  //   return Card(
-  //     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     elevation: 5,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(4.0),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           // ==== CONTENT (image + table) ====
-  //           Row(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               // Left: Image
-  //               // Expanded(
-  //               //   flex: 1,
-  //               //   child: ClipRRect(
-  //               //     borderRadius: BorderRadius.circular(8),
-  //               //     child: Container(
-  //               //       color: Colors.white,
-  //               //       child: project.imageUrl != null && project.imageUrl!.isNotEmpty
-  //               //           ? Image.network(
-  //               //         project.imageUrl!,
-  //               //         fit: BoxFit.contain,
-  //               //         errorBuilder: (_, __, ___) => Image.asset(
-  //               //           'assets/images/placeholder1.jpg',
-  //               //           fit: BoxFit.contain,
-  //               //         ),
-  //               //       )
-  //               //           : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-  //               //     ),
-  //               //
-  //               //   ),
-  //               // ),
-  //               Expanded(
-  //                 flex: 1,
-  //                 child: ClipRRect(
-  //                   borderRadius: BorderRadius.circular(8),
-  //                   child: Container(
-  //                     color: Colors.white,
-  //                     child: Column(
-  //                       mainAxisSize: MainAxisSize.min,
-  //                       children: [
-  //                         // 🖼️ Image section
-  //                         project.imageUrl != null && project.imageUrl!.isNotEmpty
-  //                             ? Image.network(
-  //                           project.imageUrl!,
-  //                           fit: BoxFit.contain,
-  //                           // height: 100, // adjust height as needed
-  //                           errorBuilder: (_, __, ___) => Image.asset(
-  //                             'assets/images/placeholder1.jpg',
-  //                             fit: BoxFit.contain,
-  //                             // height: 100,
-  //                           ),
-  //                         )
-  //                             : Image.asset(
-  //                           'assets/images/placeholder1.jpg',
-  //                           fit: BoxFit.contain,
-  //                           // height: 100,
-  //                         ),
-  //
-  //                         const SizedBox(height: 6),
-  //
-  //                         // 📝 Project name under image
-  //                         Text(
-  //                           project.projectName ?? 'N/A',
-  //                           textAlign: TextAlign.center,
-  //                           style: const TextStyle(
-  //                             fontWeight: FontWeight.bold,
-  //                             fontSize: 12,
-  //                             color: Colors.green,
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //
-  //
-  //               const SizedBox(width: 12),
-  //               // Right: Table Details
-  //               Expanded(
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     // Text(
-  //                     //   project.projectName ?? 'N/A',
-  //                     //   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green),
-  //                     // ),
-  //                     Table(
-  //                       columnWidths: const {
-  //                         0: FlexColumnWidth(4),
-  //                         1: FlexColumnWidth(4),
-  //                       },
-  //                       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-  //                       children: [
-  //                         _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
-  //                         _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
-  //                         _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
-  //                         _buildTableRow('Start Date', formatDate(project.project_start_date)),
-  //                         _buildTableRow('Mature Date', formatDate(project.project_end_date)),
-  //                         _buildTableRow('Investment Goal', formatAmount(project.investmentGoal)),
-  //                         _buildTableRow('Min. Investment', formatAmount(project.min_investment_amount ?? 0)),
-  //                         _buildTableRow('Raised', formatAmount(project.raised)),
-  //                         _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
-  //                         _buildTableRow('ROI', project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A'),
-  //                         _buildTableRow(
-  //                           'Status',
-  //                           project.status == 1 ? 'Running' : 'Closed',
-  //                           valueColor: project.status == 1 ? Colors.green : Colors.red,
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //
-  //           const SizedBox(height: 8),
-  //
-  //           // ==== BUTTON ROW (Details + Invest Now) ====
-  //           Row(
-  //             children: [
-  //               // Details Button
-  //               Expanded(
-  //                 flex: showInvestButton ? 1 : 2, // Take more space if Invest button is hidden
-  //                 child: SizedBox(
-  //                   height: 35,
-  //                   child: ElevatedButton(
-  //                     onPressed: () {
-  //                       final projectId = project.id;
-  //                       if (projectId == null) {
-  //                         ScaffoldMessenger.of(context).showSnackBar(
-  //                           const SnackBar(content: Text('Project ID is missing')),
-  //                         );
-  //                         return;
-  //                       }
-  //
-  //                       Navigator.push(
-  //                         context,
-  //                         MaterialPageRoute(
-  //                           builder: (_) => ProjectDescriptionPage(
-  //                             projectId: projectId,
-  //                             investorCode: "", // if you don’t need investorCode for details
-  //                           ),
-  //                         ),
-  //                       );
-  //                     },
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.blueGrey,
-  //                       shape: RoundedRectangleBorder(
-  //                         borderRadius: BorderRadius.circular(8),
-  //                       ),
-  //                     ),
-  //                     child: const Text(
-  //                       'Details',
-  //                       style: TextStyle(color: Colors.white, fontSize: 14),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //
-  //               // Show spacing + Invest button only if needed
-  //               if (showInvestButton) ...[
-  //                 const SizedBox(width: 8), // spacing between buttons
-  //                 Expanded(
-  //                   flex: 1,
-  //                   child: SizedBox(
-  //                     height: 35,
-  //                     child: ElevatedButton(
-  //                       onPressed: _loadingProjectIds.contains(project.id)
-  //                           ? null
-  //                           : () async {
-  //                         final projectId = project.id;
-  //                         if (projectId == null) {
-  //                           ScaffoldMessenger.of(context).showSnackBar(
-  //                             const SnackBar(content: Text('Project ID is missing')),
-  //                           );
-  //                           return;
-  //                         }
-  //
-  //                         setState(() {
-  //                           _loadingProjectIds.add(projectId);
-  //                         });
-  //
-  //                         try {
-  //                           final prefs = await SharedPreferences.getInstance();
-  //                           final investorCode = prefs.getString('investor_code');
-  //                           if (investorCode == null || investorCode.isEmpty) {
-  //                             ScaffoldMessenger.of(context).showSnackBar(
-  //                               const SnackBar(content: Text('Investor code not found.')),
-  //                             );
-  //                             return;
-  //                           }
-  //
-  //                           Navigator.push(
-  //                             context,
-  //                             MaterialPageRoute(
-  //                               builder: (_) => ProjectDescriptionPage(
-  //                                 projectId: projectId,
-  //                                 investorCode: investorCode,
-  //                               ),
-  //                             ),
-  //                           );
-  //                         } finally {
-  //                           setState(() {
-  //                             _loadingProjectIds.remove(projectId);
-  //                           });
-  //                         }
-  //                       },
-  //                       style: ElevatedButton.styleFrom(
-  //                         backgroundColor: const Color(0xFF2E7D32),
-  //                         shape: RoundedRectangleBorder(
-  //                           borderRadius: BorderRadius.circular(8),
-  //                         ),
-  //                       ),
-  //                       child: _loadingProjectIds.contains(project.id)
-  //                           ? const SizedBox(
-  //                         width: 16,
-  //                         height: 16,
-  //                         child: CircularProgressIndicator(
-  //                           color: Colors.white,
-  //                           strokeWidth: 2,
-  //                         ),
-  //                       )
-  //                           : const Text(
-  //                         'Invest Now',
-  //                         style: TextStyle(color: Colors.white, fontSize: 14),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ],
-  //           )
-  //
-  //
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+    setState(() => _loadingProjectIds.add(projectId));
 
-  Widget _buildProjectCard({
-    required LiveProject project,
-    required BuildContext context,
-  }) {
-    final now = DateTime.now();
-
-    // ✅ Parse project dates safely
-    DateTime? startDate = project.project_start_date != null && project.project_start_date!.isNotEmpty
-        ? DateTime.tryParse(project.project_start_date!)
-        : null;
-
-    DateTime? roiStartDate = project.roi_start_date != null && project.roi_start_date!.isNotEmpty
-        ? DateTime.tryParse(project.roi_start_date!)
-        : null;
-
-    DateTime? endDate = project.project_end_date != null && project.project_end_date!.isNotEmpty
-        ? DateTime.tryParse(project.project_end_date!)
-        : null;
-
-    // ✅ Other flags
-    final bool isRunning = project.status == 1;
-    final double goal = project.investmentGoal ?? 0;
-    final int raised = project.raised ?? 0;
-
-    // ✅ Determine dynamic status
-    String statusText;
-    Color statusColor;
-
-    if (endDate != null && now.isAfter(endDate)) {
-      statusText = 'Matured';
-      statusColor = Colors.red;
-    } else if (startDate != null && now.isBefore(startDate)) {
-      statusText = 'Upcoming';
-      statusColor = Colors.orange;
-    } else if (startDate != null &&
-        roiStartDate != null &&
-        now.isAfter(startDate) &&
-        now.isBefore(roiStartDate)) {
-      statusText = 'Investment Collecting';
-      statusColor = Colors.blue;
-    } else if (roiStartDate != null &&
-        endDate != null &&
-        now.isAfter(roiStartDate) &&
-        now.isBefore(endDate)) {
-      statusText = 'Running';
-      statusColor = Colors.green;
-    } else {
-      statusText = 'Unknown';
-      statusColor = Colors.grey;
-    }
-
-    // ✅ Determine buttons (Invest Now / Upcoming)
-    bool showInvestNow = false;
-    bool showUpcoming = false;
-
-    if (startDate != null && now.isBefore(startDate)) {
-      showUpcoming = true;
-    } else if (isRunning && raised <= goal) {
-      showInvestNow = true;
-    }
-
-    // 🕒 Countdown for upcoming projects
-    String countdownText = '';
-    if (showUpcoming && startDate != null) {
-      final daysLeft = startDate.difference(now).inDays;
-      if (daysLeft > 1) {
-        countdownText = 'Starts in $daysLeft days';
-      } else if (daysLeft == 1) {
-        countdownText = 'Starts tomorrow';
-      } else {
-        countdownText = 'Starts soon';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final investorCode = prefs.getString('investor_code');
+      if (investorCode == null || investorCode.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Investor code not found.')),
+        );
+        return;
       }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProjectDescriptionPage(
+            projectId: projectId,
+            investorCode: investorCode,
+          ),
+        ),
+      );
+    } finally {
+      setState(() => _loadingProjectIds.remove(projectId));
     }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ==== CONTENT (image + table) ====
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left: Image + Project Name
-                Expanded(
-                  flex: 1,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          project.imageUrl != null && project.imageUrl!.isNotEmpty
-                              ? Image.network(
-                            project.imageUrl!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/images/placeholder1.jpg',
-                              fit: BoxFit.contain,
-                            ),
-                          )
-                              : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-                          const SizedBox(height: 6),
-                          Text(
-                            project.projectName ?? 'N/A',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Right: Table Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(4),
-                          1: FlexColumnWidth(4),
-                        },
-                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                        children: [
-                          _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
-                          _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
-                          _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
-                          _buildTableRow('Start Date', formatDate(project.project_start_date)),
-                          _buildTableRow('Mature Date', formatDate(project.project_end_date)),
-                          _buildTableRow('ROI Start Date', formatDate(project.roi_start_date)),
-                          _buildTableRow('Investment Goal', formatAmount(goal)),
-                          _buildTableRow('Min. Investment', formatAmount(project.min_investment_amount ?? 0)),
-                          _buildTableRow('Raised', formatAmount(raised)),
-                          _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
-                          _buildTableRow(
-                            'ROI',
-                            project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A',
-                          ),
-                          // _buildTableRow(
-                          //   'Status',
-                          //   isRunning ? 'Running' : 'Closed',
-                          //   valueColor: isRunning ? Colors.green : Colors.red,
-                          // ),
-                          _buildTableRow(
-                            'Status',
-                            statusText,
-                            valueColor: statusColor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // ==== BUTTON ROW (Invest Now / Upcoming) ====
-            Column(
-              children: [
-                Row(
-                  children: [
-                    if (showUpcoming) ...[
-                      // const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          height: 35,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            startDate != null
-                                ? 'Investment starts: ${DateFormat('dd MMM, yyyy').format(startDate)}'
-                                : 'Upcoming',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    if (showInvestNow) ...[
-                      // const SizedBox(width: 8),
-                      Expanded(
-                        child: SizedBox(
-                          height: 35,
-                          child: ElevatedButton(
-                            onPressed: _loadingProjectIds.contains(project.id)
-                                ? null
-                                : () async {
-                              final projectId = project.id;
-                              if (projectId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Project ID is missing')),
-                                );
-                                return;
-                              }
-
-                              setState(() {
-                                _loadingProjectIds.add(projectId);
-                              });
-
-                              try {
-                                final prefs = await SharedPreferences.getInstance();
-                                final investorCode = prefs.getString('investor_code');
-                                if (investorCode == null || investorCode.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Investor code not found.')),
-                                  );
-                                  return;
-                                }
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ProjectDescriptionPage(
-                                      projectId: projectId,
-                                      investorCode: investorCode,
-                                    ),
-                                  ),
-                                );
-                              } finally {
-                                setState(() {
-                                  _loadingProjectIds.remove(projectId);
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2E7D32),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: _loadingProjectIds.contains(project.id)
-                                ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                                : const Text(
-                              'Invest Now',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  TableRow _buildTableRow(String label, String value, {Color valueColor = Colors.black}) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text(
-            '$label:',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 8,),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text(
-            value,
-            style: TextStyle(fontWeight: FontWeight.normal, fontSize: 8, color: valueColor),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -859,36 +147,24 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
         foregroundColor: Colors.white,
         title: const Text(
           'Live Projects',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by project name...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
+          // Search Bar
+          CustomSearchBar(searchController: _searchController),
+
+          // Project List
           Expanded(
             child: FutureBuilder<List<LiveProject>>(
-              future: futureShariahProjects,
+              future: futureProjects,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -898,14 +174,91 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                   return const Center(child: Text('No live projects found.'));
                 }
 
-                final projects = _filteredProjects.isEmpty ? snapshot.data! : _filteredProjects;
+                final projects = _filteredProjects.isEmpty
+                    ? snapshot.data!
+                    : _filteredProjects;
 
                 return ListView.builder(
                   controller: _scrollController,
                   itemCount: projects.length,
                   itemBuilder: (context, index) {
                     final project = projects[index];
-                    return _buildProjectCard(context: context, project: project);
+
+                    final now = DateTime.now();
+                    final startDate = project.project_start_date != null &&
+                        project.project_start_date!.isNotEmpty
+                        ? DateTime.tryParse(project.project_start_date!)
+                        : null;
+                    final roiStartDate = project.roi_start_date != null &&
+                        project.roi_start_date!.isNotEmpty
+                        ? DateTime.tryParse(project.roi_start_date!)
+                        : null;
+                    final endDate = project.project_end_date != null &&
+                        project.project_end_date!.isNotEmpty
+                        ? DateTime.tryParse(project.project_end_date!)
+                        : null;
+
+                    // Determine status
+                    String statusText;
+                    Color statusColor;
+                    if (endDate != null && now.isAfter(endDate)) {
+                      statusText = 'Matured';
+                      statusColor = Colors.red;
+                    } else if (startDate != null && now.isBefore(startDate)) {
+                      statusText = 'Upcoming';
+                      statusColor = Colors.orange;
+                    } else if (startDate != null &&
+                        roiStartDate != null &&
+                        now.isAfter(startDate) &&
+                        now.isBefore(roiStartDate)) {
+                      statusText = 'Investment Collecting';
+                      statusColor = Colors.blue;
+                    } else if (roiStartDate != null &&
+                        endDate != null &&
+                        now.isAfter(roiStartDate) &&
+                        now.isBefore(endDate)) {
+                      statusText = 'Running';
+                      statusColor = Colors.green;
+                    } else {
+                      statusText = 'Unknown';
+                      statusColor = Colors.grey;
+                    }
+
+                    final goal = project.investmentGoal ?? 0;
+                    final raised = project.raised ?? 0;
+
+                    final showUpcoming =
+                        startDate != null && now.isBefore(startDate);
+                    final showInvestNow =
+                        project.status == 1 && raised <= goal;
+
+                    return ProjectCard(
+                      projectName: project.projectName ?? 'N/A',
+                      businessType: project.businessType_name ?? 'N/A',
+                      imageUrl: project.imageUrl,
+                      projectDuration:
+                      project.project_duration_viewer ?? 'N/A',
+                      startDate: formatDate(project.project_start_date),
+                      endDate: formatDate(project.project_end_date),
+                      roiStartDate: formatDate(project.roi_start_date),
+                      investmentGoal: goal,
+                      minInvestment: project.min_investment_amount ?? 0,
+                      raised: (project.raised ?? 0).toDouble(),
+                      inWaiting: (project.remaining_goal ?? 0).toDouble(),
+                      roi: project.annualRoi != null
+                          ? 'Annually ${project.annualRoi}%'
+                          : 'N/A',
+                      statusText: statusText,
+                      statusColor: statusColor,
+                      showInvestNow: showInvestNow,
+                      showUpcoming: showUpcoming,
+                      investmentStartDate: startDate != null
+                          ? DateFormat('dd MMM, yyyy').format(startDate)
+                          : null,
+                      isLoading: _loadingProjectIds.contains(project.id),
+                      onInvestNowPressed: () =>
+                          _handleInvestNow(project, context),
+                    );
                   },
                 );
               },

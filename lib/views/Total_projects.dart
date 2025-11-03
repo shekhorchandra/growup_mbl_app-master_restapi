@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/Total_projects_model.dart';
 import '../utils/total_projects_api.dart';
+import '../widgets/project_card.dart';
+import '../widgets/search_bar.dart';
 import 'project_Descriotion_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,12 +64,6 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
     );
   }
 
-  String formatAmount(dynamic amount) {
-    if (amount == null) return '0 Tk';
-    final formatter = NumberFormat('#,##0');
-    return '${formatter.format(amount)} Tk';
-  }
-
   String formatDate(String? rawDate) {
     if (rawDate == null || rawDate.isEmpty) return 'N/A';
     try {
@@ -77,19 +74,22 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
     }
   }
 
-  // ✅ Determine project status, color, and priority for sorting
+  /// ✅ Determine dynamic project status, color, and priority for sorting
   Map<String, dynamic> getProjectStatus(TotalProject project) {
     final now = DateTime.now();
 
-    DateTime? startDate = project.project_start_date != null && project.project_start_date!.isNotEmpty
+    DateTime? startDate = project.project_start_date != null &&
+        project.project_start_date!.isNotEmpty
         ? DateTime.tryParse(project.project_start_date!)
         : null;
 
-    DateTime? roiStartDate = project.roi_start_date != null && project.roi_start_date!.isNotEmpty
+    DateTime? roiStartDate = project.roi_start_date != null &&
+        project.roi_start_date!.isNotEmpty
         ? DateTime.tryParse(project.roi_start_date!)
         : null;
 
-    DateTime? endDate = project.project_end_date != null && project.project_end_date!.isNotEmpty
+    DateTime? endDate = project.project_end_date != null &&
+        project.project_end_date!.isNotEmpty
         ? DateTime.tryParse(project.project_end_date!)
         : null;
 
@@ -97,11 +97,17 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
     Color color = Colors.grey;
     int priority = 5;
 
-    if (startDate != null && roiStartDate != null && now.isAfter(startDate) && now.isBefore(roiStartDate)) {
+    if (startDate != null &&
+        roiStartDate != null &&
+        now.isAfter(startDate) &&
+        now.isBefore(roiStartDate)) {
       status = 'Investment Collecting';
       color = Colors.blue;
       priority = 1;
-    } else if (roiStartDate != null && endDate != null && now.isAfter(roiStartDate) && now.isBefore(endDate)) {
+    } else if (roiStartDate != null &&
+        endDate != null &&
+        now.isAfter(roiStartDate) &&
+        now.isBefore(endDate)) {
       status = 'Running';
       color = Colors.green;
       priority = 2;
@@ -115,243 +121,30 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
       priority = 4;
     }
 
-    return {
-      'status': status,
-      'color': color,
-      'priority': priority,
-    };
+    return {'status': status, 'color': color, 'priority': priority};
   }
 
-  int getProjectPriority(TotalProject project) {
-    return getProjectStatus(project)['priority'];
-  }
+  int getProjectPriority(TotalProject project) =>
+      getProjectStatus(project)['priority'];
 
-  TableRow _buildTableRow(String label, String value, {Color valueColor = Colors.black}) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 8)),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text(value, style: TextStyle(fontSize: 8, color: valueColor)),
-        ),
-      ],
-    );
-  }
+  Future<void> _openProjectDetails(
+      int projectId, BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final investorCode = prefs.getString('investor_code');
 
-  Widget _buildProjectCard({
-    required TotalProject project,
-    required BuildContext context,
-  }) {
-    final now = DateTime.now();
-    final statusInfo = getProjectStatus(project);
-    final String statusText = statusInfo['status'];
-    final Color statusColor = statusInfo['color'];
-
-    DateTime? startDate = project.project_start_date != null && project.project_start_date!.isNotEmpty
-        ? DateTime.tryParse(project.project_start_date!)
-        : null;
-
-    final bool isRunning = project.status == 1;
-    final double goal = project.investmentGoal ?? 0;
-    final double raised = project.raised ?? 0;
-
-    final bool canInvest = isRunning && (raised <= goal);
-
-    bool showInvestNow = false;
-    bool showUpcoming = false;
-
-    if (startDate != null && now.isBefore(startDate)) {
-      showUpcoming = true;
-    } else if (canInvest) {
-      showInvestNow = true;
+    if (investorCode == null || investorCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Investor code not found.')),
+      );
+      return;
     }
 
-    String countdownText = '';
-    if (showUpcoming && startDate != null) {
-      final daysLeft = startDate.difference(now).inDays;
-      if (daysLeft > 1) {
-        countdownText = 'Starts in $daysLeft days';
-      } else if (daysLeft == 1) {
-        countdownText = 'Starts tomorrow';
-      } else {
-        countdownText = 'Starts soon';
-      }
-    }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          project.imageUrl != null && project.imageUrl!.isNotEmpty
-                              ? Image.network(
-                            project.imageUrl!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/images/placeholder1.jpg',
-                              fit: BoxFit.contain,
-                            ),
-                          )
-                              : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-                          const SizedBox(height: 6),
-                          Text(
-                            project.projectName ?? 'N/A',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(4),
-                          1: FlexColumnWidth(4),
-                        },
-                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                        children: [
-                          _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
-                          _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
-                          _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
-                          _buildTableRow('Start Date', formatDate(project.project_start_date)),
-                          _buildTableRow('Mature Date', formatDate(project.project_end_date)),
-                          _buildTableRow('ROI Start Date', formatDate(project.roi_start_date)),
-                          _buildTableRow('Investment Goal', formatAmount(goal)),
-                          _buildTableRow('Min. Investment', formatAmount(project.min_investment_amount ?? 0)),
-                          _buildTableRow('Raised', formatAmount(raised)),
-                          _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
-                          _buildTableRow('ROI', project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A'),
-                          _buildTableRow('Status', statusText, valueColor: statusColor),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Column(
-              children: [
-                Row(
-                  children: [
-                    if (showUpcoming)
-                      Expanded(
-                        child: Container(
-                          height: 35,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            startDate != null
-                                ? 'Investment starts: ${DateFormat('dd MMM, yyyy').format(startDate)}'
-                                : 'Upcoming',
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ),
-                      ),
-                    if (showInvestNow)
-                      Expanded(
-                        child: SizedBox(
-                          height: 35,
-                          child: ElevatedButton(
-                            onPressed: _loadingProjectIds.contains(project.id)
-                                ? null
-                                : () async {
-                              final projectId = project.id;
-                              if (projectId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Project ID is missing')),
-                                );
-                                return;
-                              }
-
-                              setState(() {
-                                _loadingProjectIds.add(projectId);
-                              });
-
-                              try {
-                                final prefs = await SharedPreferences.getInstance();
-                                final investorCode = prefs.getString('investor_code');
-                                if (investorCode == null || investorCode.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Investor code not found.')),
-                                  );
-                                  return;
-                                }
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ProjectDescriptionPage(
-                                      projectId: projectId,
-                                      investorCode: investorCode,
-                                    ),
-                                  ),
-                                );
-                              } finally {
-                                setState(() {
-                                  _loadingProjectIds.remove(projectId);
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2E7D32),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: _loadingProjectIds.contains(project.id)
-                                ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                                : const Text(
-                              'Invest Now',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProjectDescriptionPage(
+          projectId: projectId,
+          investorCode: investorCode,
         ),
       ),
     );
@@ -360,33 +153,23 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: widget.hideAppBar
           ? null
           : AppBar(
         backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
-        title: const Text('Total Projects', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Total Projects',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by project name...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
+          CustomSearchBar(searchController: _searchController),
+
+          // Project List
           Expanded(
             child: FutureBuilder<List<TotalProject>>(
               future: futureProjects,
@@ -403,24 +186,104 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
 
                 _allProjects = snapshot.data!;
 
-                // ✅ Sort by project priority (Investment Collecting → Running → Upcoming → Matured)
-                _allProjects.sort((a, b) => getProjectPriority(a).compareTo(getProjectPriority(b)));
+                // ✅ Sort by project priority
+                _allProjects.sort(
+                        (a, b) => getProjectPriority(a).compareTo(getProjectPriority(b)));
 
-                final projects = _filteredProjects.isEmpty ? _allProjects : _filteredProjects;
+                final projects =
+                _filteredProjects.isEmpty ? _allProjects : _filteredProjects;
 
                 return ListView.builder(
                   controller: _scrollController,
                   itemCount: projects.length,
-                  itemBuilder: (context, index) => _buildProjectCard(
-                    context: context,
-                    project: projects[index],
-                  ),
+                  itemBuilder: (context, index) {
+                    final project = projects[index];
+                    final statusInfo = getProjectStatus(project);
+
+                    final String statusText = statusInfo['status'];
+                    final Color statusColor = statusInfo['color'];
+
+                    final now = DateTime.now();
+                    final startDate =
+                    project.project_start_date != null &&
+                        project.project_start_date!.isNotEmpty
+                        ? DateTime.tryParse(project.project_start_date!)
+                        : null;
+
+                    final bool isRunning = project.status == 1;
+                    final double goal = project.investmentGoal ?? 0;
+                    final double raised = project.raised ?? 0;
+                    final bool canInvest = isRunning && (raised <= goal);
+
+                    bool showInvestNow = false;
+                    bool showUpcoming = false;
+
+                    if (startDate != null && now.isBefore(startDate)) {
+                      showUpcoming = true;
+                    } else if (canInvest) {
+                      showInvestNow = true;
+                    }
+
+                    return ProjectCard(
+                      projectName: project.projectName ?? 'N/A',
+                      businessType: project.businessType_name ?? 'N/A',
+                      imageUrl: project.imageUrl,
+                      projectDuration:
+                      project.project_duration_viewer ?? 'N/A',
+                      startDate: formatDate(project.project_start_date),
+                      endDate: formatDate(project.project_end_date),
+                      roiStartDate:
+                      formatDate(project.roi_start_date), // hidden if blank
+                      investmentGoal: goal,
+                      minInvestment:
+                      (project.min_investment_amount ?? 0).toDouble(),
+                      raised: raised,
+                      inWaiting:
+                      (project.remaining_goal ?? 0).toDouble(),
+                      roi: project.annualRoi != null
+                          ? 'Annually ${project.annualRoi}%'
+                          : 'N/A',
+                      statusText: statusText,
+                      statusColor: statusColor,
+                      showInvestNow: showInvestNow,
+                      showUpcoming: showUpcoming,
+                      investmentStartDate: startDate != null
+                          ? DateFormat('dd MMM, yyyy').format(startDate)
+                          : null,
+                      isLoading:
+                      _loadingProjectIds.contains(project.id ?? 0),
+                      onInvestNowPressed: () async {
+                        final projectId = project.id;
+                        if (projectId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Project ID is missing')),
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          _loadingProjectIds.add(projectId);
+                        });
+
+                        try {
+                          await _openProjectDetails(projectId, context);
+                        } finally {
+                          setState(() {
+                            _loadingProjectIds.remove(projectId);
+                          });
+                        }
+                      },
+                    );
+                  },
                 );
               },
             ),
           ),
         ],
       ),
+
+      // 🔝 Floating Back-to-top
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(
         onPressed: _scrollToTop,
