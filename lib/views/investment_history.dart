@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/investment_history_model.dart';
+import '../widgets/custom_button.dart';
 
 class InvestmentHistoryPage extends StatefulWidget {
   const InvestmentHistoryPage({super.key});
@@ -21,13 +22,13 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
   List<InvestmentHistoryItem> fullHistory = [];
   List<InvestmentHistoryItem> filteredHistory = [];
   int currentPage = 1;
-  int itemsPerPage = 10; // or whatever number of items you show per page
   final int rowsPerPage = 10;
   String? investorCode;
 
   final TextEditingController _searchController = TextEditingController();
-
   final currencyFormatter = NumberFormat.currency(locale: 'en_US', symbol: '৳');
+
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -39,22 +40,10 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
     });
   }
 
-  String formatDate(String? rawDate) {
-    if (rawDate == null) return 'N/A';
-    try {
-      final date = DateTime.parse(rawDate);
-      return DateFormat(
-        'dd MMM yyyy',
-      ).format(date); // e.g., 16 Jul 2025, 02:30 PM
-    } catch (e) {
-      return rawDate;
-    }
-  }
-
   Future<void> _initialize() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     investorCode = prefs.getString('investor_code');
-    setState(() {}); // Update UI with investorCode
+    setState(() {});
     futureHistory = fetchInvestmentHistory();
   }
 
@@ -74,7 +63,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
 
     setState(() {
       filteredHistory = filtered;
-      currentPage = 1; // Reset to first page on search
+      currentPage = 1;
     });
   }
 
@@ -102,6 +91,16 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
     }
   }
 
+  String formatDate(String? rawDate) {
+    if (rawDate == null) return 'N/A';
+    try {
+      final date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+    } catch (e) {
+      return rawDate;
+    }
+  }
+
   Future<List<InvestmentHistoryItem>> fetchInvestmentHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
@@ -110,58 +109,61 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
     if (token.isEmpty || investorCode.isEmpty) {
       throw Exception("Missing token or investor code. Please log in again.");
     }
+
     final url = Uri.parse(ApiConstants.investmentHistory(investorCode));
-
-    // final url = Uri.parse(
-    //   'https://admin-growup.onebitstore.site/api/investment-history?investor_code=$investorCode',
-    // );
-
-    print("Calling URL: $url");
-    print("Token used: $token");
-
     final response = await http.get(
       url,
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
-
-    print("Status Code: ${response.statusCode}");
-    print("Body: ${response.body}");
 
     if (response.statusCode == 200) {
       final body = json.decode(response.body);
       final List data = body['data'];
       return data.map((e) => InvestmentHistoryItem.fromJson(e)).toList();
     } else {
-      // throw Exception(
-      //   'Error ${response.statusCode}: ${json.decode(response.body)['message'] ?? 'Unknown error'}',
-      // );
       throw Exception('Investment history not found');
     }
-  }
-
-  Color _getProgressColor(double progress) {
-    if (progress < 0.3) return Colors.red;
-    if (progress < 0.7) return Colors.orange;
-    return Colors.green;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
+        backgroundColor: const Color(0xFF2E7D32),
+        title: !_isSearching
+            ? const Text(
           'Investment History',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        )
+            : TextField(
+          controller: _searchController,
+          autofocus: true,
+          cursorColor: Colors.white,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          decoration: const InputDecoration(
+            hintText: 'Search project or category...',
+            hintStyle: TextStyle(color: Colors.white70),
+            border: InputBorder.none,
           ),
         ),
-        centerTitle: true, // <-- This centers the title on all phones
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white, // or your preferred color
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
+        ],
       ),
-
       body: FutureBuilder<List<InvestmentHistoryItem>>(
         future: futureHistory,
         builder: (context, snapshot) {
@@ -178,317 +180,142 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
             filteredHistory = fullHistory;
           }
 
+          final currentItems = currentPageItems;
+
           return Column(
             children: [
-              // Search field
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    labelText: 'Search by project or category',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              // Scrollable content
               Expanded(
-                child: SingleChildScrollView(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Card(
-                      child: DataTable(
-                        columnSpacing: 10,
-                        dataRowHeight: 180,
-                        headingRowHeight: 60,
-                        headingRowColor: MaterialStateProperty.all(
-                          const Color(0xFF388E3C),
-                        ),
-                        headingTextStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        columns: const [
-                          DataColumn(label: Text('SL')),
-                          DataColumn(label: Text('Project')),
-                          DataColumn(label: Text('Investment')),
-                          // DataColumn(label: Text('ROI')),
-                          // DataColumn(label: Text('Capital Return')),
-                          DataColumn(label: Text('Status')),
-                          // DataColumn(label: Text('Actions')),
-                        ],
-                        rows: currentPageItems.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-
-                          final roiAmount = item.roiDetails ?? 0;
-                          final capitalReturnAmount =
-                              item.capitalReturnDetails ?? 0;
-
-                          // Pagination-aware SL
-                          // final slNumber =
-                          //     ((currentPage - 1) * itemsPerPage) + index + 1;
-
-                          return DataRow(
-                            cells: [
-                              DataCell(
-                                Text(
-                                  '${item.sl}', // <-- use item.sl, not just sl
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: ListView.builder(
+                  itemCount: currentItems.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  itemBuilder: (context, index) {
+                    final item = currentItems[index];
+                    return Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      elevation: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: (item.projectImage != null && item.projectImage!.isNotEmpty)
+                                      ? Image.network(
+                                    '${ApiConstants.imgBaseUrl}${item.projectImage}',
+                                    width: 90,
+                                    height: 70,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.broken_image, size: 60),
+                                  )
+                                      : const Icon(Icons.broken_image, size: 60),
                                 ),
-                              ),
-                             // SL column with pagination
-                              DataCell(
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // --- Main Content ---
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: (item.projectImage != null && item.projectImage!.isNotEmpty)
-                                            ? Image.network(
-                                          '${ApiConstants.imgBaseUrl}${item.projectImage}',
-                                          width: 100,
-                                          height: 50,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.broken_image, size: 50),
-                                        )
-                                            : const Icon(Icons.broken_image, size: 50),
-                                      ),
-                                      const SizedBox(height: 12),
-
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.projectTitle ?? 'N/A',
-                                            style: const TextStyle(fontSize: 14, color: Colors.black),
-                                          ),
-                                          // Text.rich(
-                                          //   TextSpan(
-                                          //     children: [
-                                          //       const TextSpan(
-                                          //         text: 'Category: ',
-                                          //         style: TextStyle(
-                                          //           fontSize: 10,
-                                          //           fontWeight: FontWeight.bold,
-                                          //           color: Colors.black,
-                                          //         ),
-                                          //       ),
-                                          //       TextSpan(
-                                          //         text: item.projectCategory ?? 'N/A',
-                                          //         style: const TextStyle(fontSize: 10, color: Colors.black),
-                                          //       ),
-                                          //     ],
-                                          //   ),
-                                          // ),
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                const TextSpan(
-                                                  text: 'Project ID: ',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text: item.project_id.toString(),
-                                                  style: const TextStyle(fontSize: 10, color: Colors.black),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                    ],
+                                const SizedBox(height: 6),
+                                SizedBox(
+                                  width: 90,
+                                  child: LinearProgressIndicator(
+                                    value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
+                                    color: (item.projectProgress ?? 0) >= 100
+                                        ? Colors.green
+                                        : Colors.blue,
+                                    backgroundColor: Colors.grey[300],
+                                    minHeight: 5,
                                   ),
                                 ),
-                              ),
-
-
-                              DataCell(
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(currencyFormatter.format(item.totalInvestment ?? 0)),
-                                    Text(
-                                      formatDate(item.firstInvestmentDate),
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          const TextSpan(
-                                            text: 'ROI: ',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: currencyFormatter.format(roiAmount),
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.normal,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          const TextSpan(
-                                            text: 'Capital Returns: ',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: currencyFormatter.format(capitalReturnAmount),
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.normal,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // (Text(currencyFormatter.format(roiAmount))),
-                                    // (Text(currencyFormatter.format(capitalReturnAmount))),
-                                    // Column(
-                                    //   mainAxisAlignment: MainAxisAlignment.center,
-                                    //   children: [
-                                    //     // Status text
-                                    //     Text(
-                                    //       item.status,
-                                    //       style: TextStyle(
-                                    //         fontWeight: FontWeight.bold,
-                                    //         color: (item.projectProgress ?? 0) >= 100 ? Colors.green : Colors.blue,
-                                    //       ),
-                                    //     ),
-                                    //     const SizedBox(height: 4),
-                                    //
-                                    //     // Show different design based on progress
-                                    //     (item.projectProgress ?? 0) >= 100
-                                    //         ? Column(
-                                    //       children: [
-                                    //         Icon(Icons.check_circle, color: Colors.green, size: 30),
-                                    //         const SizedBox(height: 2),
-                                    //         // Text(
-                                    //         //   'Completed',
-                                    //         //   style: const TextStyle(fontSize: 12, color: Colors.green),
-                                    //         // ),
-                                    //       ],
-                                    //     )
-                                    //         : Column(
-                                    //       children: [
-                                    //         LinearProgressIndicator(
-                                    //           value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
-                                    //           backgroundColor: Colors.grey[300],
-                                    //           color: Colors.blue,
-                                    //           minHeight: 6,
-                                    //         ),
-                                    //         const SizedBox(height: 2),
-                                    //         Text(
-                                    //           '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
-                                    //           style: const TextStyle(fontSize: 12),
-                                    //         ),
-                                    //       ],
-                                    //     ),
-                                    //   ],
-                                    // ),
-
-                                  ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${(item.projectProgress ?? 0).toStringAsFixed(0)}%',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
                                 ),
-                              ),
-
-                              // DataCell(Text(currencyFormatter.format(roiAmount))),
-                              // DataCell(Text(currencyFormatter.format(capitalReturnAmount))),
-                              DataCell(
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // Status text
-                                    Text(
-                                      item.status,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            (item.projectProgress ?? 0) >= 100
-                                            ? Colors.green
-                                            : Colors.blue,
-                                      ),
+                                Text(
+                                  '45 Days Remaining',
+                                  style: const TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (item.projectProgress ?? 0) >= 100
+                                        ? Colors.green.withValues(alpha: 0.15)
+                                        : Colors.blue.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Text(
+                                    item.status,
+                                    style: TextStyle(
+                                      color: (item.projectProgress ?? 0) >= 100
+                                          ? Colors.green[800] // darker text
+                                          : Colors.blue[800],
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
                                     ),
-                                    const SizedBox(height: 4),
+                                  ),
+                                ),
 
-                                    // Show different design based on progress
-                                    (item.projectProgress ?? 0) >= 100
-                                        ? Column(
-                                            children: [
-                                              Icon(
-                                                Icons.check_circle,
-                                                color: Colors.green,
-                                                size: 30,
-                                              ),
-                                              const SizedBox(height: 2),
-                                              // Text(
-                                              //   'Completed',
-                                              //   style: const TextStyle(fontSize: 12, color: Colors.green),
-                                              // ),
-                                            ],
-                                          )
-                                        : Column(
-                                            children: [
-                                              LinearProgressIndicator(
-                                                value:
-                                                    ((item.projectProgress ??
-                                                                0) /
-                                                            100)
-                                                        .clamp(0.0, 1.0),
-                                                backgroundColor:
-                                                    Colors.grey[300],
-                                                color: Colors.blue,
-                                                minHeight: 6,
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                '${(item.projectProgress ?? 0).toStringAsFixed(2)}%',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-
-                                          ),
-                                    const SizedBox(height: 12),
-
-                                    // --- Bottom Buttons with no spacing ---
-                                    Tooltip(
-                                      message: 'All Investments',
-                                      child: ElevatedButton(
+                              ],
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${item.projectTitle ?? 'N/A'}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Project ID: ${item.project_id}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Investment: ${currencyFormatter.format(item.totalInvestment ?? 0)}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  Text(
+                                    'First Investment: ${formatDate(item.firstInvestmentDate)}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    'ROI: ${currencyFormatter.format(item.roiDetails ?? 0)} | Capital Return: ${currencyFormatter.format(item.capitalReturnDetails ?? 0)}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      CustomButton(
+                                        text: 'All Investments (${item.investmentCount})',
+                                        backgroundColor: Colors.green[100]!,
+                                        fontSize: 10,
+                                        textColor: Colors.green,
                                         onPressed: () {
                                           Navigator.push(
                                             context,
@@ -501,26 +328,14 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                             ),
                                           );
                                         },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green[200], // button color
-                                          foregroundColor: Colors.black,      // text color
-                                          elevation: 2,                        // set desired elevation
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          minimumSize: const Size(0, 0),       // compact
-                                        ),
-                                        child: const Text(
-                                          'All Investments',
-                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                        ),
                                       ),
-                                    ),
-
-                                    const SizedBox(height: 6),
-
-                                    if (investorCode != null)
-                                      Tooltip(
-                                        message: 'Total ROI',
-                                        child: ElevatedButton(
+                                      const SizedBox(width: 8),
+                                      if (investorCode != null)
+                                        CustomButton(
+                                          text: '60 Days ROI',
+                                          fontSize: 10,
+                                          backgroundColor: Colors.purple[100]!,
+                                          textColor: Colors.purple,
                                           onPressed: () {
                                             Navigator.push(
                                               context,
@@ -532,137 +347,59 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                               ),
                                             );
                                           },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blue[200],
-                                            foregroundColor: Colors.black,
-                                            elevation: 2,
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                            minimumSize: const Size(0, 0),
-                                          ),
-                                          child: const Text(
-                                            'Total ROI',
-                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                          ),
                                         ),
-                                      ),
-
-                                  ],
-                                ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              // DataCell(
-                              //   Column(
-                              //     crossAxisAlignment: CrossAxisAlignment.center,
-                              //     children: [
-                              //       Tooltip(
-                              //         message: 'View All Investments',
-                              //         child: TextButton(
-                              //           onPressed: () {
-                              //             Navigator.push(
-                              //               context,
-                              //               MaterialPageRoute(
-                              //                 builder: (context) =>
-                              //                     ProjectInvestmentDetailPage(
-                              //                       projectId: item.project_id,
-                              //                       projectTitle:
-                              //                           item.projectTitle ??
-                              //                           'N/A',
-                              //                       projectCategory:
-                              //                           item.projectCategory ??
-                              //                           'N/A',
-                              //                     ),
-                              //               ),
-                              //             );
-                              //           },
-                              //           child: const Text(
-                              //             'View All Investments',
-                              //             style: TextStyle(
-                              //               fontSize: 12,
-                              //               color: Colors.green,
-                              //             ),
-                              //           ),
-                              //         ),
-                              //       ),
-                              //       if (investorCode != null)
-                              //         Tooltip(
-                              //           message: 'View Total ROI Details',
-                              //           child: TextButton(
-                              //             onPressed: () {
-                              //               Navigator.push(
-                              //                 context,
-                              //                 MaterialPageRoute(
-                              //                   builder: (_) => RoiDetailsPage(
-                              //                     investorCode: investorCode!,
-                              //                     projectId: item.project_id,
-                              //                   ),
-                              //                 ),
-                              //               );
-                              //             },
-                              //             child: const Text(
-                              //               'View Total ROI Details',
-                              //               style: TextStyle(
-                              //                 fontSize: 12,
-                              //                 color: Colors.blue,
-                              //               ),
-                              //             ),
-                              //           ),
-                              //         ),
-                              //     ],
-                              //   ),
-                              // ),
-                            ],
-                          );
-                        }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 45),
-// Pagination at bottom center
-              Transform.translate(
-                offset: const Offset(0, -52), // move upward slightly
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30), // proper horizontal padding
-                  alignment: Alignment.center,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // space evenly between buttons and text
-                    children: [
-                      SizedBox(
-                        height: 26, // smaller button height
-                        child: ElevatedButton(
-                          onPressed: currentPage > 1 ? _previousPage : null,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // rounded corners
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          child: const Text('Previous', style: TextStyle(fontSize: 14)),
-                        ),
-                      ),
-                      Text(
-                        'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(
-                        height: 26, // smaller button height
-                        child: ElevatedButton(
-                          onPressed: currentPage * rowsPerPage < filteredHistory.length ? _nextPage : null,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5), // rounded corners
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          child: const Text('Next', style: TextStyle(fontSize: 14)),
-                        ),
-                      ),
-                    ],
-                  ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      offset: Offset(0, -2),
+                      blurRadius: 6,
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-              )
-
-
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomButton(
+                      text: "Previous",
+                      height: 38,
+                      backgroundColor: Colors.grey[400]!,
+                      textColor: Colors.white,
+                      onPressed: currentPage > 1 ? _previousPage : null,
+                    ),
+                    Text(
+                      'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    CustomButton(
+                      text: "Next",
+                      height: 38,
+                      backgroundColor: Colors.grey[400]!,
+                      textColor: Colors.white,
+                      onPressed: currentPage * rowsPerPage < filteredHistory.length
+                          ? _nextPage
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },

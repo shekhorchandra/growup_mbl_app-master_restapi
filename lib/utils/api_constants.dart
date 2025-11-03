@@ -10,7 +10,7 @@ class ApiConstants {
   static const String prodImgBaseUrl = "https://growupagro.tech";
 
 // Toggle environment
-  static const bool isProd = false;
+  static const bool isProd = true;
 
 // Base URL getter
   static String get baseUrl => isProd ? prodBaseUrl : devBaseUrl;
@@ -58,9 +58,6 @@ class ApiConstants {
     }
     return "$imgBaseUrl$path";
   }
-
-
-
 
   // Endpoints
   //-----------------------------------------
@@ -204,12 +201,6 @@ class ApiConstants {
 // Place order
   static String placeOrder() => "$baseUrl/place-order";
 
-//   // Create nominee info
-//   static String createNomineeInfo() => "$baseUrl/investor/nominee/info/create";
-//
-// // Update nominee info
-//   static String updateNomineeInfo = "$baseUrl/investor/profile/nominee-info/update";
-
 // Project certificates endpoint
   static String projectCertificates() => "$baseUrl/investor/project-certificates";
 
@@ -225,224 +216,6 @@ class ApiConstants {
   static String totalIncome(String investorCode) =>
       "$baseUrl/investor/pop-up/total-income?investor_code=$investorCode";
 
-  // Wallet history
-  // static String walletHistory(String investorCode) =>
-  //     "$baseUrl/wallet-history?investor_code=$investorCode";
-
-// Investor profile (wallet, banking, mobile info, etc.)
-//   static String investorProfile(String investorCode) =>
-//       "$baseUrl/investor/profile?investor_code=$investorCode";
-
-// Tax Certificates
   static String taxCertificates(String investorCode) =>
       "$baseUrl/tax-certificates?investor_code=$investorCode";
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
-// import 'package:http/http.dart' as http;
-//
-// class ApiConstants {
-//   // ✅ Base URLs (Production)
-//   static const String baseurl = "https://growupagro.tech/api";
-//   static const String prodImgBaseUrl = "https://growupagro.tech/";
-//
-//   // ✅ Toggle if needed for development (currently production)
-//   static const bool isProd = true;
-//
-//   // -------------------------------
-//   // 🔹 Authentication
-//   static const String login = "$baseurl/investor/login"; // done
-//   static const String logout = "$baseurl/investor/logout";
-//   static const String forgotPassword = "$baseurl/forgot-password";
-//   static const String userRegistration = "$baseurl/user-registration";
-//   static const String changePassword = "$baseurl/change-password";
-//
-//   // -------------------------------
-//   // 🔹 Profile Management
-//   static String investorProfile(String investorCode) =>
-//       "$baseurl/investor/profile?investor_code=$investorCode";
-//
-//   static const String updateInvestorInfo =
-//       "$baseurl/investor/profile/investor-info/update";
-//
-//   static const String updateBankInfo =
-//       "$baseurl/investor/profile/bank-info/update";
-//
-//   static const String updateMobileBankingInfo =
-//       "$baseurl/investor/profile/mobile-banking-info/update";
-//
-//   static const String updateNomineeInfo =
-//       "$baseurl/investor/profile/nominee-info/update";
-//
-//   static String createNomineeInfo() => "$baseurl/investor/nominee/info/create";
-//
-//   static String updateProfileInfo = "$baseurl/investor/profile/investor-info/update";
-//
-//
-//   // -------------------------------
-//   // 🔹 Investment
-//   static String investmentHistory(String investorCode) =>
-//       "$baseurl/investment-history?investor_code=$investorCode";
-//
-//   static String projectInvestmentDetail(String investorCode, String projectId) =>
-//       "$baseurl/peoject/investment/detail?investor_code=$investorCode&project_id=$projectId";
-//
-//   static String investorProjectDetails(String investorCode, String projectId) =>
-//       "$baseurl/investor/project-details?investor_code=$investorCode&project_id=$projectId";
-//
-//   static String investorProjectList(String investorId) =>
-//       "$baseurl/investor/project-list?id=$investorId";
-//
-//   static String completedProjects(String investorCode) =>
-//       "$baseurl/completed-projects?investor_code=$investorCode";
-//
-//   static String allProjects() => "$baseurl/all-projects";
-//
-//   static String investNow() => "$baseurl/investor/invest-now";
-//
-//   // -------------------------------
-//   // 🔹 Wallet
-//   static String walletHistory(String investorCode) =>
-//       "$baseurl/wallet-history?investor_code=$investorCode";
-//
-//   static String totalInvestmentHistory =
-//       "$baseurl/investor/total_investment_history";
-//
-//   // -------------------------------
-//   // 🔹 Deposit & Withdraw
-//   static String depositRequest() => "$baseurl/deposit-request";
-//
-//   static String depositHistory(String investorCode) =>
-//       "$baseurl/investor/deposit-history?investor_code=$investorCode";
-//
-//   static String withdrawHistory(String investorCode) =>
-//       "$baseurl/widraw-history?investor_code=$investorCode";
-//
-//   static String submitWithdraw() => "$baseurl/investor/withdraw";
-//
-//   // 🔹 All Properties (packages) endpoint
-//   static String get allProperties => "$baseurl/properties";
-//
-//   // -------------------------------
-//   // 🔹 ROI & Capital Returns
-//   static String roiList(String investorCode, String projectId) =>
-//       "$baseurl/roi-list?investor_code=$investorCode&project_id=$projectId";
-//
-//   static String roiListinvoice(String investorCode) =>
-//       "$baseurl/rois?investor_code=$investorCode";
-//
-//   static String roiInvoiceDownload(String invoiceNo) =>
-//       "$baseurl/roi-invoice-download/$invoiceNo";
-//
-//   static String capitalReturns(String investorCode) =>
-//       "$baseurl/capital-returns?investor_code=$investorCode";
-//
-//   static String capitalReturnInvoiceDownload(String invoiceNo) =>
-//       "$baseurl/capital-return-invoice-download/$invoiceNo";
-//
-//   // -------------------------------
-//   // 🔹 Invoices
-//   static String invoices(String investorCode) =>
-//       "$baseurl/invoices?investor_code=$investorCode";
-//
-//   static String invoicePdf(String invoiceNo) =>
-//       "$baseurl/invoice/pdf/$invoiceNo";
-//
-//   // -------------------------------
-//   // 🔹 Recharge
-//   static String recharges(String investorCode) =>
-//       "$baseurl/recharges?investor_code=$investorCode";
-//
-//   static String rechargeInvoicePdf(String invoiceNo) =>
-//       "$baseurl/recharge-invoice/$invoiceNo";
-//
-//   // -------------------------------
-//   // 🔹 Projects Popup & Income
-//   static String investorPopUpProjects(String investorCode) =>
-//       "$baseurl/investor/pop-up/my-projects?investor_code=$investorCode";
-//
-//   static String todaysIncome(String investorCode) =>
-//       "$baseurl/investor/pop-up/todays-income?investor_code=$investorCode";
-//
-//   static String totalIncome(String investorCode) =>
-//       "$baseurl/investor/pop-up/total-income?investor_code=$investorCode";
-//
-//   // -------------------------------
-//   // 🔹 Products & Orders
-//   static String products(String investorCode) =>
-//       "$baseurl/products?investor_code=$investorCode";
-//
-//   static String productDetails(String slug) =>
-//       "$baseurl/product-details/$slug";
-//
-//   static String placeOrder() => "$baseurl/place-order";
-//
-//   static String myOrders(String investorCode) =>
-//       "$baseurl/my-orders?investor_code=$investorCode";
-//
-//   // -------------------------------
-//   // 🔹 Certificates
-//   static String projectCertificates() => "$baseurl/project-crretificates";
-//
-//   static String taxCertificateDownload(
-//       String startFiscalYear, String investorCode) =>
-//       "$baseurl/tax-certificate/download/$startFiscalYear?investor_code=$investorCode";
-//
-//   static String taxCertificates(String investorCode) =>
-//       "$baseurl/tax-certificates?investor_code=$investorCode";
-//
-//   // -------------------------------
-//   // 🔹 Static Pages
-//   static String get aboutUsUrl => "$prodImgBaseUrl/about-us";
-//   static String get newsUrl => "$prodImgBaseUrl/news";
-//   static String get blogsUrl => "$prodImgBaseUrl/blogs";
-//   static String get certificatesUrl => "$prodImgBaseUrl/crretificates";
-//
-//   // -------------------------------
-//   // 🔹 Sliders
-//   static String sliderImages() => "$baseurl/investor/sliders";
-//
-//   // -------------------------------
-//   // 🔹 Helpers
-//   static String getProductImage(String? path) {
-//     if (path == null || path.isEmpty) {
-//       return "assets/images/placeholder.png";
-//     }
-//     return "$prodImgBaseUrl$path";
-//   }
-//
-//   static String getPackageImage(String? path) {
-//     if (path == null || path.isEmpty) {
-//       return "assets/images/placeholder.png";
-//     }
-//     return "$prodImgBaseUrl$path";
-//   }
-//
-//   // -------------------------------
-//   // 🔹 Example API call
-//   static Future<String> fetchInvestorProjectDetails(
-//       String investorCode, String projectId) async {
-//     final url = Uri.parse(
-//         "$baseurl/investor/project-details?investor_code=$investorCode&project_id=$projectId");
-//     final response = await http.get(url);
-//     return response.body;
-//   }
-// }
-
-
-
