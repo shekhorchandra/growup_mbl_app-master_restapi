@@ -44,6 +44,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -61,7 +62,6 @@ class DashboardInvestor extends StatefulWidget {
 }
 
 class _DashboardInvestorState extends State<DashboardInvestor> {
-
   int _selectedIndex = 0;
   double totalIncome = 0.0;
   double todaysIncome = 0.0;
@@ -96,7 +96,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     // Initialize immediately to avoid LateInitializationError
     _profileFuture = getInvestorProfileFromPrefs();
 
-
     // Then refresh data in background
     fetchAndSaveInvestorProfile().then((_) {
       setState(() {
@@ -113,13 +112,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         _walletTransactions = list
             .map(
               (e) => {
-            'type': e.type,
-            'date': e.date ?? '',
-            'amount': e.amount,
-            'status': e.status ?? 'N/A',
-            'trx_id': e.trxId,
-          },
-        )
+                'type': e.type,
+                'date': e.date ?? '',
+                'amount': e.amount,
+                'status': e.status ?? 'N/A',
+                'trx_id': e.trxId,
+              },
+            )
             .toList();
       });
     });
@@ -414,6 +413,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       );
     }
   }
+
   //logout end
 
   //transaction
@@ -482,7 +482,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         }
 
         final List<dynamic> shariahProjects =
-        jsonData['projects']['Live Projects'];
+            jsonData['projects']['Live Projects'];
 
         return shariahProjects
             .map((json) => LiveProject.fromJson(json))
@@ -498,6 +498,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       throw Exception('Failed to load Live Projects');
     }
   }
+
   //Projects you may invest end
 
   // by default back button
@@ -508,7 +509,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const IntroPage()),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -608,13 +609,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                         currentAccountPicture: CircleAvatar(
                           backgroundImage:
-                          profile['image'] != null &&
-                              profile['image'].toString().isNotEmpty
+                              profile['image'] != null &&
+                                  profile['image'].toString().isNotEmpty
                               ? NetworkImage(
-                            "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
-                          )
+                                  "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
+                                )
                               : const AssetImage('assets/images/img.png')
-                          as ImageProvider,
+                                    as ImageProvider,
                         ),
                       ),
 
@@ -640,13 +641,22 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // remove top/bottom padding
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // remove top/bottom padding
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                            visualDensity: const VisualDensity(vertical: -4), // compact vertical space
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            // compact vertical space
                             leading: Icon(
                               FontAwesomeIcons.wallet,
                               size: 16, // smaller child icon
@@ -654,13 +664,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             ),
                             title: Text(
                               'My Wallet',
-                              style: TextStyle(fontSize: 13), // smaller child text
+                              style: TextStyle(
+                                fontSize: 13,
+                              ), // smaller child text
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/wallet'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/wallet'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.moneyCheck,
@@ -671,11 +687,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Deposit',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/deposit'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/deposit'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.arrowDown,
@@ -686,7 +706,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Withdraw',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/withdraw'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/withdraw'),
                           ),
                         ],
                       ),
@@ -705,12 +726,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.folderOpen,
@@ -721,11 +749,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Projects',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/projects'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/projects'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.projectDiagram,
@@ -736,11 +768,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Invested Projects',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/myprojects'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/myprojects'),
                           ),
                         ],
                       ),
-
 
                       //invoice
                       ExpansionTile(
@@ -757,12 +789,20 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileInvoice,
@@ -773,11 +813,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Growup',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/invoice_growup'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/invoice_growup'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.warehouse,
@@ -792,7 +836,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileInvoiceDollar,
@@ -803,26 +850,33 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Recharge',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/invoice_recharge'),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/invoice_recharge',
+                            ),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.coins,
                               size: 16,
                               color: Colors.green,
                             ),
-                            title: Text(
-                              'ROI',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                            onTap: () => Navigator.pushNamed(context, '/invoice_roi'),
+                            title: Text('ROI', style: TextStyle(fontSize: 13)),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/invoice_roi'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.handHoldingDollar,
@@ -833,11 +887,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Capital Return',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/capital_return'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/capital_return'),
                           ),
                         ],
                       ),
-
 
                       _buildDrawerItem(
                         FontAwesomeIcons.history,
@@ -860,12 +914,20 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.building,
@@ -876,11 +938,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Package Details',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/properties'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/properties'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.shoppingBag,
@@ -910,12 +976,20 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.box,
@@ -926,11 +1000,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'All Products',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/products'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/products'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.shoppingCart,
@@ -945,7 +1023,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.boxOpen,
@@ -956,11 +1037,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'My Orders',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/myorders'),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/myorders'),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.truck,
@@ -977,7 +1062,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       ),
                       // _buildDrawerItem(Icons.work_outline, 'Projects', context, '/projects'),
                       // _buildDrawerItem(Icons.account_balance_wallet, 'My Projects', context, '/myprojects'),
-
 
                       //_buildDrawerItem(Icons.account_balance_wallet_outlined, 'Wallet', context, '/Wallet'),
                       _buildDrawerItem(
@@ -1001,12 +1085,20 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
                         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                        childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
                         dense: true,
                         children: <Widget>[
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.fileAlt,
@@ -1017,11 +1109,17 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'TAX Certificate',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/tax_certificate'),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/tax_certificate',
+                            ),
                           ),
                           ListTile(
                             dense: true,
-                            contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
                             visualDensity: const VisualDensity(vertical: -4),
                             leading: Icon(
                               FontAwesomeIcons.coins,
@@ -1032,59 +1130,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               'Investment Certificate',
                               style: TextStyle(fontSize: 13),
                             ),
-                            onTap: () => Navigator.pushNamed(context, '/project_certificate'),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/project_certificate',
+                            ),
                           ),
                         ],
                       ),
-                      // ExpansionTile(
-                      //   leading: Icon(
-                      //     FontAwesomeIcons.infoCircle,
-                      //     color: Colors.green,
-                      //     size: 20, // main icon size
-                      //   ),
-                      //   title: Text(
-                      //     'About',
-                      //     style: TextStyle(
-                      //       fontSize: 14, // main text size
-                      //       fontWeight: FontWeight.w500,
-                      //     ),
-                      //   ),
-                      //   tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      //   childrenPadding: const EdgeInsets.only(left: 30, top: 0, bottom: 0), // compact padding
-                      //   dense: true,
-                      //   children: <Widget>[
-                      //     ListTile(
-                      //       dense: true,
-                      //       contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                      //       visualDensity: const VisualDensity(vertical: -4),
-                      //       leading: Icon(
-                      //         FontAwesomeIcons.infoCircle,
-                      //         size: 16,
-                      //         color: Colors.green,
-                      //       ),
-                      //       title: Text(
-                      //         'About Us',
-                      //         style: TextStyle(fontSize: 13),
-                      //       ),
-                      //       onTap: () => Navigator.pushNamed(context, '/about_us'),
-                      //     ),
-                      //     ListTile(
-                      //       dense: true,
-                      //       contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                      //       visualDensity: const VisualDensity(vertical: -4),
-                      //       leading: Icon(
-                      //         FontAwesomeIcons.fileAlt,
-                      //         size: 16, // reduced from 28
-                      //         color: Colors.green,
-                      //       ),
-                      //       title: Text(
-                      //         'Certificates',
-                      //         style: TextStyle(fontSize: 13),
-                      //       ),
-                      //       onTap: () => Navigator.pushNamed(context, '/certificate'),
-                      //     ),
-                      //   ],
-                      // ),
 
                       _buildDrawerItem(
                         FontAwesomeIcons.infoCircle,
@@ -1155,192 +1207,194 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         appBar: _selectedIndex == 4
             ? null
             : AppBar(
-          backgroundColor: const Color(0xFF2E7D32),
-          centerTitle: true,
-          foregroundColor: Colors.white,
-          automaticallyImplyLeading: false,
-          toolbarHeight: 70,
-          elevation: 0,
+                backgroundColor: const Color(0xFF2E7D32),
+                centerTitle: true,
+                foregroundColor: Colors.white,
+                automaticallyImplyLeading: false,
+                toolbarHeight: 70,
+                elevation: 0,
 
-          // Drawer avatar at the left
-          leading: Builder(
-            builder: (context) => GestureDetector(
-              onTap: () => {
-                Scaffold.of(context).openEndDrawer(),
-              },
-              child: Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 16),
-                child: FutureBuilder<Map<String, dynamic>>(
-                  future: _profileFuture,
-                  builder: (context, snapshot) {
-                    Widget avatar;
+                // Drawer avatar at the left
+                leading: Builder(
+                  builder: (context) => GestureDetector(
+                    onTap: () => {Scaffold.of(context).openEndDrawer()},
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.only(left: 16),
+                      child: FutureBuilder<Map<String, dynamic>>(
+                        future: _profileFuture,
+                        builder: (context, snapshot) {
+                          Widget avatar;
 
-                    if (!snapshot.hasData) {
-                      avatar = ClipOval(
-                        child: Image.asset(
-                          'assets/images/img.png',
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    } else {
-                      final profile = snapshot.data!;
-
-                      final imageUrl =
-                      profile['image'] != null &&
-                          profile['image'].toString().isNotEmpty
-                          ? ApiConstants.getImageUrl(profile['image'])
-                          : null;
-
-                      avatar = ClipOval(
-                        child: Image(
-                          image: imageUrl != null
-                              ? NetworkImage(imageUrl)
-                              : const AssetImage('assets/images/img.png')
-                          as ImageProvider,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    }
-
-                    return Transform.translate(
-                      offset: const Offset(0, 2),
-                      child: AspectRatio(
-                        aspectRatio:
-                        1, // Ensure the widget is always square
-                        child: avatar,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // Main content (name + balance)
-          title: _isSearching
-              ? TextField(
-            controller: _searchController,
-            autofocus: true,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              hintText: "Search...",
-              hintStyle: TextStyle(color: Colors.white70),
-              border: InputBorder.none,
-            ),
-            onChanged: (value) {
-              // Handle search here
-              print("Searching: $value");
-            },
-          )
-              : AppbarContent(profileFuture: _profileFuture, loyaltyPoints: _loyaltyPoints, walletBalance: _walletBalance),
-
-          // Notification bell on the right
-
-          // Normal title
-          actions: [
-            // Search Icon
-            IconButton(
-              key: _searchKey,
-              icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: () {
-                final RenderBox renderBox =
-                _searchKey.currentContext!.findRenderObject()
-                as RenderBox;
-                final Offset position = renderBox.localToGlobal(
-                  Offset.zero,
-                );
-
-                // Move bar upward (subtract 10 px for example)
-                final double popupTop =
-                    position.dy + renderBox.size.height - 30;
-
-                showDialog(
-                  context: context,
-                  barrierColor: Colors.transparent, // no dark overlay
-                  builder: (context) {
-                    return Stack(
-                      children: [
-                        Positioned(
-                          top: popupTop,
-                          left: 0,
-                          right: 0,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
+                          if (!snapshot.hasData) {
+                            avatar = ClipOval(
+                              child: Image.asset(
+                                'assets/images/img.png',
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
                               ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(
-                                        0.9,
-                                      ), // white shadow
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                      offset: const Offset(0, 3),
+                            );
+                          } else {
+                            final profile = snapshot.data!;
+
+                            final imageUrl =
+                                profile['image'] != null &&
+                                    profile['image'].toString().isNotEmpty
+                                ? ApiConstants.getImageUrl(profile['image'])
+                                : null;
+
+                            avatar = ClipOval(
+                              child: Image(
+                                image: imageUrl != null
+                                    ? NetworkImage(imageUrl)
+                                    : const AssetImage('assets/images/img.png')
+                                          as ImageProvider,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }
+
+                          return Transform.translate(
+                            offset: const Offset(0, 2),
+                            child: AspectRatio(
+                              aspectRatio:
+                                  1, // Ensure the widget is always square
+                              child: avatar,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Main content (name + balance)
+                title: _isSearching
+                    ? TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          hintText: "Search...",
+                          hintStyle: TextStyle(color: Colors.white70),
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (value) {
+                          // Handle search here
+                          print("Searching: $value");
+                        },
+                      )
+                    : AppbarContent(
+                        profileFuture: _profileFuture,
+                        loyaltyPoints: _loyaltyPoints,
+                        walletBalance: _walletBalance,
+                      ),
+
+                // Notification bell on the right
+
+                // Normal title
+                actions: [
+                  // Search Icon
+                  IconButton(
+                    key: _searchKey,
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    onPressed: () {
+                      final RenderBox renderBox =
+                          _searchKey.currentContext!.findRenderObject()
+                              as RenderBox;
+                      final Offset position = renderBox.localToGlobal(
+                        Offset.zero,
+                      );
+
+                      // Move bar upward (subtract 10 px for example)
+                      final double popupTop =
+                          position.dy + renderBox.size.height - 30;
+
+                      showDialog(
+                        context: context,
+                        barrierColor: Colors.transparent, // no dark overlay
+                        builder: (context) {
+                          return Stack(
+                            children: [
+                              Positioned(
+                                top: popupTop,
+                                left: 0,
+                                right: 0,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
                                     ),
-                                  ],
-                                ),
-                                child: TextField(
-                                  controller: _searchController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search...',
-                                    prefixIcon: const Icon(Icons.search),
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding:
-                                    const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(6),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.9,
+                                            ), // white shadow
+                                            blurRadius: 10,
+                                            spreadRadius: 2,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
                                       ),
-                                      borderSide: const BorderSide(
-                                        color: Colors.grey,
+                                      child: TextField(
+                                        controller: _searchController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Search...',
+                                          prefixIcon: const Icon(Icons.search),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-
-            // Notification Bell
-            IconButton(
-              icon: const Icon(
-                Icons.notifications_none,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationPage(),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
-                );
-              },
-            ),
 
-            const SizedBox(width: 0), // optional spacing at the end
-          ],
-        ),
+                  // Notification Bell
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_none,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(width: 0), // optional spacing at the end
+                ],
+              ),
 
         body: RefreshIndicator(
           onRefresh: _refreshDashboard,
@@ -1367,41 +1421,71 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 DashboardSummaryCard(
                   items: [
                     SummaryItem(
-                      icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green),
+                      icon: SvgPicture.asset(
+                        Assets.iconsTotalInvestment,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.green,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       value: totalInvestment.toString(),
                       label: 'Total Investment',
                     ),
                     SummaryItem(
-                      icon: SvgPicture.asset(Assets.iconsTotalIncome, color: Colors.green),
+                      icon: SvgPicture.asset(
+                        Assets.iconsTotalIncome,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.green,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       value: totalIncome.toString(),
                       label: 'Total Income',
                     ),
                     SummaryItem(
-                      icon: SvgPicture.asset(Assets.iconsTodaysIncome, color: Colors.green),
+                      icon: SvgPicture.asset(
+                        Assets.iconsTodaysIncome,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.green,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       value: todaysIncome.toString(),
                       label: "Today's Income",
                     ),
                   ],
                 ),
 
-                SizedBox(height: 8,),
+                SizedBox(height: 8),
 
                 DashboardSummaryCard(
                   items: [
                     SummaryItem(
-                      icon: SvgPicture.asset(Assets.iconsTodaysIncome, color: Colors.green),
+                      icon: SvgPicture.asset(
+                        Assets.iconsTodaysIncome,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.green,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       value: totalProjects.toString(),
                       label: 'My Grow Up Projects',
                     ),
                     SummaryItem(
-                      icon: SvgPicture.asset(Assets.iconsGrowUpPropertis, color: Colors.green),
+                      icon: SvgPicture.asset(
+                        Assets.iconsGrowUpPropertis,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.green,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       value: '0',
                       label: 'Ordered Properties',
                     ),
                   ],
                 ),
 
-                SizedBox(height: 8,),
+                SizedBox(height: 8),
 
                 const CertificationsSection(),
 
@@ -1411,17 +1495,20 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 // The new parent Container adds the margin.
                 Padding(
                   padding: const EdgeInsets.only(left: 16, top: 14),
-                  child: Text("ACHIEVEMENT", style: TextStyle(
+                  child: Text(
+                    "ACHIEVEMENT",
+                    style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF2E7D32),
-                      fontWeight: FontWeight.w600
-                  )),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                SizedBox(height: 8,),
+                SizedBox(height: 8),
 
                 AchievementCard(),
 
-                SizedBox(height: 8,),
+                SizedBox(height: 8),
 
                 Container(
                   decoration: BoxDecoration(
@@ -1451,15 +1538,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     fontSize: 14,
                                     color: Color(0xFF2E7D32),
                                     fontWeight: FontWeight.w600,
-                                    height: 1.0, //  tighten line height slightly
+                                    height:
+                                        1.0, //  tighten line height slightly
                                   ),
                                 ),
                               ],
                             ),
-                            Image.asset(
-                              'assets/icons/Shariah.png',
-                              width: 70,
-                            ),
+                            Image.asset('assets/icons/Shariah.png', width: 70),
                           ],
                         ),
                       ),
@@ -1474,27 +1559,64 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             CategoryGridCard(
                               minCrossAxisCount: 3,
                               maxCrossAxisCount: 3,
-                              aspectRatio: 1.6, //  same ratio for consistent height
+                              aspectRatio: 1.6,
+                              //  same ratio for consistent height
                               items: [
                                 CategoryItem(
-                                  icon: SvgPicture.asset(Assets.iconsLiveProject, color: Colors.green),
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsLiveProject,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   title: 'Live Projects',
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveProjectsPage()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LiveProjectsPage(),
+                                      ),
+                                    );
                                   },
                                 ),
                                 CategoryItem(
-                                  icon: SvgPicture.asset(Assets.iconsTotalInvestment, color: Colors.green),
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsTotalInvestment,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   title: 'Long Duration',
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LongProjectsPage()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LongProjectsPage(),
+                                      ),
+                                    );
                                   },
                                 ),
                                 CategoryItem(
-                                  icon: SvgPicture.asset(Assets.iconsSort, color: Colors.green),
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsSort,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   title: 'Short Duration',
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ShortProjectsPage()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ShortProjectsPage(),
+                                      ),
+                                    );
                                   },
                                 ),
                               ],
@@ -1509,17 +1631,41 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               aspectRatio: 2.5, //  same as above
                               items: [
                                 CategoryItem(
-                                  icon: SvgPicture.asset(Assets.iconsMach, color: Colors.green),
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsMach,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   title: 'Matured Projects',
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedProjectsPage()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CompletedProjectsPage(),
+                                      ),
+                                    );
                                   },
                                 ),
                                 CategoryItem(
-                                  icon: SvgPicture.asset(Assets.iconsEarning, color: Colors.green),
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsEarning,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   title: 'All GrowUp Projects',
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AllProjectsPage()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AllProjectsPage(),
+                                      ),
+                                    );
                                   },
                                 ),
                               ],
@@ -1564,7 +1710,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                    const AllProjectsPage(),
+                                        const AllProjectsPage(),
                                   ),
                                 );
                               },
@@ -1609,7 +1755,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               height: 180,
                               child: CarouselSlider(
                                 options: CarouselOptions(
-                                  height: MediaQuery.of(context).size.height * 0.20,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.20,
                                   autoPlay: true,
                                   autoPlayInterval: const Duration(seconds: 5),
                                   enlargeCenterPage: true,
@@ -1620,27 +1767,45 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   return Builder(
                                     builder: (BuildContext context) {
                                       return Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 6.0,
+                                          vertical: 4.0,
+                                        ),
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: const Color(0xFF2E7D32), // deep green border
+                                            color: const Color(0xFF2E7D32),
+                                            // deep green border
                                             width: 1,
                                           ),
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                         clipBehavior: Clip.antiAlias,
                                         child: _buildProjectCard(
                                           context: context,
                                           imageUrl: project.imageUrl ?? '',
-                                          projectId: project.id?.toString() ?? '',
+                                          projectId:
+                                              project.id?.toString() ?? '',
                                           name: project.projectName ?? 'N/A',
-                                          type: project.investmentType_name ?? "N/A",
-                                          goal: '${project.investmentGoal ?? '0'} Tk',
-                                          duration: project.project_duration_viewer ?? 'N/A',
-                                          minInvestment: '${project.min_investment_amount ?? '0'} Tk',
-                                          time: '${project.remaining_opportunity_days ?? 0} Days',
+                                          type:
+                                              project.investmentType_name ??
+                                              "N/A",
+                                          goal:
+                                              '${project.investmentGoal ?? '0'} Tk',
+                                          duration:
+                                              project.project_duration_viewer ??
+                                              'N/A',
+                                          minInvestment:
+                                              '${project.min_investment_amount ?? '0'} Tk',
+                                          time:
+                                              '${project.remaining_opportunity_days ?? 0} Days',
                                           roi: '${project.annualRoi ?? 0}%',
-                                          isTablet: MediaQuery.of(context).size.width >= 600,
+                                          isTablet:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.width >=
+                                              600,
                                         ),
                                       );
                                     },
@@ -1648,7 +1813,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 }).toList(),
                               ),
                             );
-
                           },
                         ),
                       ],
@@ -1659,11 +1823,14 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 // Properties Investment by category
                 Padding(
                   padding: const EdgeInsets.only(left: 16, top: 16),
-                  child: Text("INVESTMENT BY CATEGORY", style: TextStyle(
+                  child: Text(
+                    "INVESTMENT BY CATEGORY",
+                    style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF2E7D32),
-                      fontWeight: FontWeight.w600
-                  )),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
 
@@ -1735,9 +1902,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               // Row 1: Residential + Commercial (No change)
                               Row(
                                 children: [
-                                  Expanded(child: _buildCategoryButton6('Residential ', FontAwesomeIcons.city)),
+                                  Expanded(
+                                    child: _buildCategoryButton6(
+                                      'Residential ',
+                                      FontAwesomeIcons.city,
+                                    ),
+                                  ),
                                   const SizedBox(width: 8),
-                                  Expanded(child: _buildCategoryButton7('Commercial ', FontAwesomeIcons.handshake)),
+                                  Expanded(
+                                    child: _buildCategoryButton7(
+                                      'Commercial ',
+                                      FontAwesomeIcons.handshake,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 10),
@@ -1745,9 +1922,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               // Row 3: ROSA HiTech City + ROSA Health (No change)
                               Row(
                                 children: [
-                                  Expanded(child: _buildCategoryButton8('ROSA HiTech City', FontAwesomeIcons.microchip)),
+                                  Expanded(
+                                    child: _buildCategoryButton8(
+                                      'ROSA HiTech City',
+                                      FontAwesomeIcons.microchip,
+                                    ),
+                                  ),
                                   const SizedBox(width: 8),
-                                  Expanded(child: _buildCategoryButton9('ROSA Health', FontAwesomeIcons.heartbeat)),
+                                  Expanded(
+                                    child: _buildCategoryButton9(
+                                      'ROSA Health',
+                                      FontAwesomeIcons.heartbeat,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 10),
@@ -1764,19 +1951,28 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   const SizedBox(height: 20),
                                   // 2. The new Tree List for Sub-Children
                                   _buildTreeListItem(
-                                    child: _buildCategoryButton22('The Royal Agro Eco Tourism', FontAwesomeIcons.seedling),
+                                    child: _buildCategoryButton22(
+                                      'The Royal Agro Eco Tourism',
+                                      FontAwesomeIcons.seedling,
+                                    ),
                                     isLast: false,
                                   ),
                                   _buildTreeListItem(
-                                    child: _buildCategoryButton23('The Royal Palace', FontAwesomeIcons.landmark),
+                                    child: _buildCategoryButton23(
+                                      'The Royal Palace',
+                                      FontAwesomeIcons.landmark,
+                                    ),
                                     isLast: false,
                                   ),
                                   _buildTreeListItem(
-                                    child: _buildCategoryButton24('The Royal North-Bengal Club', FontAwesomeIcons.users),
+                                    child: _buildCategoryButton24(
+                                      'The Royal North-Bengal Club',
+                                      FontAwesomeIcons.users,
+                                    ),
                                     isLast: true, // Mark the last item
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -1793,14 +1989,16 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-
                           Padding(
                             padding: const EdgeInsets.only(left: 16, top: 16),
-                            child: Text("PROPERTIES YOU MAY INVEST", style: TextStyle(
+                            child: Text(
+                              "PROPERTIES YOU MAY INVEST",
+                              style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF2E7D32),
-                                fontWeight: FontWeight.w600
-                            )),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 8),
 
@@ -1811,7 +2009,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                  const AllPropertiesPage(),
+                                      const AllPropertiesPage(),
                                 ),
                               );
                             },
@@ -1835,22 +2033,28 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         child: FutureBuilder<AllPropertiesResponse>(
                           future: fetchProperties(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
-                            } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.propertyPackages.isEmpty) {
+                            } else if (snapshot.hasError ||
+                                !snapshot.hasData ||
+                                snapshot.data!.propertyPackages.isEmpty) {
                               // Combined error and no-data checks for brevity
                               return const Center(
                                 child: Text("No properties found"),
                               );
                             }
 
-                            final propertyPackages = snapshot.data!.propertyPackages;
+                            final propertyPackages =
+                                snapshot.data!.propertyPackages;
 
                             // Ensure you have enough data to display 2 items
                             // If you have less than 2, the viewportFraction might look odd.
-                            final displayPackages = propertyPackages.take(propertyPackages.length);
+                            final displayPackages = propertyPackages.take(
+                              propertyPackages.length,
+                            );
 
                             return CarouselSlider(
                               options: CarouselOptions(
@@ -1867,8 +2071,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 enableInfiniteScroll: true,
 
                                 // Add a little padding to the carousel itself for spacing (optional but recommended)
-                                pageSnapping: true, // Optional: ensures snapping to whole pages (items)
-
+                                pageSnapping:
+                                    true, // Optional: ensures snapping to whole pages (items)
                                 // The sliding step remains 1 by default, which is exactly what you need.
                               ),
 
@@ -1877,10 +2081,14 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 return Builder(
                                   builder: (BuildContext context) {
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.0), // Add padding between cards
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4.0,
+                                      ),
+                                      // Add padding between cards
                                       child: _buildPropertyCard(
                                         context: context,
-                                        imageUrl: "https://growupagro.tech${package.imageUrl}",
+                                        imageUrl:
+                                            "https://growupagro.tech${package.imageUrl}",
                                         propertyName: package.propertyName,
                                         packageName: package.packageName,
                                       ),
@@ -1906,19 +2114,21 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 16, top: 16),
-                          child: Text("TRANSACTION", style: TextStyle(
+                          child: Text(
+                            "TRANSACTION",
+                            style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF2E7D32),
-                              fontWeight: FontWeight.w600
-                          )),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    WalletHistoryPage(),
+                                builder: (context) => WalletHistoryPage(),
                               ),
                             );
                           },
@@ -1928,10 +2138,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 'See All',
                                 style: TextStyle(color: Colors.orange),
                               ),
-                              Icon(
-                                Icons.arrow_forward,
-                                color: Colors.orange,
-                              ),
+                              Icon(Icons.arrow_forward, color: Colors.orange),
                             ],
                           ),
                         ),
@@ -1958,15 +2165,14 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           icon = Icons.bar_chart;
                         } else if (type == 'recharge') {
                           icon = Icons.bolt;
-                        }
-                        else {
+                        } else {
                           icon = Icons.help_outline;
                         }
 
                         return _buildTransactionItem(
                           icon,
                           tx['type'].toString().toUpperCase(),
-                          tx['date'] ?? '',  // <- use 'date' not 'created_at'
+                          tx['date'] ?? '', // <- use 'date' not 'created_at'
                           '${tx['amount']} Tk',
                           tx['status'] ?? 'N/A',
                         );
@@ -1982,11 +2188,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   }
 
   // left drawer
-  Widget _buildDrawerItem(IconData icon, String title, BuildContext context, String route) {
+  Widget _buildDrawerItem(
+    IconData icon,
+    String title,
+    BuildContext context,
+    String route,
+  ) {
     return ListTile(
-      dense: true, // makes the tile vertically smaller
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16), // reduce left/right padding
-      visualDensity: const VisualDensity(vertical: -4), // shrink vertical space
+      dense: true,
+      // makes the tile vertically smaller
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      // reduce left/right padding
+      visualDensity: const VisualDensity(vertical: -4),
+      // shrink vertical space
       leading: Icon(
         icon,
         color: Colors.green,
@@ -2007,11 +2221,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
   // imagecard
   Widget buildFullImageCard(
-      BuildContext context,
-      String title,
-      String value,
-      String imagePath,
-      ) {
+    BuildContext context,
+    String title,
+    String value,
+    String imagePath,
+  ) {
     return Container(
       width: double.infinity,
       height: 100,
@@ -2019,7 +2233,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.9),
+            color: Colors.grey.withValues(alpha: 0.9),
             spreadRadius: 2,
             blurRadius: 5,
           ),
@@ -2037,7 +2251,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2), // adjust strength
               child: Container(
-                color: Colors.black.withOpacity(0.3), // dark overlay
+                color: Colors.black.withValues(alpha: 0.3), // dark overlay
               ),
             ),
 
@@ -2172,11 +2386,15 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16 , color: Colors.green), // 👈 icon
+            Icon(icon, size: 16, color: Colors.green), // 👈 icon
             const SizedBox(width: 8), // space between icon & text
             Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: size,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -2196,9 +2414,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CommercialPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const CommercialPage()),
           );
         },
         style: OutlinedButton.styleFrom(
@@ -2217,48 +2433,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             const SizedBox(width: 8), // space between icon & text
             Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //royal north
-  Widget _buildCategoryButton21(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ResidencialCityPage(),
-            ),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: Colors.green), // 👈 icon
-            const SizedBox(width: 12), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: size,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -2278,9 +2457,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const RosahitechCityPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const RosahitechCityPage()),
           );
         },
         style: OutlinedButton.styleFrom(
@@ -2299,7 +2476,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             const SizedBox(width: 8), // space between icon & text
             Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: size,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -2319,9 +2500,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const HealthCityPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const HealthCityPage()),
           );
         },
         style: OutlinedButton.styleFrom(
@@ -2340,7 +2519,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             const SizedBox(width: 8), // space between icon & text
             Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: size,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -2360,9 +2543,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const RoyalEcoCityPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const RoyalEcoCityPage()),
           );
         },
         style: OutlinedButton.styleFrom(
@@ -2381,7 +2562,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             const SizedBox(width: 8), // space between icon & text
             Text(
               label,
-              style: TextStyle(color: Colors.black, fontSize: size, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: size,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -2445,9 +2630,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const PalaceCityPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const PalaceCityPage()),
             );
           },
           style: OutlinedButton.styleFrom(
@@ -2490,9 +2673,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const NorthCityPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const NorthCityPage()),
             );
           },
           style: OutlinedButton.styleFrom(
@@ -2525,7 +2706,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     );
   }
 
-
   // Projects you may invest function
   Widget _buildProjectCard({
     required BuildContext context,
@@ -2539,8 +2719,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     required String time,
     required String roi,
     required bool isTablet,
-  })
-  {
+  }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -2550,9 +2729,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
     final imageWidth = cardWidth * 0.30;
     final imageHeight = cardHeight * 0.95;
-
-    final buttonWidth = cardWidth * 0.25;
-    final buttonHeight = cardHeight * 0.18;
 
     return Container(
       width: cardWidth,
@@ -2608,7 +2784,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           style: TextStyle(
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
-                            fontSize: isTablet ? screenWidth * 0.022 : screenWidth * 0.036,
+                            fontSize: isTablet
+                                ? screenWidth * 0.022
+                                : screenWidth * 0.036,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -2642,14 +2820,22 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.trending_up, size: screenWidth * 0.03, color: Colors.white),
+                        Icon(
+                          Icons.trending_up,
+                          size: screenWidth * 0.03,
+                          color: Colors.white,
+                        ),
                         SizedBox(width: screenWidth * 0.01),
-                        Text('ROI $roi',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: isTablet ? screenWidth * 0.022 : screenWidth * 0.03,
-                              fontWeight: FontWeight.bold,
-                            )),
+                        Text(
+                          'ROI $roi',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isTablet
+                                ? screenWidth * 0.022
+                                : screenWidth * 0.03,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -2722,7 +2908,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               topRight: Radius.circular(8),
               bottomLeft: Radius.circular(8),
               bottomRight: Radius.circular(8),
-
             ),
             child: Image.network(
               imageUrl,
@@ -2766,13 +2951,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   //end
   // Transaction function
   Widget _buildTransactionItem(
-      IconData icon,
-      String title,
-      String date,
-      String amount,
-      String status,
-      )
-  {
+    IconData icon,
+    String title,
+    String date,
+    String amount,
+    String status,
+  ) {
     // Parse and format date
     String formattedDate = 'N/A';
     if (date.trim().isNotEmpty) {
@@ -2785,7 +2969,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       }
     }
 
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -2794,14 +2977,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: title.toLowerCase() == 'deposit' ||  title.toLowerCase() == 'investment'
+              color:
+                  title.toLowerCase() == 'deposit' ||
+                      title.toLowerCase() == 'investment'
                   ? Colors.green.withValues(alpha: 0.15)
-                  : Colors.orange.withValues(alpha: 0.15), // light red background
+                  : Colors.orange.withValues(alpha: 0.15),
+              // light red background
               borderRadius: BorderRadius.circular(4), // 4px rounded corners
             ),
             child: Icon(
               icon,
-              color: title.toLowerCase() == 'deposit' ||  title.toLowerCase() == 'investment'
+              color:
+                  title.toLowerCase() == 'deposit' ||
+                      title.toLowerCase() == 'investment'
                   ? Colors.green
                   : Colors.orange,
               size: 20,
@@ -2881,30 +3069,27 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       _walletTransactions = walletList
           .map(
             (e) => {
-          'type': e.type,
-          'date': e.date ?? '',
-          'amount': e.amount,
-          'status': e.status ?? 'N/A',
-          'trx_id': e.trxId,
-        },
-      )
+              'type': e.type,
+              'date': e.date ?? '',
+              'amount': e.amount,
+              'status': e.status ?? 'N/A',
+              'trx_id': e.trxId,
+            },
+          )
           .toList();
     });
   }
 
-// 헬 NEW HELPER WIDGET for creating the tree structure 헬
   Widget _buildTreeListItem({
     required Widget child,
     required bool isLast,
     double indent = 60.0,
-    double spacing = 20.0, // 👈 extra gap between items
+    double spacing = 20.0,
   }) {
-    const double itemHeight = 35.0; // Use the actual height of your buttons (35.0)
+    const double itemHeight =
+        35.0; // Use the actual height of your buttons (35.0)
     const double lineWidth = 2.0;
     final Color lineColor = Colors.grey;
-
-    // Calculate the total height of the tree element (item height + spacing)
-    final double totalHeight = itemHeight + spacing;
 
     return Padding(
       padding: EdgeInsets.only(bottom: spacing),
@@ -2917,13 +3102,14 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             SizedBox(
               width: indent,
               child: Stack(
-                clipBehavior: Clip.none, // Allow lines to draw outside Stack boundaries
+                clipBehavior: Clip.none,
+                // Allow lines to draw outside Stack boundaries
                 alignment: Alignment.centerLeft,
                 children: [
                   // 1. Vertical Line
                   Positioned(
                     left: indent / 2,
-                    top: -spacing ,
+                    top: -spacing,
                     bottom: isLast ? itemHeight / 2 : -spacing,
                     child: Container(width: lineWidth, color: lineColor),
                   ),

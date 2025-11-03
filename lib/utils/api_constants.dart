@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 
 class ApiConstants {
   // Base URLs for different environments
-  static const String devBaseUrl = "https://dev-growup.onebitstore.site/api";
+  static const String devBaseUrl = "https://growupagro.online/api";
   // static const String prodBaseUrl = "https://admin-growup.onebitstore.site/api";
   static const String prodBaseUrl = "https://growupagro.tech/api";
   static const String devImgBaseUrl = "https://dev-growup.onebitstore.site";
@@ -10,7 +10,7 @@ class ApiConstants {
   static const String prodImgBaseUrl = "https://growupagro.tech";
 
 // Toggle environment
-  static const bool isProd = true;
+  static const bool isProd = false;
 
 // Base URL getter
   static String get baseUrl => isProd ? prodBaseUrl : devBaseUrl;
