@@ -379,7 +379,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                   children: [
                     CustomButton(
                       text: "Previous",
-                      height: 38,
+                      height: 30,
                       backgroundColor: Colors.grey[400]!,
                       textColor: Colors.white,
                       onPressed: currentPage > 1 ? _previousPage : null,
@@ -390,7 +390,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                     ),
                     CustomButton(
                       text: "Next",
-                      height: 38,
+                      height: 30,
                       backgroundColor: Colors.grey[400]!,
                       textColor: Colors.white,
                       onPressed: currentPage * rowsPerPage < filteredHistory.length
