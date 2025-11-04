@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+import '../views/pdf_view_page.dart';
 
 /// Opens the invoice in an external browser (view only — no download)
 Future<void> viewInvoice(BuildContext context, String? url) async {
@@ -15,32 +16,14 @@ Future<void> viewInvoice(BuildContext context, String? url) async {
     return;
   }
 
-  try {
-    final uri = Uri.parse(url);
-
-    // Ensure it's a valid HTTP/HTTPS URL
-    if (!['http', 'https'].contains(uri.scheme)) {
-      throw Exception("Invalid URL format");
-    }
-
-    // Try launching in external browser
-    final launched = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-
-    if (!launched) {
-      throw Exception("Unable to open invoice link");
-    }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Failed to open invoice: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PDFViewPage(url: url, title: 'Invoice Preview'),
+    ),
+  );
 }
+
 
 /// Downloads invoice PDF and opens save dialog
 Future<void> downloadInvoice(BuildContext context, String? url, String invoiceNo) async {

@@ -59,7 +59,7 @@ class DashboardSummaryCard extends StatelessWidget {
           builder: (context, constraints) {
             final isTight = constraints.maxWidth < 360;
             final iconSize = isTight ? 28.0 : 35.0;
-            final valueSize = isTight ? 14.0 : 18.0;
+            final valueSize = isTight ? 12.0 : 18.0;
             final labelSize = isTight ? 10.0 : 13.0;
             final dividerHeight = isTight ? 66.0 : 78.0;
 
