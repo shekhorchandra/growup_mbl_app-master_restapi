@@ -60,14 +60,12 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     }
 
     final url = Uri.parse(
-        "https://growupagro.tech/api/investor/project-certificates?investor_code=$investorCode");
+      "https://growupagro.tech/api/investor/project-certificates?investor_code=$investorCode",
+    );
 
     final response = await http.get(
       url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
     );
 
     if (response.statusCode == 200) {
@@ -98,37 +96,65 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     });
   }
 
-  Future<void> launchInBrowser(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open link')),
-      );
+
+  Future<void> openCertificateInBrowser(
+      String viewUrl,
+      BuildContext context,
+      ) async {
+    if (viewUrl.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('View URL not available')),
+        );
+      }
+      return;
+    }
+
+    final Uri uri = Uri.parse(viewUrl);
+
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open link in browser')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error opening URL: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to open link in browser')),
+        );
+      }
     }
   }
 
+
   Future<void> downloadCertificateWithFallback(
-      BuildContext context,
-      String downloadUrl,
-      String viewUrl,
-      String fileName,
-      ) async {
+    BuildContext context,
+    String downloadUrl,
+    String viewUrl,
+    String fileName,
+  ) async {
     setState(() => _isDownloading[downloadUrl] = true);
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
 
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 60),
-        followRedirects: true,
-        validateStatus: (status) => true, // handle all status codes
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      ));
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 60),
+          followRedirects: true,
+          validateStatus: (status) => true, // handle all status codes
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
 
       final tempDir = await getTemporaryDirectory();
       final tempPath = '${tempDir.path}/$fileName.pdf';
@@ -138,25 +164,35 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
         options: Options(responseType: ResponseType.bytes),
         onReceiveProgress: (received, total) {
           if (total != -1) {
-            final percent = (received / total * 100).clamp(0, 100).toStringAsFixed(0);
+            final percent = (received / total * 100)
+                .clamp(0, 100)
+                .toStringAsFixed(0);
             debugPrint('Downloading $fileName: $percent%');
           }
         },
       );
 
-      // Check for "Unauthenticated" in JSON response
-      if (response.statusCode == 401 ||
-          (response.data != null &&
-              response.data!.isNotEmpty &&
-              utf8.decode(response.data!).contains('Unauthenticated'))) {
-        throw Exception('Unauthenticated');
+      // Check content type before saving
+      final contentType = response.headers.value('content-type') ?? '';
+      if (!contentType.contains('application/pdf')) {
+        final bodyText = utf8.decode(response.data ?? []);
+        if (bodyText.contains('Unauthenticated') ||
+            bodyText.contains('<html')) {
+          throw Exception('Unauthenticated or invalid response from server');
+        } else {
+          throw Exception('Invalid response: expected PDF, got $contentType');
+        }
       }
 
-      if (response.statusCode != 200 || response.data == null || response.data!.isEmpty) {
+      if (response.statusCode != 200 ||
+          response.data == null ||
+          response.data!.isEmpty) {
         throw Exception(
-            'Server error: ${response.statusCode}. Unable to download file.');
+          'Server error: ${response.statusCode}. Unable to download file.',
+        );
       }
 
+      // Save file locally
       final tempFile = File(tempPath);
       await tempFile.writeAsBytes(response.data!, flush: true);
 
@@ -180,9 +216,9 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
         await OpenFilex.open(savedPath);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Save cancelled.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
         }
       }
     } catch (e) {
@@ -192,24 +228,20 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-                'Direct download failed. Opening preview page.'),
+            content: Text('Direct download failed. Opening preview page.'),
             backgroundColor: Colors.orange,
           ),
         );
 
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => PreviewPage(url: viewUrl),
-          ),
+          MaterialPageRoute(builder: (context) => PreviewPage(url: viewUrl)),
         );
       }
     } finally {
       setState(() => _isDownloading[downloadUrl] = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -240,8 +272,10 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 15,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Colors.green),
@@ -299,22 +333,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                               children: [
                                 // View button
                                 ElevatedButton.icon(
-                                  onPressed: () {
-                                    if (item.previewUrl.isNotEmpty) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              PreviewPage(url: item.previewUrl),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                          content: Text(
-                                              'Preview URL not available')));
-                                    }
-                                  },
+                                  onPressed: () => openCertificateInBrowser(item.viewUrl, context),
                                   icon: const Icon(Icons.remove_red_eye),
                                   label: const Text('View'),
                                   style: ElevatedButton.styleFrom(
@@ -322,37 +341,43 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                                     foregroundColor: Colors.black,
                                   ),
                                 ),
+
+
                                 const SizedBox(width: 12),
 
                                 // Download button with fallback
                                 ElevatedButton.icon(
-                                  onPressed: _isDownloading[item.downloadUrl] == true
+                                  onPressed:
+                                      _isDownloading[item.downloadUrl] == true
                                       ? null
                                       : () async {
-                                    await downloadCertificateWithFallback(
-                                      context,
-                                      item.downloadUrl,
-                                      item.viewUrl,
-                                      item.name,
-                                    );
-                                  },
+                                          await downloadCertificateWithFallback(
+                                            context,
+                                            item.downloadUrl,
+                                            item.viewUrl,
+                                            item.name,
+                                          );
+                                        },
                                   icon: _isDownloading[item.downloadUrl] == true
                                       ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
                                       : const Icon(Icons.download),
-                                  label: Text(_isDownloading[item.downloadUrl] == true
-                                      ? 'Downloading...'
-                                      : 'Download'),
+                                  label: Text(
+                                    _isDownloading[item.downloadUrl] == true
+                                        ? 'Downloading...'
+                                        : 'Download',
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
                                     foregroundColor: Colors.white,
                                   ),
                                 ),
-
                               ],
                             ),
                           ],
