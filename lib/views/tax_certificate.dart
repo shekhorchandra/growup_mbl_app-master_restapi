@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/invoice_action_buttons.dart'; // 👈 Your global button widget
 
 class TaxCertificatePage extends StatefulWidget {
   const TaxCertificatePage({super.key});
@@ -14,14 +11,15 @@ class TaxCertificatePage extends StatefulWidget {
   State<TaxCertificatePage> createState() => _TaxCertificatePageState();
 }
 
-class _TaxCertificatePageState extends State<TaxCertificatePage> {
+class _TaxCertificatePageState extends State<TaxCertificatePage>
+    with TickerProviderStateMixin {
   late Future<List<dynamic>> certificatesFuture;
   List<dynamic> _allCertificates = [];
   List<dynamic> _filteredCertificates = [];
 
-  final Map<String, bool> _isDownloading = {};
-  final Map<int, bool> _isExpanded = {}; // Track expanded state by index
+  final Map<int, bool> _isExpanded = {};
   final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -39,7 +37,8 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
         throw Exception('Missing token or investor code. Please log in again.');
       }
 
-      final url = Uri.parse('https://growupagro.tech/api/tax-certificates?investor_code=$investorCode');
+      final url = Uri.parse(
+          'https://growupagro.tech/api/tax-certificates?investor_code=$investorCode');
 
       final response = await http.get(
         url,
@@ -67,7 +66,6 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     }
   }
 
-
   void _filterCertificates(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -76,9 +74,12 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
         _filteredCertificates = _allCertificates.where((cert) {
           final fiscal = cert['fiscal_year'];
           final projects = cert['projects'] as List;
-          final fiscalText = '${fiscal['start']} - ${fiscal['end']}'.toLowerCase();
-          final projectNames = projects.map((p) => (p['name'] ?? '').toLowerCase()).join(' ');
-          return fiscalText.contains(query.toLowerCase()) || projectNames.contains(query.toLowerCase());
+          final fiscalText =
+          '${fiscal['start']} - ${fiscal['end']}'.toLowerCase();
+          final projectNames =
+          projects.map((p) => (p['name'] ?? '').toLowerCase()).join(' ');
+          return fiscalText.contains(query.toLowerCase()) ||
+              projectNames.contains(query.toLowerCase());
         }).toList();
       }
     });
@@ -90,63 +91,52 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
     });
   }
 
-  Future<void> downloadCertificate(BuildContext context, String url, String fileName) async {
-    try {
-      setState(() => _isDownloading[url] = true);
-
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String filePath = '${dir.path}/$fileName.pdf';
-
-      final dio = Dio();
-      final response = await dio.get(
-        url,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      final file = File(filePath);
-      await file.writeAsBytes(response.data);
-      //await OpenFile.open(filePath);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Downloaded successfully: $fileName.pdf'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Download error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to download'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() => _isDownloading[url] = false);
-    }
-  }
-
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the link.')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          cursorColor: Colors.white,
+          onChanged: _filterCertificates,
+          decoration: const InputDecoration(
+            hintText: 'Search by fiscal year or project...',
+            hintStyle: TextStyle(color: Colors.white70),
+            border: InputBorder.none,
+          ),
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        )
+            : const Text(
           'Tax Certificates',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white),
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF2E7D32),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isSearching ? Icons.close : Icons.search,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                  _filterCertificates('');
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: certificatesFuture,
@@ -159,187 +149,131 @@ class _TaxCertificatePageState extends State<TaxCertificatePage> {
             return const Center(child: Text('No certificates found.'));
           }
 
-          return Column(
-            children: [
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _filterCertificates,
-                  decoration: InputDecoration(
-                    hintText: 'Search by fiscal year or project name...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
+          return ListView.builder(
+            padding: const EdgeInsets.all(10),
+            itemCount: _filteredCertificates.length,
+            itemBuilder: (context, index) {
+              final cert = _filteredCertificates[index];
+              final fiscal = cert['fiscal_year'];
+              final projects = cert['projects'] as List;
+              final expanded = _isExpanded[index] ?? false;
+
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.green),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-
-              // Certificate List
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: _filteredCertificates.length,
-                  itemBuilder: (context, index) {
-                    final cert = _filteredCertificates[index];
-                    final fiscal = cert['fiscal_year'];
-                    final projects = cert['projects'] as List;
-                    final previewUrl = cert['preview_url'];
-                    final downloadUrl = cert['download_url'];
-                    var expanded = _isExpanded[index] ?? false;
-
-                    return GestureDetector(
-                      onTap: () => _toggleExpand(index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.all(16),
-                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.green, width: 1),
-
-                        ),
-                        child: Column(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Always visible part (with toggle)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Fiscal Year",
-                                      ),
-                                      Text(
-                                        '${fiscal['start']} - ${fiscal['end']}',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.normal,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ]),
-
-                                IconButton(
-                                  icon: Icon(
-                                    expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                    color: Colors.green,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _toggleExpand(index);
-                                      expanded = !expanded;
-                                    });
-                                  },
-                                ),
-                              ],
+                            const Text(
+                              "Fiscal Year",
+                              style: TextStyle(color: Colors.black54),
                             ),
+                            Text(
+                              '${fiscal['start']} - ${fiscal['end']}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            expanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.green,
+                          ),
+                          onPressed: () => _toggleExpand(index),
+                        ),
+                      ],
+                    ),
 
-                            // Expandable part
-                            AnimatedCrossFade(
-                              firstChild: const SizedBox.shrink(),
-                              secondChild: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                    // ✅ Expandable section with animation only (AnimatedSize)
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.linear,
+                      alignment: Alignment.topCenter,
+                      child: expanded
+                          ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(thickness: 1),
+                          ...projects.map(
+                                (proj) => Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 6.0),
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 10),
-                                  ...projects.map(
-                                        (proj) => Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Project: ${proj['name']}',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          const Divider(height: 4, thickness: 1),
-
-                                          SizedBox(height: 4),
-                                          Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text('Investment'),
-                                                Text('${proj['total_investment']} BDT'),
-                                              ]
-                                          ),
-                                          Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text('ROI'),
-                                                Text('${proj['roi_amount']} BDT'),
-                                              ]
-                                          ),
-                                          // Text('Invoice: ${proj['invoice_no']}'),
-                                        ],
-                                      ),
+                                  Text(
+                                    'Project: ${proj['name']}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const Divider(height: 20, thickness: 1),
+                                  const SizedBox(height: 4),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () => _launchURL(previewUrl),
-                                        icon: const Icon(Icons.visibility),
-                                        label: const Text('   View    '),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                      ),
-                                      ElevatedButton.icon(
-                                        onPressed: _isDownloading[downloadUrl] == true
-                                            ? null
-                                            : () async {
-                                          await downloadCertificate(
-                                              context, downloadUrl, fiscal['start']);
-                                        },
-                                        icon: _isDownloading[downloadUrl] == true
-                                            ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2, color: Colors.white),
-                                        )
-                                            : const Icon(Icons.download),
-                                        label: Text(_isDownloading[downloadUrl] == true
-                                            ? 'Downloading...'
-                                            : 'Download'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.blue,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                      ),
+                                      const Text('Investment'),
+                                      Text(
+                                          '${proj['total_investment']} BDT'),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('ROI'),
+                                      Text('${proj['roi_amount']} BDT'),
                                     ],
                                   ),
                                 ],
                               ),
-                              crossFadeState: expanded
-                                  ? CrossFadeState.showSecond
-                                  : CrossFadeState.showFirst,
-                              duration: const Duration(milliseconds: 300),
                             ),
-                          ],
-                        ),
-
-                      ),
-                    );
-                  },
+                          ),
+                          const SizedBox(height: 8),
+                          InvoiceActionButtons(
+                            viewUrl: cert['preview_url'],
+                            downloadUrl: cert['download_url'],
+                            invoiceNo: fiscal['start'].toString(),
+                            status: 'approved',
+                          ),
+                        ],
+                      )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              );
+            },
           );
         },
       ),
     );
   }
 }
-

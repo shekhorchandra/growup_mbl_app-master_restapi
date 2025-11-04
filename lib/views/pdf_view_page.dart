@@ -33,22 +33,28 @@ class _PDFViewPageState extends State<PDFViewPage> {
         final file = File('${dir.path}/temp_invoice.pdf');
         await file.writeAsBytes(bytes, flush: true);
 
-        if (mounted) {
-          setState(() {
-            localPath = file.path;
-            loading = false;
-          });
-        }
+        if (!mounted) return;
+        setState(() {
+          localPath = file.path;
+          loading = false;
+        });
       } else {
         throw Exception('Server returned ${response.statusCode}');
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+      if (!mounted) return;
+      setState(() => loading = false);
+
+      // 🔙 Show error and navigate back after short delay
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load PDF: $e')),
+        const SnackBar(
+          content: Text('Failed to load PDF. Returning to previous page.'),
+          duration: Duration(seconds: 2),
+        ),
       );
+
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -57,13 +63,18 @@ class _PDFViewPageState extends State<PDFViewPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(widget.title,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green,))
+          ? const Center(
+        child: CircularProgressIndicator(color: Colors.green),
+      )
           : localPath == null
           ? const Center(child: Text('Failed to open PDF'))
           : PDFView(
@@ -72,10 +83,16 @@ class _PDFViewPageState extends State<PDFViewPage> {
         swipeHorizontal: true,
         autoSpacing: false,
         pageFling: true,
-        onError: (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $error')),
-          );
+        onError: (error) async {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error: Failed to load PDF.'),
+              ),
+            );
+            await Future.delayed(const Duration(seconds: 2));
+            if (mounted) Navigator.pop(context);
+          }
         },
       ),
     );
