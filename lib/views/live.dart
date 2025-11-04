@@ -200,28 +200,22 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
 
                     // Determine status
                     String statusText;
-                    Color statusColor;
                     if (endDate != null && now.isAfter(endDate)) {
                       statusText = 'Matured';
-                      statusColor = Colors.red;
                     } else if (startDate != null && now.isBefore(startDate)) {
                       statusText = 'Upcoming';
-                      statusColor = Colors.orange;
                     } else if (startDate != null &&
                         roiStartDate != null &&
                         now.isAfter(startDate) &&
                         now.isBefore(roiStartDate)) {
                       statusText = 'Investment Collecting';
-                      statusColor = Colors.blue;
                     } else if (roiStartDate != null &&
                         endDate != null &&
                         now.isAfter(roiStartDate) &&
                         now.isBefore(endDate)) {
                       statusText = 'Running';
-                      statusColor = Colors.green;
                     } else {
                       statusText = 'Unknown';
-                      statusColor = Colors.grey;
                     }
 
                     final goal = project.investmentGoal ?? 0;
@@ -249,7 +243,6 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
                       statusText: statusText,
-                      statusColor: statusColor,
                       showInvestNow: showInvestNow,
                       showUpcoming: showUpcoming,
                       investmentStartDate: startDate != null

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:growup_agro/widgets/status_test.dart';
 import 'package:intl/intl.dart';
 import '../widgets/custom_button.dart';
 
@@ -16,12 +17,14 @@ class ProjectCard extends StatelessWidget {
   final double inWaiting;
   final String roi;
   final String statusText;
-  final Color statusColor;
   final bool showInvestNow;
   final bool showUpcoming;
   final String? investmentStartDate;
   final bool isLoading;
   final VoidCallback? onInvestNowPressed;
+
+  /// 🔹 Optional custom button text (defaults to "Invest Now")
+  final String buttonText;
 
   const ProjectCard({
     super.key,
@@ -38,12 +41,14 @@ class ProjectCard extends StatelessWidget {
     required this.inWaiting,
     required this.roi,
     required this.statusText,
-    required this.statusColor,
     required this.showInvestNow,
     required this.showUpcoming,
     this.investmentStartDate,
     this.isLoading = false,
     this.onInvestNowPressed,
+
+    /// Default label text for the button
+    this.buttonText = "Invest Now",
   });
 
   String _formatAmount(dynamic value) {
@@ -52,8 +57,7 @@ class ProjectCard extends StatelessWidget {
     return '$formatted Tk';
   }
 
-  TableRow _buildTableRow(String label, String value,
-      {Color valueColor = Colors.black}) {
+  TableRow _buildTableRow(String label, String value) {
     final bool isStatusRow = label.toLowerCase() == 'status';
 
     return TableRow(
@@ -67,26 +71,17 @@ class ProjectCard extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Container(
-            alignment: isStatusRow ? Alignment.center : Alignment.centerLeft,
-            decoration: isStatusRow
-                ? BoxDecoration(
-              color: valueColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(25),
-            )
-                : null,
-            padding: isStatusRow
-                ? const EdgeInsets.symmetric(horizontal: 8, vertical: 3)
-                : EdgeInsets.zero,
-            child: Text(
-              value,
-              textAlign: isStatusRow ? TextAlign.center : TextAlign.left,
-              style: TextStyle(
-                fontWeight:
-                isStatusRow ? FontWeight.bold : FontWeight.normal,
-                fontSize: 8,
-                color: valueColor,
-              ),
+          child: isStatusRow
+              ? Align(
+            alignment: Alignment.centerLeft,
+            child: StatusChip(status: value),
+          )
+              : Text(
+            value,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+              fontSize: 8,
+              color: Colors.black,
             ),
           ),
         ),
@@ -129,8 +124,10 @@ class ProjectCard extends StatelessWidget {
                               fit: BoxFit.contain,
                             ),
                           )
-                              : Image.asset('assets/images/placeholder1.jpg',
-                              fit: BoxFit.contain),
+                              : Image.asset(
+                            'assets/images/placeholder1.jpg',
+                            fit: BoxFit.contain,
+                          ),
 
                           const SizedBox(height: 6),
                           Text(
@@ -143,11 +140,11 @@ class ProjectCard extends StatelessWidget {
                             ),
                           ),
 
-                          // Invest Now Button BELOW image
+                          // 🔹 Invest Now Button BELOW image
                           if (showInvestNow) ...[
                             const SizedBox(height: 8),
                             CustomButton(
-                              text: isLoading ? "Loading..." : "Invest Now",
+                              text: isLoading ? "Loading..." : buttonText,
                               backgroundColor: const Color(0xFF2E7D32),
                               textColor: Colors.white,
                               height: 28,
@@ -182,18 +179,18 @@ class ProjectCard extends StatelessWidget {
                           _buildTableRow('Start Date', startDate),
                           _buildTableRow('Mature Date', endDate),
 
-                          if (roiStartDate != "s")
+                          if (roiStartDate.isNotEmpty)
                             _buildTableRow('ROI Start Date', roiStartDate),
 
-                          _buildTableRow(
-                              'Investment Goal', _formatAmount(investmentGoal)),
-                          _buildTableRow(
-                              'Min. Investment', _formatAmount(minInvestment)),
+                          _buildTableRow('Investment Goal',
+                              _formatAmount(investmentGoal)),
+                          _buildTableRow('Min. Investment',
+                              _formatAmount(minInvestment)),
                           _buildTableRow('Raised', _formatAmount(raised)),
-                          _buildTableRow('In Waiting', _formatAmount(inWaiting)),
+                          _buildTableRow(
+                              'In Waiting', _formatAmount(inWaiting)),
                           _buildTableRow('ROI', roi),
-                          _buildTableRow('Status', statusText,
-                              valueColor: statusColor),
+                          _buildTableRow('Status', statusText),
                         ],
                       ),
                     ],
@@ -202,7 +199,7 @@ class ProjectCard extends StatelessWidget {
               ],
             ),
 
-            // Upcoming Info
+            // 🔹 Upcoming Info
             if (showUpcoming) ...[
               const SizedBox(height: 8),
               Container(

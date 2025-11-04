@@ -511,7 +511,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 2, horizontal: 6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(

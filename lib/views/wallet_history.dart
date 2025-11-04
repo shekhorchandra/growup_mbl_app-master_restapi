@@ -1,17 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/models/wallet_history_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
+import 'package:growup_agro/widgets/pagination_footer.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/invoice_action_buttons.dart';
+import '../widgets/status_test.dart';
 
 class WalletHistoryPage extends StatefulWidget {
   const WalletHistoryPage({super.key});
@@ -23,20 +18,11 @@ class WalletHistoryPage extends StatefulWidget {
 class _WalletHistoryPageState extends State<WalletHistoryPage> {
   List<WalletHistoryModel> fullHistory = [];
   List<WalletHistoryModel> filteredHistory = [];
-  Set<String> downloadingInvoices = {};
-
-  int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    // MenuPage(),       // index 0
-    // GrowupPage(),     // index 1
-    // PropertyPage(),   // index 2
-    // TradingPage(),    // index 3
-    // WebTabPage(),     // index 4 <-- this shows your WebView
-  ];
+  bool isLoading = false;
+  bool _isSearching = false;
   int currentPage = 1;
   final int rowsPerPage = 10;
   final TextEditingController _searchController = TextEditingController();
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -49,7 +35,6 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
 
   Future<void> _fetchWalletHistory() async {
     setState(() => isLoading = true);
-
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
@@ -59,28 +44,16 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
         throw Exception("Missing token or investor code");
       }
 
-      // final response = await http.get(
-      //   Uri.parse(
-      //       'https://admin-growup.onebitstore.site/api/wallet-history?investor_code=$investorCode'),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Accept': 'application/json',
-      //   },
-      // );
       final response = await http.get(
         Uri.parse(ApiConstants.walletHistory(investorCode)),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
         final List data = body['data'];
-        final historyList = data
-            .map((e) => WalletHistoryModel.fromJson(e))
-            .toList();
+        final historyList =
+        data.map((e) => WalletHistoryModel.fromJson(e)).toList();
 
         setState(() {
           fullHistory = historyList;
@@ -88,18 +61,14 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
           currentPage = 1;
         });
       } else {
-        throw Exception(
-          'Error ${response.statusCode}: ${json.decode(response.body)['message']}',
-        );
+        throw Exception('Error ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Wallet Transaction History not found",
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red, // 🔴 red background
+          content: Text("Wallet Transaction History not found",
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -131,516 +100,151 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
 
   void _nextPage() {
     if (currentPage * rowsPerPage < filteredHistory.length) {
-      setState(() {
-        currentPage++;
-      });
+      setState(() => currentPage++);
     }
   }
 
   void _previousPage() {
     if (currentPage > 1) {
-      setState(() {
-        currentPage--;
-      });
+      setState(() => currentPage--);
     }
   }
 
-  String _formatDateTime(String rawDateTime) {
-    try {
-      final dateTime = DateTime.parse(rawDateTime);
-      return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
-    } catch (e) {
-      return 'Invalid date';
-    }
-  }
-
-  Future<void> _openInvoiceInBrowser(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open invoice link')),
-      );
-    }
-  }
-
-  Future<void> _downloadInvoice(
-      BuildContext context,
-      String url,
-      String invoiceNo,
-      ) async {
-    final dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 60),
-      responseType: ResponseType.bytes,
-      followRedirects: true,
-      validateStatus: (s) => s != null && s >= 200 && s < 400,
-    ));
-
-    try {
-
-      final uri = Uri.parse(url);
-
-      // 2) Download to a temporary file first
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = '${tempDir.path}/invoice_$invoiceNo.pdf';
-
-      final response = await dio.getUri<List<int>>(
-        uri,
-        options: Options(responseType: ResponseType.bytes),
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            // You can hook this up to a progress UI if you want
-            // final percent = (received / total * 100).toStringAsFixed(0);
-            // debugPrint('Downloading: $percent%');
-          }
-        },
-      );
-
-      if (response.data == null || response.data!.isEmpty) {
-        throw Exception('Empty response while downloading PDF.');
-      }
-
-      final f = File(tempPath);
-      await f.writeAsBytes(response.data!, flush: true);
-
-      // 3) Ask user where to save (works on Android & iOS, no permissions)
-      final savedPath = await FlutterFileDialog.saveFile(
-        params: SaveFileDialogParams(
-          sourceFilePath: tempPath,
-          fileName: 'invoice_$invoiceNo.pdf',
-          // On Android this opens SAF; on iOS the Files sheet.
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF2E7D32),
+      title: _isSearching
+          ? TextField(
+        controller: _searchController,
+        autofocus: true,
+        cursorColor: Colors.white,
+        decoration: const InputDecoration(
+          hintText: 'Search by Transaction ID or Type',
+          hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
+          border: InputBorder.none,
         ),
-      );
-
-      if (savedPath == null) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Save cancelled.')),
-          );
-        }
-        return;
-      }
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved to: $savedPath')),
-        );
-      }
-
-      await OpenFilex.open(savedPath);
-
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download: $e')),
-        );
-      }
-    } finally {
-    }
-  }
-
-
-
-
-  ///  Custom Status Chip
-  Widget _getStatusChip(String? status) {
-    if (status == null) return const Text('N/A');
-
-    final lowerStatus = status.toLowerCase();
-    // late Color backgroundColor;
-    late Color textColor;
-
-    switch (lowerStatus) {
-      case 'approved':
-        // backgroundColor = Colors.green;
-        textColor = Colors.green;
-        break;
-      case 'rejected':
-        // backgroundColor = Colors.red;
-        textColor = Colors.red;
-        break;
-      case 'pending':
-        // backgroundColor = Colors.orange;
-        textColor = Colors.orange;
-        break;
-      case 'completed':
-        // backgroundColor = Colors.lightGreen;
-        textColor = Colors.greenAccent;
-        break;
-      case 'failed':
-        // backgroundColor = Colors.redAccent;
-        textColor = Colors.redAccent;
-        break;
-      default:
-        // backgroundColor = Colors.grey;
-        textColor = Colors.white;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        // color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      )
+          : const Text(
+        'Wallet Transaction History',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: Icon(_isSearching ? Icons.close : Icons.search, color: Colors.white),
+          onPressed: () {
+            setState(() {
+              if (_isSearching) _searchController.clear();
+              _isSearching = !_isSearching;
+            });
+          },
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Wallet Transaction History',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF2E7D32),
-        centerTitle: true,
-        foregroundColor: Colors.white,
-      ),
-
-      body: RefreshIndicator(
+      backgroundColor: Colors.white,
+      appBar: _buildAppBar(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : RefreshIndicator(
         onRefresh: _fetchWalletHistory,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    IndexedStack(index: _selectedIndex, children: _pages),
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        labelText: 'Search by Transaction ID or Type',
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: currentPageItems.length,
+                itemBuilder: (context, index) {
+                  final item = currentPageItems[index];
+                  return Container(
+                    margin:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Card(
-                            child: DataTable(
-                              columnSpacing: 14,
-                              dataRowHeight: 120,
-                              headingRowColor: MaterialStateProperty.all(
-                                const Color(0xFF388E3C),
-                              ),
-                              headingTextStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              columns: const [
-                                DataColumn(label: Text('SL')),
-                                DataColumn(label: Text('Transaction Info')),
-
-                                // DataColumn(label: Text('Date')),
-                                // DataColumn(label: Text('Amount')),
-                                // DataColumn(label: Text('Status')),
-                                //DataColumn(label: Text('Actioned By')),
-                                DataColumn(
-                                  label: Text('Actions'),
-                                ), // download button
-                              ],
-                              rows: List.generate(currentPageItems.length, (
-                                index,
-                              ) {
-                                final item = currentPageItems[index];
-                                return DataRow(
-                                  cells: [
-                                    DataCell(
-                                      Text(
-                                        '${(currentPage - 1) * rowsPerPage + index + 1}',
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Text.rich(
-                                                  TextSpan(
-                                                    children: [
-                                                      TextSpan(
-                                                        text: '${item.type}',
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              // Text.rich(
-                                              //   TextSpan(
-                                              //     children: [
-                                              //       TextSpan(
-                                              //         text: '${item.date}',
-                                              //         style: const TextStyle(
-                                              //           fontSize: 12,
-                                              //           color: Colors.black54,
-                                              //         ),
-                                              //       ),
-                                              //     ],
-                                              //   ),
-                                              // ),
-                                              Text.rich(
-                                                TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text:
-                                                          '৳${item.amount.toStringAsFixed(2)}',
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: (item.context),
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                child: Text.rich(
-                                                  TextSpan(
-                                                    text: '${item.date}',
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.black87,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              _getStatusChip(item.status),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // DataCell(
-                                    //     Column(
-                                    //       crossAxisAlignment:
-                                    //       CrossAxisAlignment.start,
-                                    //       mainAxisAlignment:
-                                    //       MainAxisAlignment.center,
-                                    //       children: [
-                                    //         Text.rich(
-                                    //           TextSpan(
-                                    //             children: [
-                                    //               TextSpan(
-                                    //                 text: '${item.date}',
-                                    //                 style: const TextStyle(
-                                    //                   fontSize: 12,
-                                    //                 ),
-                                    //               ),
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //
-                                    //       ],
-                                    //     )),
-
-                                    // DataCell(
-                                    //     Column(
-                                    //   crossAxisAlignment:
-                                    //   CrossAxisAlignment.start,
-                                    //   mainAxisAlignment:
-                                    //   MainAxisAlignment.center,
-                                    //   children: [
-                                    //     Text.rich(
-                                    //       TextSpan(
-                                    //         children: [
-                                    //           TextSpan(
-                                    //             text: '৳${item.amount.toStringAsFixed(2)}',
-                                    //             style: const TextStyle(
-                                    //               fontSize: 12,
-                                    //               fontWeight: FontWeight.bold,
-                                    //               color: Colors.black,
-                                    //             ),
-                                    //           ),
-                                    //         ],
-                                    //       ),
-                                    //     ),
-                                    //
-                                    //   ],
-                                    // )),
-                                    // DataCell(_getStatusChip(item.status)),
-                                    // const DataCell(Text('N/A')),
-                                    // DataCell(Text(item.note ?? 'N/A')),
-                                    DataCell(
-                                      item.status == "Approved"
-                                          ? Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          // 👁️ View Button
-                                          ElevatedButton(
-                                            onPressed: () => _openInvoiceInBrowser(
-                                              context,
-                                              item.invoice_view_url.toString(), // ✅ correct param
-                                            ),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blueGrey[200],
-                                              foregroundColor: Colors.black,
-                                              elevation: 2,
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                              minimumSize: const Size(0, 0),
-                                            ),
-                                            child: const Text(
-                                              'View',
-                                              style: TextStyle(fontSize: 10),
-                                            ),
-                                          ),
-
-                                          const SizedBox(height: 2),
-
-                                          // 💾 Download Button
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              if (item.invoice_download_url == null ||
-                                                  item.invoice_download_url!.isEmpty) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Download URL not available')),
-                                                );
-                                                return;
-                                              }
-
-                                              _downloadInvoice(
-                                                context,
-                                                item.invoice_download_url!,
-                                                item.invoiceNo.toString(),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.amber[200],
-                                              foregroundColor: Colors.black,
-                                              elevation: 2,
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                              minimumSize: const Size(0, 0),
-                                            ),
-                                            child: const Text(
-                                              'Download',
-                                              style: TextStyle(fontSize: 10),
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                          : const Icon(Icons.block, color: Colors.red, size: 24),
-                                    ),
-
-
-
-
-
-
-                                  ],
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 60), // less vertical space
-                    Transform.translate(
-                      offset: const Offset(0, -48), // adjust upward
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            height: 26, // smaller button height
-                            child: ElevatedButton(
-                              onPressed: currentPage > 1 ? _previousPage : null,
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5), // 7px border radius
-                                ),
+                          // 🔹 Type & Amount
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                item.type,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14),
                               ),
-                              child: const Text('Previous', style: TextStyle(fontSize: 14)),
-                            ),
+                              Text(
+                                '৳${item.amount.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black87),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 24), // more space between buttons
+
+                          const SizedBox(height: 2),
+                          // Status (below amount)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: StatusChip(status: item.status),
+
+                          ),
+
+                          const SizedBox(height: 12),
+                          // Description
                           Text(
-                            'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                            item.context!,
+                            style: const TextStyle(fontSize: 12),
                           ),
-                          const SizedBox(width: 24),
-                          SizedBox(
-                            height: 26, // smaller button height
-                            child: ElevatedButton(
-                              onPressed: currentPage * rowsPerPage < filteredHistory.length
-                                  ? _nextPage
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5), // 7px border radius
-                                ),
-                              ),
-                              child: const Text('Next', style: TextStyle(fontSize: 14)),
-                            ),
+                          const SizedBox(height: 6),
+
+                          // Date
+                          Text(
+                            item.date,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54),
                           ),
+
+                          const SizedBox(height: 10),
+                          // Action Buttons
+                          InvoiceActionButtons(
+                            viewUrl: item.invoice_view_url,
+                            downloadUrl: item.invoice_download_url,
+                            invoiceNo: item.invoiceNo.toString(),
+                            status: item.status,
+                          ),
+
                         ],
                       ),
                     ),
-
-
-                  ],
-                ),
+                  );
+                },
+              ),
+            ),
+            PaginationFooter(
+              currentPage: currentPage,
+              totalItems: filteredHistory.length,
+              rowsPerPage: rowsPerPage,
+              onPrevious: _previousPage,
+              onNext: _nextPage,
+            ),
+          ],
         ),
       ),
     );

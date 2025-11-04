@@ -151,7 +151,7 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
                           //   child: Container(
                           //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           //     decoration: BoxDecoration(
-                          //       color: Colors.black.withOpacity(0.6),
+                          //       color: Colors.black.withValues(alpha: 0.6),
                           //       borderRadius: BorderRadius.circular(8),
                           //     ),
                           //     child: Text(

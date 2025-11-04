@@ -145,10 +145,10 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
       ),
       body: Column(
         children: [
-          // 🔍 Search bar
+          // Search bar
           CustomSearchBar(searchController: _searchController),
 
-          // 📋 Project List
+          // Project List
           Expanded(
             child: FutureBuilder<List<CompletedProject>>(
               future: futureCompletedProjects,
@@ -192,8 +192,7 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
                       statusText: 'Matured',
-                      statusColor: Colors.red,
-                      showInvestNow: false, // ❌ No Invest button
+                      showInvestNow: false,
                       showUpcoming: false,
                       investmentStartDate: startDate != null
                           ? DateFormat('dd MMM, yyyy').format(startDate)

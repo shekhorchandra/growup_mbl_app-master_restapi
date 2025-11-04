@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/investment_history_model.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/pagination_footer.dart';
 
 class InvestmentHistoryPage extends StatefulWidget {
   const InvestmentHistoryPage({super.key});
@@ -360,45 +361,12 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                   },
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      offset: Offset(0, -2),
-                      blurRadius: 6,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomButton(
-                      text: "Previous",
-                      height: 30,
-                      backgroundColor: Colors.grey[400]!,
-                      textColor: Colors.white,
-                      onPressed: currentPage > 1 ? _previousPage : null,
-                    ),
-                    Text(
-                      'Page $currentPage of ${(filteredHistory.length / rowsPerPage).ceil()}',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
-                    CustomButton(
-                      text: "Next",
-                      height: 30,
-                      backgroundColor: Colors.grey[400]!,
-                      textColor: Colors.white,
-                      onPressed: currentPage * rowsPerPage < filteredHistory.length
-                          ? _nextPage
-                          : null,
-                    ),
-                  ],
-                ),
+              PaginationFooter(
+                currentPage: currentPage,
+                totalItems: filteredHistory.length,
+                rowsPerPage: rowsPerPage,
+                onPrevious: _previousPage,
+                onNext: _nextPage,
               ),
             ],
           );

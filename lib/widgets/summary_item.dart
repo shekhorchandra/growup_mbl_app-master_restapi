@@ -114,7 +114,7 @@ class DashboardSummaryCard extends StatelessWidget {
                       width: 1.5,
                       height: dividerHeight,
                       decoration: BoxDecoration(
-                        color: dividerColor.withOpacity(.8),
+                        color: dividerColor.withValues(alpha: .8),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

@@ -628,7 +628,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 return true;
               },
               child: AlertDialog(
-                title: const Text("Invest in this Project", style: TextStyle(fontSize: 18),),
+                title: const Text("Invest in this Project", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

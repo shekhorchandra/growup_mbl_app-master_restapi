@@ -244,7 +244,6 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
                       statusText: statusText,
-                      statusColor: statusColor,
                       showInvestNow: showInvestNow,
                       showUpcoming: showUpcoming,
                       investmentStartDate: startDate != null
