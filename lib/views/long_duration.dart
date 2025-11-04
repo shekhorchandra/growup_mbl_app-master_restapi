@@ -179,7 +179,6 @@ class _LongProjectsPageState extends State<LongProjectsPage> {
                     final project = projects[index];
                     final now = DateTime.now();
 
-                    // Parse and handle project dates
                     final startDate = project.project_start_date != null &&
                         project.project_start_date!.isNotEmpty
                         ? DateTime.tryParse(project.project_start_date!)

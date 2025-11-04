@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:growup_agro/views/product_details.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:share_plus/share_plus.dart';
-
 import '../models/all_products_model.dart';
 
 class AllProductsPage extends StatefulWidget {
@@ -54,11 +54,10 @@ class _AllProductsPageState extends State<AllProductsPage> {
         isLoading = false;
       });
     } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to load products')));
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load products')));
     }
   }
 
@@ -72,12 +71,17 @@ class _AllProductsPageState extends State<AllProductsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = 2;
+    if (screenWidth >= 600) crossAxisCount = 3;
+    if (screenWidth >= 900) crossAxisCount = 4;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Product Lists",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -85,101 +89,95 @@ class _AllProductsPageState extends State<AllProductsPage> {
         backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(10),
-        itemCount: products.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 per row
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          // 🏆 REDESIGN: Adjusted childAspectRatio for a slightly squatter, cleaner card
-          childAspectRatio: 0.65,
-        ),
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return _buildProductGridItem(context, product);
-        },
-      ),
+          : Padding(
+              padding: const EdgeInsets.all(10),
+              child: MasonryGridView.count(
+                controller: _scrollController,
+                crossAxisCount: crossAxisCount,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  return _buildProductCard(context, products[index]);
+                },
+              ),
+            ),
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(
-        onPressed: _scrollToTop,
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.arrow_upward, color: Colors.white),
-      )
+              onPressed: _scrollToTop,
+              backgroundColor: Colors.orange,
+              child: const Icon(Icons.arrow_upward, color: Colors.white),
+            )
           : null,
     );
   }
 
-// -----------------------------------------------------------
-// 🏆 REDESIGNED PRODUCT GRID ITEM WIDGET
-// -----------------------------------------------------------
-
-  Widget _buildProductGridItem(BuildContext context, Product product) {
-    // Ensure sellingPrice is treated as a number for comparison
+  Widget _buildProductCard(BuildContext context, Product product) {
     final num price = product.numericSellingPrice;
     final bool isAvailable = price > 0;
 
     return Card(
-      elevation: 3.0,
-      margin: EdgeInsets.zero,
+      elevation: 2,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0), // Slightly less rounded
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- IMAGE SECTION (Less Vertical Space) ---
-          Expanded(
-            flex: 4, // 🏆 REDESIGN: Reduced flex to 4 (from 6) to shorten image height
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
             child: Stack(
-              fit: StackFit.expand,
               children: [
-                // Product Image
-                // Image.network(
-                //   'https://growupagro.tech${product.imageUrl}',
-                //   fit: BoxFit.cover,
-                //   errorBuilder: (context, error, stack) => Container(
-                //     color: Colors.grey.shade200,
-                //     child: Icon(Icons.image_not_supported, color: Colors.grey.shade400, size: 40),
-                //   ),
-                // ),
                 Image.network(
                   ApiConstants.getProductImage(product.imageUrl),
                   fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 120,
                   errorBuilder: (context, error, stack) => Container(
+                    height: 150,
                     color: Colors.grey.shade200,
-                    child: Icon(Icons.image_not_supported, color: Colors.grey.shade400, size: 40),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                      size: 40,
+                    ),
                   ),
                 ),
-
-
-                // Sale Banner
-                if (isAvailable) // Only show discount if product is available
+                if (isAvailable)
                   Positioned(
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), // Reduced padding
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(25),
                       ),
                       child: const Text(
                         '15% OFF',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10, // Smaller font
+                          fontSize: 8,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
 
-                // Share Button (Moved to right side for modern alignment)
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -188,10 +186,17 @@ class _AllProductsPageState extends State<AllProductsPage> {
                     child: Container(
                       padding: const EdgeInsets.all(4), // Square padding
                       decoration: BoxDecoration(
-                        color: Colors.black54, // Dark overlay for better contrast
-                        borderRadius: BorderRadius.circular(100), // Circular background
+                        color: Colors.black54,
+                        // Dark overlay for better contrast
+                        borderRadius: BorderRadius.circular(
+                          100,
+                        ), // Circular background
                       ),
-                      child: const Icon(Icons.share, size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.share,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -199,100 +204,79 @@ class _AllProductsPageState extends State<AllProductsPage> {
             ),
           ),
 
-          // --- CONTENT SECTION (More Vertical Space) ---
-          Expanded(
-            flex: 5, // 🏆 REDESIGN: Increased flex to 5 (from 5, but relative gain due to image change)
-            child: Padding(
-              padding: const EdgeInsets.all(8.0), // Reduced padding for compactness
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Title, Category, and Price
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.productName,
-                        style: const TextStyle(
-                          fontSize: 14, // Slightly smaller
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                        maxLines: 2, // Allow for 2 lines now
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        product.categoryName,
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade500), // Lighter secondary color
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "৳ ${isAvailable ? price.toString() : 'Upcoming'}",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isAvailable ? Colors.green.shade800 : Colors.amber.shade800, // Price color changes based on status
-                        ),
-                      ),
-                    ],
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.productName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  product.categoryName,
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "৳ ${isAvailable ? price.toString() : 'Upcoming'}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: isAvailable
+                        ? Colors.green.shade800
+                        : Colors.amber.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-                  // 🏆 REDESIGN: Conditional Action Button/Status
-                  isAvailable
-                      ? SizedBox(
-                    width: double.infinity,
-                    height: 30, // Slightly smaller button
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailsPage(slug: product.slug),
-                          ),
-                        );
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        padding: EdgeInsets.zero,
-                      ),
-                      icon: const Icon(Icons.shopping_cart_outlined, size: 13),
-                      label: const Text(
-                        'Book Now',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12, // Slightly smaller font
-                        ),
-                      ),
-                    ),
-                  )
+                SizedBox(
+                  width: double.infinity,
+                  child: isAvailable
+                      ? CustomButton(
+                          text: "Book Now",
+                          height: 30,
+                          fontSize: 12,
+                          backgroundColor: Colors.green,
+                          icon: Icons.shopping_cart_outlined,
+                          borderRadius: 8,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetailsPage(slug: product.slug),
+                              ),
+                            );
+                          },
+                        )
                       : Container(
-                    height: 30,
-                    width: double.infinity,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade50,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.amber.shade300, width: 0.8),
-                    ),
-                    child: Text(
-                      'UPCOMING',
-                      style: TextStyle(
-                        color: Colors.amber.shade800,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.amber.shade300,
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            'UPCOMING',
+                            style: TextStyle(
+                              color: Colors.amber.shade800,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                ),
+              ],
             ),
           ),
         ],

@@ -12,7 +12,8 @@ import 'package:http/http.dart' as http;
 import '../models/project_details_model.dart';
 import '../paymentService/payment_service.dart';
 import '../widgets/custom_button.dart'; // your CustomButton file
-import '../widgets/collapsible_html_text.dart'; // your CollapsibleHtmlText file
+import '../widgets/collapsible_html_text.dart';
+import '../widgets/info_row.dart'; // your CollapsibleHtmlText file
 
 class ProjectDescriptionPage extends StatefulWidget {
   final int projectId;
@@ -975,49 +976,4 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
       ),
     );
   }
-}
-
-class InfoRow extends StatelessWidget {
-  final String title;
-  final String? value;
-  final double fontSize;
-  final bool showDivider;
-  final TextStyle? style;
-
-  const InfoRow({
-    super.key,
-    required this.title,
-    required this.value,
-    this.fontSize = 14,
-    this.showDivider = true,
-    this.style,
-  });
-
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 5,
-            child: Text(
-              "$title:",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
-            ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Text(
-              value ?? "N/A",
-              textAlign: TextAlign.right,
-              style: style ?? const TextStyle(),
-            ),
-          ),
-        ],
-      ),
-      showDivider? const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)) : const SizedBox(),
-    ],
-  );
 }
