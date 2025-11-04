@@ -179,39 +179,11 @@ class _LongProjectsPageState extends State<LongProjectsPage> {
                     final project = projects[index];
                     final now = DateTime.now();
 
-                    // ✅ Parse and handle project dates
+                    // Parse and handle project dates
                     final startDate = project.project_start_date != null &&
                         project.project_start_date!.isNotEmpty
                         ? DateTime.tryParse(project.project_start_date!)
                         : null;
-                    final roiStartDate = project.roi_start_date != null &&
-                        project.roi_start_date!.isNotEmpty
-                        ? DateTime.tryParse(project.roi_start_date!)
-                        : null;
-                    final endDate = project.project_end_date != null &&
-                        project.project_end_date!.isNotEmpty
-                        ? DateTime.tryParse(project.project_end_date!)
-                        : null;
-
-                    // Determine project status
-                    String statusText;
-                    if (endDate != null && now.isAfter(endDate)) {
-                      statusText = 'Matured';
-                    } else if (startDate != null && now.isBefore(startDate)) {
-                      statusText = 'Upcoming';
-                    } else if (startDate != null &&
-                        roiStartDate != null &&
-                        now.isAfter(startDate) &&
-                        now.isBefore(roiStartDate)) {
-                      statusText = 'Investment Collecting';
-                    } else if (roiStartDate != null &&
-                        endDate != null &&
-                        now.isAfter(roiStartDate) &&
-                        now.isBefore(endDate)) {
-                      statusText = 'Running';
-                    } else {
-                      statusText = 'Unknown';
-                    }
 
                     final goal = project.investmentGoal ?? 0;
                     final raised = project.raised ?? 0;
@@ -236,7 +208,7 @@ class _LongProjectsPageState extends State<LongProjectsPage> {
                       roi: project.annualRoi != null
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
-                      statusText: statusText,
+                      statusText: project.status == 1 ? 'Running' : 'Closed',
                       showInvestNow: showInvestNow,
                       showUpcoming: showUpcoming,
                       investmentStartDate: startDate != null
