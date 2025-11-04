@@ -204,7 +204,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                         ),
                         const SizedBox(height: 4),
 
-                        // 📋 Project Info Row
+                        // Project Info Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -222,7 +222,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
 
                         const SizedBox(height: 12),
 
-                        // ✅ Your Custom Button (full width)
+                        //Your Custom Button (full width)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [

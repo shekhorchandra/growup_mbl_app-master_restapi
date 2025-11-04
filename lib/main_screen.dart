@@ -34,7 +34,11 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     if (index == 4) {
-      _scaffoldKey.currentState?.openEndDrawer();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scaffoldKey.currentState?.hasEndDrawer ?? false) {
+          _scaffoldKey.currentState?.openEndDrawer();
+        }
+      });
     } else {
       setState(() {
         _bottomNavIndex = index;
@@ -73,643 +77,646 @@ class _MainScreenState extends State<MainScreen> {
               return const Center(child: Text("Error loading profile"));
             } else {
               final profile = snapshot.data!;
-              return Container(
-                color: const Color(0xFFFFFFFF),
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    UserAccountsDrawerHeader(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF2E7D32),
+              return SafeArea(
+                top: false,
+                child: Container(
+                  color: const Color(0xFFFFFFFF),
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      UserAccountsDrawerHeader(
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF2E7D32),
+                        ),
+                        margin: EdgeInsets.zero,
+                        accountName: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile['name'] ?? 'No Name',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(width: 4), // minimal space
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/myprofile');
+                              },
+                              child: Image.asset(
+                                'assets/icons/edit.png',
+                                width: 28,
+                                height: 28,
+                                // Optional: apply color filter
+                              ),
+                            ),
+                          ],
+                        ),
+                        accountEmail: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              "${profile['code']}",
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+
+                        currentAccountPicture: CircleAvatar(
+                          backgroundImage:
+                          profile['image'] != null &&
+                              profile['image'].toString().isNotEmpty
+                              ? NetworkImage(
+                            "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
+                          )
+                              : const AssetImage('assets/images/img.png')
+                          as ImageProvider,
+                        ),
                       ),
-                      margin: EdgeInsets.zero,
-                      accountName: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            profile['name'] ?? 'No Name',
-                            style: const TextStyle(color: Colors.white),
+
+                      _buildDrawerItem(
+                        FontAwesomeIcons
+                            .tachometerAlt, // <-- just the icon data
+                        'Dashboard',
+                        context,
+                        '/dashboard',
+                      ),
+
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.wallet,
+                          color: Colors.green,
+                          size: 20, // smaller main icon
+                        ),
+                        title: Text(
+                          'Wallet',
+                          style: TextStyle(
+                            fontSize: 14, // smaller text
+                            fontWeight: FontWeight.w500,
                           ),
-                          const SizedBox(width: 4), // minimal space
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, '/myprofile');
-                            },
-                            child: Image.asset(
-                              'assets/icons/edit.png',
-                              width: 28,
-                              height: 28,
-                              // Optional: apply color filter
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // remove top/bottom padding
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            // compact vertical space
+                            leading: Icon(
+                              FontAwesomeIcons.wallet,
+                              size: 16, // smaller child icon
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'My Wallet',
+                              style: TextStyle(
+                                fontSize: 13,
+                              ), // smaller child text
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/wallet'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.moneyCheck,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Deposit',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/deposit'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.arrowDown,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Withdraw',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/withdraw'),
+                          ),
+                        ],
+                      ),
+
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.seedling,
+                          color: Colors.green,
+                          size: 20, // smaller main icon
+                        ),
+                        title: Text(
+                          'Growup',
+                          style: TextStyle(
+                            fontSize: 14, // smaller main text
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.folderOpen,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Projects',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/projects'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.projectDiagram,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Invested Projects',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/myprojects'),
+                          ),
+                        ],
+                      ),
+
+                      //invoice
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.fileInvoiceDollar,
+                          color: Colors.green,
+                          size: 20, // main icon size
+                        ),
+                        title: Text(
+                          'Invoices',
+                          style: TextStyle(
+                            fontSize: 14, // main title size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.fileInvoice,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Growup',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/invoice_growup'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.warehouse,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Property',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.fileInvoiceDollar,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Recharge',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/invoice_recharge',
+                            ),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.coins,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text('ROI', style: TextStyle(fontSize: 13)),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/invoice_roi'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.handHoldingDollar,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Capital Return',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/capital_return'),
+                          ),
+                        ],
+                      ),
+
+                      _buildDrawerItem(
+                        FontAwesomeIcons.history,
+                        'Investment History',
+                        context,
+                        '/investmenthistory',
+                      ),
+
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.building,
+                          color: Colors.green,
+                          size: 20, // smaller main icon
+                        ),
+                        title: Text(
+                          'Properties',
+                          style: TextStyle(
+                            fontSize: 14, // main text size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.building,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Package Details',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/properties'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.shoppingBag,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Ordered Properties',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.box,
+                          color: Colors.green,
+                          size: 20, // main icon size
+                        ),
+                        title: Text(
+                          'Products',
+                          style: TextStyle(
+                            fontSize: 14, // main title text size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.box,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'All Products',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/products'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.shoppingCart,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'My Cart',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.boxOpen,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'My Orders',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/myorders'),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.truck,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Track My Orders',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+
+                      _buildDrawerItem(
+                        FontAwesomeIcons.user,
+                        'Profile',
+                        context,
+                        '/profile',
+                      ),
+
+                      ExpansionTile(
+                        leading: Icon(
+                          FontAwesomeIcons.certificate,
+                          color: Colors.green,
+                          size: 20, // main icon size
+                        ),
+                        title: Text(
+                          'Certification',
+                          style: TextStyle(
+                            fontSize: 14, // main title size
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                        childrenPadding: const EdgeInsets.only(
+                          left: 30,
+                          top: 0,
+                          bottom: 0,
+                        ),
+                        // compact padding
+                        dense: true,
+                        children: <Widget>[
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.fileAlt,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'TAX Certificate',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/tax_certificate',
+                            ),
+                          ),
+                          ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            visualDensity: const VisualDensity(vertical: -4),
+                            leading: Icon(
+                              FontAwesomeIcons.coins,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              'Investment Certificate',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/project_certificate',
                             ),
                           ),
                         ],
                       ),
-                      accountEmail: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${profile['code']}",
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+
+                      _buildDrawerItem(
+                        FontAwesomeIcons.infoCircle,
+                        'About Us',
+                        context,
+                        '/about_us',
                       ),
 
-                      currentAccountPicture: CircleAvatar(
-                        backgroundImage:
-                        profile['image'] != null &&
-                            profile['image'].toString().isNotEmpty
-                            ? NetworkImage(
-                          "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
-                        )
-                            : const AssetImage('assets/images/img.png')
-                        as ImageProvider,
+                      _buildDrawerItem(
+                        FontAwesomeIcons.newspaper,
+                        'News',
+                        context,
+                        '/news',
                       ),
-                    ),
 
-                    _buildDrawerItem(
-                      FontAwesomeIcons
-                          .tachometerAlt, // <-- just the icon data
-                      'Dashboard',
-                      context,
-                      '/dashboard',
-                    ),
+                      _buildDrawerItem(
+                        FontAwesomeIcons.blog,
+                        'Blog',
+                        context,
+                        '/blogs',
+                      ),
 
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.wallet,
-                        color: Colors.green,
-                        size: 20, // smaller main icon
-                      ),
-                      title: Text(
-                        'Wallet',
-                        style: TextStyle(
-                          fontSize: 14, // smaller text
-                          fontWeight: FontWeight.w500,
+                      ListTile(
+                        leading: const Icon(
+                          FontAwesomeIcons.rightFromBracket,
+                          color: Colors.green,
                         ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      // remove top/bottom padding
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          // compact vertical space
-                          leading: Icon(
-                            FontAwesomeIcons.wallet,
-                            size: 16, // smaller child icon
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'My Wallet',
-                            style: TextStyle(
-                              fontSize: 13,
-                            ), // smaller child text
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/wallet'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.moneyCheck,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Deposit',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/deposit'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.arrowDown,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Withdraw',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/withdraw'),
-                        ),
-                      ],
-                    ),
-
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.seedling,
-                        color: Colors.green,
-                        size: 20, // smaller main icon
-                      ),
-                      title: Text(
-                        'Growup',
-                        style: TextStyle(
-                          fontSize: 14, // smaller main text
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.folderOpen,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Projects',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/projects'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.projectDiagram,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Invested Projects',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/myprojects'),
-                        ),
-                      ],
-                    ),
-
-                    //invoice
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.fileInvoiceDollar,
-                        color: Colors.green,
-                        size: 20, // main icon size
-                      ),
-                      title: Text(
-                        'Invoices',
-                        style: TextStyle(
-                          fontSize: 14, // main title size
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      // compact padding
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.fileInvoice,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Growup',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/invoice_growup'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.warehouse,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Property',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.fileInvoiceDollar,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Recharge',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/invoice_recharge',
-                          ),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.coins,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text('ROI', style: TextStyle(fontSize: 13)),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/invoice_roi'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.handHoldingDollar,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Capital Return',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/capital_return'),
-                        ),
-                      ],
-                    ),
-
-                    _buildDrawerItem(
-                      FontAwesomeIcons.history,
-                      'Investment History',
-                      context,
-                      '/investmenthistory',
-                    ),
-
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.building,
-                        color: Colors.green,
-                        size: 20, // smaller main icon
-                      ),
-                      title: Text(
-                        'Properties',
-                        style: TextStyle(
-                          fontSize: 14, // main text size
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      // compact padding
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.building,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Package Details',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/properties'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.shoppingBag,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Ordered Properties',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.box,
-                        color: Colors.green,
-                        size: 20, // main icon size
-                      ),
-                      title: Text(
-                        'Products',
-                        style: TextStyle(
-                          fontSize: 14, // main title text size
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      // compact padding
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.box,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'All Products',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/products'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.shoppingCart,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'My Cart',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.boxOpen,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'My Orders',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/myorders'),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.truck,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Track My Orders',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-
-                    _buildDrawerItem(
-                      FontAwesomeIcons.user,
-                      'Profile',
-                      context,
-                      '/profile',
-                    ),
-
-                    ExpansionTile(
-                      leading: Icon(
-                        FontAwesomeIcons.certificate,
-                        color: Colors.green,
-                        size: 20, // main icon size
-                      ),
-                      title: Text(
-                        'Certification',
-                        style: TextStyle(
-                          fontSize: 14, // main title size
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(
-                        left: 30,
-                        top: 0,
-                        bottom: 0,
-                      ),
-                      // compact padding
-                      dense: true,
-                      children: <Widget>[
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.fileAlt,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'TAX Certificate',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/tax_certificate',
-                          ),
-                        ),
-                        ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                          ),
-                          visualDensity: const VisualDensity(vertical: -4),
-                          leading: Icon(
-                            FontAwesomeIcons.coins,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          title: Text(
-                            'Investment Certificate',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/project_certificate',
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    _buildDrawerItem(
-                      FontAwesomeIcons.infoCircle,
-                      'About Us',
-                      context,
-                      '/about_us',
-                    ),
-
-                    _buildDrawerItem(
-                      FontAwesomeIcons.newspaper,
-                      'News',
-                      context,
-                      '/news',
-                    ),
-
-                    _buildDrawerItem(
-                      FontAwesomeIcons.blog,
-                      'Blog',
-                      context,
-                      '/blogs',
-                    ),
-
-                    ListTile(
-                      leading: const Icon(
-                        FontAwesomeIcons.rightFromBracket,
-                        color: Colors.green,
-                      ),
-                      title: const Text('Logout'),
-                      onTap: () async {
-                        final shouldLogout = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Confirm Logout'),
-                            content: const Text(
-                              'Are you sure you want to logout?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(
-                                  context,
-                                ).pop(false), // Cancel
-                                child: const Text('Cancel'),
+                        title: const Text('Logout'),
+                        onTap: () async {
+                          final shouldLogout = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirm Logout'),
+                              content: const Text(
+                                'Are you sure you want to logout?',
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(
-                                  context,
-                                ).pop(true), // Confirm
-                                child: const Text('Logout'),
-                              ),
-                            ],
-                          ),
-                        );
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(
+                                    context,
+                                  ).pop(false), // Cancel
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(
+                                    context,
+                                  ).pop(true), // Confirm
+                                  child: const Text('Logout'),
+                                ),
+                              ],
+                            ),
+                          );
 
-                        if (shouldLogout == true) {
-                          await _logout(); // This handles API + navigation
-                        }
-                      },
-                    ),
-                  ],
+                          if (shouldLogout == true) {
+                            await _logout(); // This handles API + navigation
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             }

@@ -476,10 +476,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         return false; // Cancel back navigation
       },
       child: Scaffold(
-        //left drawer fetch data from api
         backgroundColor: Colors.white,
 
-        //Circle avatar ,text and wallet button
         appBar: _selectedIndex == 4
             ? null
             : AppBar(

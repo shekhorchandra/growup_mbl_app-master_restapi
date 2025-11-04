@@ -242,7 +242,7 @@ class _InvoiceGrowupPageState extends State<InvoiceGrowupPage> {
                 ),
               ),
 
-              // 🔹 Pagination Footer
+              // Pagination Footer
               PaginationFooter(
                 currentPage: currentPage,
                 totalItems: filteredList.length,
