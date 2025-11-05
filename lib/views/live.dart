@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/live_project_model.dart';
+import '../utils/project_status_utils.dart';
 import '../widgets/project_card.dart';
 import '../widgets/search_bar.dart';
 
@@ -148,7 +149,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
         title: const Text(
           'Live Projects',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -183,6 +184,8 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                   itemCount: projects.length,
                   itemBuilder: (context, index) {
                     final project = projects[index];
+                    final statusInfo = _getProjectStatus(project);
+                    final String statusText = statusInfo['status'];
 
                     final now = DateTime.now();
                     final startDate = project.project_start_date != null &&
@@ -193,10 +196,8 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                     final goal = project.investmentGoal ?? 0;
                     final raised = project.raised ?? 0;
 
-                    final showUpcoming =
-                        startDate != null && now.isBefore(startDate);
-                    final showInvestNow =
-                        project.status == 1 && raised <= goal;
+                    final showUpcoming = startDate != null && now.isBefore(startDate);
+                    final showInvestNow = project.status == 1 && raised <= goal;
 
                     return ProjectCard(
                       projectName: project.projectName ?? 'N/A',
@@ -214,7 +215,7 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                       roi: project.annualRoi != null
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
-                      statusText: project.status == 1 ? 'Running' : 'Closed',
+                      statusText: statusText,
                       showInvestNow: showInvestNow,
                       showUpcoming: showUpcoming,
                       investmentStartDate: startDate != null
@@ -240,4 +241,50 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
           : null,
     );
   }
+
+  /// Determine dynamic project status, color, and priority for sorting
+  Map<String, dynamic> _getProjectStatus(LiveProject project) {
+    final now = DateTime.now();
+
+    DateTime? startDate = project.project_start_date != null &&
+        project.project_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_start_date!)
+        : null;
+
+    DateTime? roiStartDate = project.roi_start_date != null &&
+        project.roi_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.roi_start_date!)
+        : null;
+
+    DateTime? endDate = project.project_end_date != null &&
+        project.project_end_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_end_date!)
+        : null;
+
+    String status = 'Unknown';
+    int priority = 5;
+
+    if (startDate != null &&
+        roiStartDate != null &&
+        now.isAfter(startDate) &&
+        now.isBefore(roiStartDate)) {
+      status = 'Investment Collecting';
+      priority = 1;
+    } else if (roiStartDate != null &&
+        endDate != null &&
+        now.isAfter(roiStartDate) &&
+        now.isBefore(endDate)) {
+      status = 'Running';
+      priority = 2;
+    } else if (startDate != null && now.isBefore(startDate)) {
+      status = 'Upcoming';
+      priority = 3;
+    } else if (endDate != null && now.isAfter(endDate)) {
+      status = 'Matured';
+      priority = 4;
+    }
+
+    return {'status': status, 'priority': priority};
+  }
+
 }

@@ -29,6 +29,7 @@ import '../widgets/achievement_card.dart';
 import '../widgets/appbar_content.dart';
 import '../widgets/category_item.dart';
 import '../widgets/home_image_slider.dart';
+import '../widgets/status_test.dart';
 import '../widgets/summary_item.dart';
 import 'IntroPage.dart';
 import 'completed_projects.dart';
@@ -142,7 +143,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
         },
       );
 
-      // debugPrint('Status Code: ${response.statusCode}');
       // debugPrint('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -261,15 +261,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     final investorCode = prefs.getString('investor_code') ?? '';
 
     try {
-      // final response = await http.get(
-      //   Uri.parse(
-      //     'https://admin-growup.onebitstore.site/api/investor/profile?investor_code=$investorCode',
-      //   ),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Accept': 'application/json',
-      //   },
-      // );
       final url = Uri.parse(ApiConstants.investorProfile(investorCode));
       final response = await http.get(
         url,
@@ -341,9 +332,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   }
 
   Future<AllPropertiesResponse> fetchProperties() async {
-    final response = await http.get(
-      Uri.parse(ApiConstants.allProperties),
-    );
+    final response = await http.get(Uri.parse(ApiConstants.allProperties));
 
     if (response.statusCode == 200) {
       return AllPropertiesResponse.fromJson(jsonDecode(response.body));
@@ -1427,8 +1416,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       )
                     else
                       ..._walletTransactions.take(3).map((tx) {
-                        final String type =
-                            tx['type']?.toString().toLowerCase() ?? '';
+                        final String type = tx['type']?.toString().toLowerCase() ?? '';
                         IconData icon;
 
                         if (type == 'withdraw') {
@@ -1492,7 +1480,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       },
     );
   }
-
 
   // residential
   Widget _buildCategoryButton6(String label, IconData icon) {
@@ -1722,7 +1709,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const ecotourismCityPage(),
+                builder: (context) => const EcotourismCityPage(),
               ),
             );
           },
@@ -2164,16 +2151,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               Container(
                 margin: const EdgeInsets.only(top: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-
-                child: Text(
-                  status.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: status.toLowerCase() == 'approved'
-                        ? Colors.green
-                        : Colors.orange,
-                  ),
-                ),
+                child: StatusChip(status: status.toUpperCase()),
               ),
             ],
           ),

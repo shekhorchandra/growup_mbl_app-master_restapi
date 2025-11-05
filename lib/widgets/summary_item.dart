@@ -5,6 +5,8 @@ import 'package:growup_agro/views/total_investment_dialog.dart';
 import 'package:growup_agro/views/my_growup_projects_dialog.dart';
 import 'package:growup_agro/views/wallet_balance_dialog.dart';
 
+import 'custom_button.dart';
+
 class SummaryItem {
   final Widget icon;         // e.g. Icon(Icons.savings)
   final String value;        // e.g. "547,000"
@@ -168,10 +170,13 @@ class DashboardSummaryCard extends StatelessWidget {
         title: const Text('Details'),
         content: Text('Here are more details about "$label".'),
         actions: [
-          ElevatedButton(
+          CustomButton(
+            text: "Close",
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Close", style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            height: 32,
+            fontSize: 12,
           ),
         ],
       ),

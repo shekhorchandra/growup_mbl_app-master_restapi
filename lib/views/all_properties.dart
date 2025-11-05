@@ -48,8 +48,11 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
   }
 
   void _scrollToTop() {
-    _scrollController.animateTo(0,
-        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -64,7 +67,11 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
       appBar: AppBar(
         title: const Text(
           "All Properties",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 18,
+          ),
         ),
         backgroundColor: const Color(0xFF2E7D32),
         centerTitle: true,
@@ -104,10 +111,10 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
       ),
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(
-        onPressed: _scrollToTop,
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.arrow_upward, color: Colors.white),
-      )
+              onPressed: _scrollToTop,
+              backgroundColor: Colors.orange,
+              child: const Icon(Icons.arrow_upward, color: Colors.white),
+            )
           : null,
     );
   }
@@ -129,8 +136,11 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 color: Colors.grey.shade200,
-                child: const Icon(Icons.image_not_supported,
-                    color: Colors.grey, size: 40),
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 40,
+                ),
               ),
             ),
           ),
@@ -161,14 +171,19 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.location_on_outlined,
-                              color: Colors.grey.shade600, size: 12),
+                          Icon(
+                            Icons.location_on_outlined,
+                            color: Colors.grey.shade600,
+                            size: 12,
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               package.propertyName,
                               style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade600),
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -188,8 +203,6 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
                     ],
                   ),
 
-                  // Added spacing between stats and button
-
                   // Full-width CustomButton
                   SizedBox(
                     width: double.infinity,
@@ -198,8 +211,7 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content:
-                            Text("Coming soon: Property details page"),
+                            content: Text("Coming soon: Property details page"),
                           ),
                         );
                       },
@@ -223,10 +235,7 @@ class _AllPropertiesPageState extends State<AllPropertiesPage> {
       children: [
         Icon(icon, size: 10, color: Colors.grey.shade500),
         const SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-        ),
+        Text(text, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
       ],
     );
   }

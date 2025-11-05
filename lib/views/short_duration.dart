@@ -149,7 +149,7 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
         foregroundColor: Colors.white,
         title: const Text(
           'Short Term Projects',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
       ),
@@ -181,6 +181,9 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
                     final project = projects[index];
                     final now = DateTime.now();
 
+                    final statusInfo = _getProjectStatus(project);
+                    final String statusText = statusInfo['status'];
+
                     // Parse and handle project dates
                     final startDate = project.project_start_date != null &&
                         project.project_start_date!.isNotEmpty
@@ -210,7 +213,7 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
                       roi: project.annualRoi != null
                           ? 'Annually ${project.annualRoi}%'
                           : 'N/A',
-                      statusText: project.status == 1 ? 'Running' : 'Closed',
+                      statusText: statusText,
                       showInvestNow: showInvestNow,
                       showUpcoming: showUpcoming,
                       investmentStartDate: startDate != null
@@ -235,5 +238,50 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
       )
           : null,
     );
+  }
+
+  /// Determine dynamic project status, color, and priority for sorting
+  Map<String, dynamic> _getProjectStatus(ShortProjectModel project) {
+    final now = DateTime.now();
+
+    DateTime? startDate = project.project_start_date != null &&
+        project.project_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_start_date!)
+        : null;
+
+    DateTime? roiStartDate = project.roi_start_date != null &&
+        project.roi_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.roi_start_date!)
+        : null;
+
+    DateTime? endDate = project.project_end_date != null &&
+        project.project_end_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_end_date!)
+        : null;
+
+    String status = 'Unknown';
+    int priority = 5;
+
+    if (startDate != null &&
+        roiStartDate != null &&
+        now.isAfter(startDate) &&
+        now.isBefore(roiStartDate)) {
+      status = 'Investment Collecting';
+      priority = 1;
+    } else if (roiStartDate != null &&
+        endDate != null &&
+        now.isAfter(roiStartDate) &&
+        now.isBefore(endDate)) {
+      status = 'Running';
+      priority = 2;
+    } else if (startDate != null && now.isBefore(startDate)) {
+      status = 'Upcoming';
+      priority = 3;
+    } else if (endDate != null && now.isAfter(endDate)) {
+      status = 'Matured';
+      priority = 4;
+    }
+
+    return {'status': status, 'priority': priority};
   }
 }

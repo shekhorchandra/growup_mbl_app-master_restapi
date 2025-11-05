@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/models/todays_income_dialog_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
+import 'package:growup_agro/widgets/pagination_footer.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../models/todays_income_dialog_model.dart';
 
 class TodaysIncomeDialog extends StatefulWidget {
   const TodaysIncomeDialog({super.key});
@@ -15,17 +16,22 @@ class TodaysIncomeDialog extends StatefulWidget {
 }
 
 class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
-  List<RoiDetail> roiList = [];
+  List<RoiDetail> fullList = [];
   List<RoiDetail> filteredList = [];
   bool isLoading = false;
   int currentPage = 1;
   final int rowsPerPage = 10;
-  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  final currencyFormatter =
+  NumberFormat.currency(locale: 'en_US', symbol: '৳');
 
   @override
   void initState() {
     super.initState();
     fetchTodaysIncome();
+    _searchController.addListener(() {
+      _filterList(_searchController.text);
+    });
   }
 
   Future<void> fetchTodaysIncome() async {
@@ -37,7 +43,6 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
 
       final url = Uri.parse(ApiConstants.todaysIncome(investorCode));
       final response = await http.get(
-        // Uri.parse('https://growupagro.tech/api/investor/pop-up/todays-income?investor_code=$investorCode'),
         url,
         headers: {
           'Authorization': 'Bearer $token',
@@ -47,39 +52,49 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        final List<RoiDetail> loadedRois = (jsonData['data']['roi_details'] as List)
+        final List<RoiDetail> loadedList =
+        (jsonData['data']['roi_details'] as List)
             .map((e) => RoiDetail.fromJson(e))
             .toList();
         setState(() {
-          roiList = loadedRois;
-          filteredList = loadedRois;
+          fullList = loadedList;
+          filteredList = loadedList;
         });
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       setState(() => isLoading = false);
     }
   }
 
   void _filterList(String query) {
+    final lower = query.toLowerCase();
     setState(() {
-      searchQuery = query.toLowerCase();
-      currentPage = 1;
-      filteredList = roiList.where((item) {
-        final projectName = item.projectName.toLowerCase();
-        final formattedDate = _formatDate(item.createdAt).toLowerCase();
-        return projectName.contains(searchQuery) || formattedDate.contains(searchQuery);
+      filteredList = fullList.where((item) {
+        final project = item.projectName.toLowerCase();
+        final startDate = _formatDate(item.createdAt).toLowerCase();
+        final endDate = _formatDate(item.endedAt).toLowerCase();
+        return project.contains(lower) ||
+            startDate.contains(lower) ||
+            endDate.contains(lower);
       }).toList();
+      currentPage = 1;
     });
   }
 
   List<RoiDetail> get currentPageItems {
     final start = (currentPage - 1) * rowsPerPage;
-    final end = (start + rowsPerPage).clamp(0, filteredList.length);
-    return filteredList.sublist(start, end);
+    final end = start + rowsPerPage;
+    return filteredList.sublist(
+      start,
+      end > filteredList.length ? filteredList.length : end,
+    );
   }
 
   void _nextPage() {
@@ -98,96 +113,198 @@ class _TodaysIncomeDialogState extends State<TodaysIncomeDialog> {
     try {
       return DateFormat('dd MMM yyyy').format(DateTime.parse(raw));
     } catch (_) {
-      return 'Invalid';
+      return 'N/A';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
+      width: MediaQuery.of(context).size.width * 0.95,
       height: MediaQuery.of(context).size.height * 0.8,
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          const SizedBox(height: 12),
-          const Text('ROI Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Search by Project Name or Date (e.g. 03 Aug 2025)',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onChanged: _filterList,
+      child: SafeArea(
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Card(
-                  child: DataTable(
-                    columnSpacing: 32,
-                    headingRowColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
-                    headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    columns: const [
-                      DataColumn(label: Text('SL')),
-                      DataColumn(label: Text('Date')),
-                      DataColumn(label: Text('Project Name')),
-                      DataColumn(label: Text('ROI')),
-                    ],
-                    rows: List.generate(currentPageItems.length, (index) {
-                      final item = currentPageItems[index];
-                      return DataRow(cells: [
-                        DataCell(Text('${(currentPage - 1) * rowsPerPage + index + 1}')),
-                        // DataCell(Text(_formatDate(item.createdAt))),
-
-                        DataCell(
-                          Text(
-                            'Start Date: ${_formatDate(item.createdAt)}\nMature Date: ${_formatDate(item.endedAt)}',
+            clipBehavior: Clip.hardEdge,
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(color: Colors.green),
+              )
+                  : Column(
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'ROI Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
                         ),
-
-                        DataCell(Text(item.projectName)),
-                        DataCell(Text('৳${item.total_roi.toStringAsFixed(2)}')),
-                      ]);
-                    }),
+                        CustomButton(
+                          text: "Close",
+                          onPressed: () => Navigator.pop(context),
+                          backgroundColor: Colors.red,
+                          height: 32,
+                          fontSize: 12,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        cursorColor: Colors.green,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search,
+                              color: Colors.grey, size: 20),
+                          hintText:
+                          'Search by Project Name or Date (e.g. 03 Aug 2025)',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ROI List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? const Center(
+                      child: Text(
+                        'No ROI data found',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                        : ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: currentPageItems.length,
+                      itemBuilder: (context, index) {
+                        final item = currentPageItems[index];
+                        final sl = ((currentPage - 1) *
+                            rowsPerPage) +
+                            index +
+                            1;
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 6.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 3,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment
+                                      .spaceBetween,
+                                  children: [
+                                    Text(
+                                      "SL: $sl",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    Text(
+                                      "ROI: ${currencyFormatter.format(item.total_roi)}",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  item.projectName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Start Date: ${_formatDate(item.createdAt)}",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  "Mature Date: ${_formatDate(item.endedAt)}",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Pagination Footer
+                  PaginationFooter(
+                    currentPage: currentPage,
+                    totalItems: filteredList.length,
+                    rowsPerPage: rowsPerPage,
+                    onPrevious: _previousPage,
+                    onNext: _nextPage,
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 8),
-
-          // 📄 Pagination
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(onPressed: _previousPage, child: const Text('Previous')),
-              const SizedBox(width: 16),
-              Text('Page $currentPage of ${(filteredList.length / rowsPerPage).ceil()}'),
-              const SizedBox(width: 16),
-              ElevatedButton(onPressed: _nextPage, child: const Text('Next')),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Close", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/Total_projects_model.dart';
+import '../utils/project_status_utils.dart';
 import '../utils/total_projects_api.dart';
 import '../widgets/project_card.dart';
 import '../widgets/search_bar.dart';
@@ -74,58 +75,8 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
     }
   }
 
-  /// ✅ Determine dynamic project status, color, and priority for sorting
-  Map<String, dynamic> getProjectStatus(TotalProject project) {
-    final now = DateTime.now();
 
-    DateTime? startDate = project.project_start_date != null &&
-        project.project_start_date!.isNotEmpty
-        ? DateTime.tryParse(project.project_start_date!)
-        : null;
-
-    DateTime? roiStartDate = project.roi_start_date != null &&
-        project.roi_start_date!.isNotEmpty
-        ? DateTime.tryParse(project.roi_start_date!)
-        : null;
-
-    DateTime? endDate = project.project_end_date != null &&
-        project.project_end_date!.isNotEmpty
-        ? DateTime.tryParse(project.project_end_date!)
-        : null;
-
-    String status = 'Unknown';
-    Color color = Colors.grey;
-    int priority = 5;
-
-    if (startDate != null &&
-        roiStartDate != null &&
-        now.isAfter(startDate) &&
-        now.isBefore(roiStartDate)) {
-      status = 'Investment Collecting';
-      color = Colors.blue;
-      priority = 1;
-    } else if (roiStartDate != null &&
-        endDate != null &&
-        now.isAfter(roiStartDate) &&
-        now.isBefore(endDate)) {
-      status = 'Running';
-      color = Colors.green;
-      priority = 2;
-    } else if (startDate != null && now.isBefore(startDate)) {
-      status = 'Upcoming';
-      color = Colors.orange;
-      priority = 3;
-    } else if (endDate != null && now.isAfter(endDate)) {
-      status = 'Matured';
-      color = Colors.red;
-      priority = 4;
-    }
-
-    return {'status': status, 'color': color, 'priority': priority};
-  }
-
-  int getProjectPriority(TotalProject project) =>
-      getProjectStatus(project)['priority'];
+  int getProjectPriority(TotalProject project) => getProjectStatus(project: project)['priority'];
 
   Future<void> _openProjectDetails(
       int projectId, BuildContext context) async {
@@ -186,7 +137,7 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
 
                 _allProjects = snapshot.data!;
 
-                // ✅ Sort by project priority
+                // Sort by project priority
                 _allProjects.sort(
                         (a, b) => getProjectPriority(a).compareTo(getProjectPriority(b)));
 
@@ -198,10 +149,9 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
                   itemCount: projects.length,
                   itemBuilder: (context, index) {
                     final project = projects[index];
-                    final statusInfo = getProjectStatus(project);
+                    final statusInfo = getProjectStatus(project: project);
 
                     final String statusText = statusInfo['status'];
-                    final Color statusColor = statusInfo['color'];
 
                     final now = DateTime.now();
                     final startDate =
