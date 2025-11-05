@@ -154,7 +154,7 @@ class _MyRegisterState extends State<MyRegister> with TickerProviderStateMixin {
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
             child: Container(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
             ),
           ),
 

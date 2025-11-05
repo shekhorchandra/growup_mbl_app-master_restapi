@@ -306,7 +306,7 @@ class _DotsIndicator extends StatelessWidget {
           width: size.width,
           height: size.height,
           decoration: BoxDecoration(
-            color: isActive ? activeColor : color.withOpacity(0.7),
+            color: isActive ? activeColor : color.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(999),
           ),
         );

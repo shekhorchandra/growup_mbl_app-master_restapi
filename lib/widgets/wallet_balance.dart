@@ -52,7 +52,7 @@ class _WalletBalanceState extends State<WalletBalance> {
           borderRadius: BorderRadius.circular(6),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.15),
+              color: Colors.grey.withValues(alpha: 0.15),
               blurRadius: 6,
               offset: const Offset(0, 2),
             )

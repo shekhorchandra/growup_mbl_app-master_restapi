@@ -73,7 +73,8 @@ android {
             isShrinkResources = false
 
             // Signing config
-            signingConfig = signingConfigs.getByName("release")
+            //signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

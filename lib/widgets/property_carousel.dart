@@ -255,7 +255,7 @@ class _BulgedDotsIndicator extends StatelessWidget {
           width: size.width,
           height: size.height,
           decoration: BoxDecoration(
-            color: isActive ? activeColor : color.withOpacity(.75),
+            color: isActive ? activeColor : color.withValues(alpha: .75),
             borderRadius: BorderRadius.circular(999),
           ),
         );

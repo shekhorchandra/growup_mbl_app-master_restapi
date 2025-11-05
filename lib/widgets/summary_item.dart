@@ -24,7 +24,7 @@ class DashboardSummaryCard extends StatelessWidget {
     super.key,
     required this.items,
     this.borderRadius = 12,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
     this.bgColor = Colors.white,
     this.valueColor = const Color(0xFFED6E2F),
     this.labelColor = const Color(0xFF9AA3B2),
@@ -59,8 +59,6 @@ class DashboardSummaryCard extends StatelessWidget {
           builder: (context, constraints) {
             final isTight = constraints.maxWidth < 360;
             final iconSize = isTight ? 28.0 : 35.0;
-            final valueSize = isTight ? 14.0 : 18.0;
-            final labelSize = isTight ? 10.0 : 13.0;
             final dividerHeight = isTight ? 66.0 : 78.0;
 
             List<Widget> rowChildren = [];
@@ -76,7 +74,7 @@ class DashboardSummaryCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconTheme(
-                          data: IconThemeData(size: iconSize, ),
+                          data: IconThemeData(size: iconSize,),
                           child: _wrapIcon(item.icon, iconSize),
                         ),
                         const SizedBox(height: 8),
@@ -84,8 +82,8 @@ class DashboardSummaryCard extends StatelessWidget {
                           item.value,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: valueSize,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                             color: valueColor,
                             height: 1.1,
                           ),
@@ -95,7 +93,7 @@ class DashboardSummaryCard extends StatelessWidget {
                           item.label,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: labelSize,
+                            fontSize: 12,
                             color: labelColor,
                             fontWeight: FontWeight.w500,
                           ),
@@ -109,12 +107,12 @@ class DashboardSummaryCard extends StatelessWidget {
               if (i != items.length - 1) {
                 rowChildren.add(
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: Container(
                       width: 1.5,
                       height: dividerHeight,
                       decoration: BoxDecoration(
-                        color: dividerColor.withOpacity(.8),
+                        color: dividerColor.withValues(alpha: .8),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

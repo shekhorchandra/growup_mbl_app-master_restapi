@@ -1,28 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:growup_agro/views/Total_projects.dart';
 import 'package:growup_agro/views/long_duration.dart';
 import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
-import 'package:growup_agro/views/upcoming_projects.dart';
-import 'package:growup_agro/views/projects_page.dart';
-
-import 'completed_projects.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AllProjectsPage(),
-    );
-  }
-}
+import 'package:growup_agro/views/completed_projects.dart';
 
 class AllProjectsPage extends StatefulWidget {
   const AllProjectsPage({Key? key}) : super(key: key);
@@ -31,7 +12,8 @@ class AllProjectsPage extends StatefulWidget {
   _AllProjectsPageState createState() => _AllProjectsPageState();
 }
 
-class _AllProjectsPageState extends State<AllProjectsPage> with SingleTickerProviderStateMixin {
+class _AllProjectsPageState extends State<AllProjectsPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -49,59 +31,48 @@ class _AllProjectsPageState extends State<AllProjectsPage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-          //centerTitle: true,
-        //backgroundColor: const Color(0xFF2E7D32),
-        // foregroundColor: Colors.white,
-
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back),
-        //   onPressed: () => Navigator.pop(context),
-        // ),
-        title: Text(
+        backgroundColor: const Color(0xFF2E7D32),
+        centerTitle: true,
+        title: const Text(
           'All Projects',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-
         bottom: TabBar(
           controller: _tabController,
-          labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Selected tab style
-          unselectedLabelStyle: const TextStyle(fontSize: 16), // Unselected tab style
+          labelStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 15),
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
           tabs: const [
-
-            // Tab(text: 'All',),
             Tab(text: 'Live'),
             Tab(text: 'Long'),
             Tab(text: 'Short'),
             Tab(text: 'Matured'),
             Tab(text: 'All'),
-
-            // Tab(text: 'Coming'),
           ],
-        )
-
+        ),
       ),
-
       body: TabBarView(
         controller: _tabController,
-        children: [
-          // const ProjectsPage(hideAppBar: true),
-          const LiveProjectsPage(hideAppBar: true), // Your existing Shariah projects page widget
-          const LongProjectsPage(hideAppBar: true),    // Your existing Long projects page widget
-          const ShortProjectsPage(hideAppBar: true),   // Your existing Short projects page widget
-          const CompletedProjectsPage(hideAppBar: true),
-          const TotalProjectsPage(hideAppBar: true),
-
-          // const UpcomingProjectsPage(hideAppBar: true),
+        children: const [
+          LiveProjectsPage(hideAppBar: true),
+          LongProjectsPage(hideAppBar: true),
+          ShortProjectsPage(hideAppBar: true),
+          CompletedProjectsPage(hideAppBar: true),
+          TotalProjectsPage(hideAppBar: true),
         ],
       ),
     );
   }
 }
-

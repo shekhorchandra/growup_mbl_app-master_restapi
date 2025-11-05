@@ -1,58 +1,38 @@
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_file_dialog/flutter_file_dialog.dart';
-import 'package:growup_agro/views/web_view_page.dart';
-import 'package:http/http.dart' as http;
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:growup_agro/models/project_certificate_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
-import '../models/project_certificate_model.dart';
+import '../utils/invoice_utils.dart';
+import '../views/web_view_page.dart';
+import '../widgets/invoice_action_buttons.dart';
+import '../widgets/custom_button.dart'; // 👈 your global CustomButton
 
 class ProjectCertificatesPage extends StatefulWidget {
   const ProjectCertificatesPage({super.key});
 
   @override
-  State<ProjectCertificatesPage> createState() =>
-      _ProjectCertificatesPageState();
+  State<ProjectCertificatesPage> createState() => _ProjectCertificatesPageState();
 }
 
 class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
-  late String token;
   late Future<List<ProjectCertificate>> _certificatesFuture;
-
   List<ProjectCertificate> _allCertificates = [];
   List<ProjectCertificate> _filteredCertificates = [];
 
   final TextEditingController _searchController = TextEditingController();
-
-  // Track download progress
-  Map<String, bool> _isDownloading = {};
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _certificatesFuture = _loadTokenAndFetch();
-  }
-
-  Future<List<ProjectCertificate>> _loadTokenAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('auth_token') ?? '';
-
-    final list = await fetchCertificates();
-    setState(() {
-      _allCertificates = list;
-      _filteredCertificates = list;
-    });
-    return list;
+    _certificatesFuture = fetchCertificates();
   }
 
   Future<List<ProjectCertificate>> fetchCertificates() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
     final investorCode = prefs.getString('investor_code') ?? '';
 
     if (investorCode.isEmpty || token.isEmpty) {
@@ -60,20 +40,27 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     }
 
     final url = Uri.parse(
-      "https://growupagro.tech/api/investor/project-certificates?investor_code=$investorCode",
-    );
+        "https://growupagro.tech/api/investor/project-certificates?investor_code=$investorCode");
 
     final response = await http.get(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
     );
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       if (jsonResponse['status'] == true) {
-        return (jsonResponse['data'] as List)
+        final list = (jsonResponse['data'] as List)
             .map((e) => ProjectCertificate.fromJson(e))
             .toList();
+        setState(() {
+          _allCertificates = list;
+          _filteredCertificates = list;
+        });
+        return list;
       } else {
         throw Exception('No certificates found.');
       }
@@ -84,312 +71,179 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
 
   void _filterCertificates(String query) {
     setState(() {
-      _filteredCertificates = _allCertificates.where((cert) {
-        final name = cert.name.toLowerCase();
-        final code = cert.code.toString().toLowerCase();
-        final roi = cert.roi.toString().toLowerCase();
-        final search = query.toLowerCase();
-        return name.contains(search) ||
-            code.contains(search) ||
-            roi.contains(search);
-      }).toList();
+      if (query.isEmpty) {
+        _filteredCertificates = _allCertificates;
+      } else {
+        final lower = query.toLowerCase();
+        _filteredCertificates = _allCertificates.where((cert) {
+          return cert.name.toLowerCase().contains(lower) ||
+              cert.code.toLowerCase().contains(lower) ||
+              cert.roi.toString().toLowerCase().contains(lower);
+        }).toList();
+      }
     });
   }
 
-
-  Future<void> openCertificateInBrowser(
-      String viewUrl,
-      BuildContext context,
-      ) async {
-    if (viewUrl.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('View URL not available')),
-        );
-      }
-      return;
-    }
-
-    final Uri uri = Uri.parse(viewUrl);
-
-    try {
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open link in browser')),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error opening URL: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to open link in browser')),
-        );
-      }
+  Future<void> launchInBrowser(BuildContext context, String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open link')),
+      );
     }
   }
 
-
-  Future<void> downloadCertificateWithFallback(
-    BuildContext context,
-    String downloadUrl,
-    String viewUrl,
-    String fileName,
-  ) async {
-    setState(() => _isDownloading[downloadUrl] = true);
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      final dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 20),
-          receiveTimeout: const Duration(seconds: 60),
-          followRedirects: true,
-          validateStatus: (status) => true, // handle all status codes
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-        ),
-      );
-
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = '${tempDir.path}/$fileName.pdf';
-
-      final response = await dio.getUri<List<int>>(
-        Uri.parse(downloadUrl),
-        options: Options(responseType: ResponseType.bytes),
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            final percent = (received / total * 100)
-                .clamp(0, 100)
-                .toStringAsFixed(0);
-            debugPrint('Downloading $fileName: $percent%');
-          }
-        },
-      );
-
-      // Check content type before saving
-      final contentType = response.headers.value('content-type') ?? '';
-      if (!contentType.contains('application/pdf')) {
-        final bodyText = utf8.decode(response.data ?? []);
-        if (bodyText.contains('Unauthenticated') ||
-            bodyText.contains('<html')) {
-          throw Exception('Unauthenticated or invalid response from server');
-        } else {
-          throw Exception('Invalid response: expected PDF, got $contentType');
-        }
-      }
-
-      if (response.statusCode != 200 ||
-          response.data == null ||
-          response.data!.isEmpty) {
-        throw Exception(
-          'Server error: ${response.statusCode}. Unable to download file.',
-        );
-      }
-
-      // Save file locally
-      final tempFile = File(tempPath);
-      await tempFile.writeAsBytes(response.data!, flush: true);
-
-      final savedPath = await FlutterFileDialog.saveFile(
-        params: SaveFileDialogParams(
-          sourceFilePath: tempPath,
-          fileName: '$fileName.pdf',
-        ),
-      );
-
-      if (savedPath != null) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Downloaded successfully: $savedPath'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-        await OpenFilex.open(savedPath);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
-        }
-      }
-    } catch (e) {
-      debugPrint('Download error: $e');
-
-      // Fallback: open viewUrl in WebView
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Direct download failed. Opening preview page.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-
+  void _openPreview(BuildContext context, String previewUrl) {
+    if (previewUrl.isNotEmpty) {
+      try {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PreviewPage(url: viewUrl)),
+          MaterialPageRoute(
+            builder: (context) => PreviewPage(url: previewUrl),
+          ),
         );
+      } catch (e) {
+        debugPrint('WebView failed, opening in browser: $e');
+        launchInBrowser(context, previewUrl);
       }
-    } finally {
-      setState(() => _isDownloading[downloadUrl] = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preview URL not available')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text(
+        backgroundColor: const Color(0xFF2E7D32),
+        centerTitle: true,
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          onChanged: _filterCertificates,
+          decoration: const InputDecoration(
+            hintText: 'Search by project name, code, or ROI...',
+            hintStyle: TextStyle(color: Colors.white70),
+            border: InputBorder.none,
+          ),
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+        )
+            : const Text(
           'Project Certificates',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _filterCertificates,
-              decoration: InputDecoration(
-                hintText: 'Search by project name, code, or ROI',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 15,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.green),
-                ),
-              ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isSearching ? Icons.close : Icons.search,
+              color: Colors.white,
             ),
-          ),
-
-          // Certificates list
-          Expanded(
-            child: FutureBuilder<List<ProjectCertificate>>(
-              future: _certificatesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (_filteredCertificates.isEmpty) {
-                  return const Center(child: Text('No matching certificates'));
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                  _filterCertificates('');
+                } else {
+                  _isSearching = true;
                 }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: _filteredCertificates.length,
-                  itemBuilder: (context, index) {
-                    final item = _filteredCertificates[index];
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text("Code: ${item.code}"),
-                            Text("ROI: ${item.roi}%"),
-                            Text("Ends: ${item.endDate}"),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // View button
-                                ElevatedButton.icon(
-                                  onPressed: () => openCertificateInBrowser(item.viewUrl, context),
-                                  icon: const Icon(Icons.remove_red_eye),
-                                  label: const Text('View'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blueGrey[200],
-                                    foregroundColor: Colors.black,
-                                  ),
-                                ),
-
-
-                                const SizedBox(width: 12),
-
-                                // Download button with fallback
-                                ElevatedButton.icon(
-                                  onPressed:
-                                      _isDownloading[item.downloadUrl] == true
-                                      ? null
-                                      : () async {
-                                          await downloadCertificateWithFallback(
-                                            context,
-                                            item.downloadUrl,
-                                            item.viewUrl,
-                                            item.name,
-                                          );
-                                        },
-                                  icon: _isDownloading[item.downloadUrl] == true
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Icon(Icons.download),
-                                  label: Text(
-                                    _isDownloading[item.downloadUrl] == true
-                                        ? 'Downloading...'
-                                        : 'Download',
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+              });
+            },
           ),
         ],
+      ),
+      body: FutureBuilder<List<ProjectCertificate>>(
+        future: _certificatesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.green),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (_filteredCertificates.isEmpty) {
+            return const Center(child: Text('No matching certificates.'));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: _filteredCertificates.length,
+            itemBuilder: (context, index) {
+              final item = _filteredCertificates[index];
+
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 3,
+                  color: Colors.white,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 🟢 Project Title
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Project Info Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Code: ${item.code}",
+                                style: const TextStyle(color: Colors.black87)),
+                            Text("ROI: ${item.roi}%",
+                                style: const TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text("Ends: ${item.endDate}",
+                            style: const TextStyle(color: Colors.black54)),
+
+                        const SizedBox(height: 12),
+
+                        //Your Custom Button (full width)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            CustomButton(
+                              icon: Icons.remove_red_eye,
+                              text: "View",
+                              onPressed: () => {
+                                 viewInvoice(context, item.previewUrl)
+                              }),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

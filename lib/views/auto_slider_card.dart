@@ -160,7 +160,7 @@
 //                           crossAxisAlignment: CrossAxisAlignment.start,
 //                           children: [
 //                             Icon(Icons.check_circle_outline,
-//                                 size: 14, color: iconColor.withOpacity(0.8)),
+//                                 size: 14, color: iconColor.withValues(alpha: 0.8)),
 //                             const SizedBox(width: 6),
 //                             Expanded(
 //                               child: Text(
@@ -305,7 +305,7 @@ class CertificationsSection extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.check_circle_outline, size: 14, color: iconColor.withOpacity(0.7)),
+                  Icon(Icons.check_circle_outline, size: 14, color: iconColor.withValues(alpha: 0.7)),
                   const SizedBox(width: 8),
                   if (isStructured) ...[
                     Text(

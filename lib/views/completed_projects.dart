@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/completed_projects_model.dart';
+import '../widgets/project_card.dart';
+import '../widgets/search_bar.dart'; // ✅ Global reusable card
 
 class CompletedProjectsPage extends StatefulWidget {
   final bool hideAppBar;
@@ -76,237 +78,23 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
       throw Exception('Failed to load Matured projects');
     }
   }
-  String formatAmount(dynamic value) {
-    final number = double.tryParse(value.toString()) ?? 0;
-    final formatted = NumberFormat('#,##0').format(number);
-    return '$formatted Tk';
-  }
-
-  // String formatAmount(dynamic amount) {
-  //   if (amount == null || amount.toString().isEmpty) return '0 Tk';
-  //   final formatter = NumberFormat('#,##0');
-  //   return '${formatter.format(int.tryParse(amount.toString()) ?? 0)} Tk';
-  // }
-  // String formatAmount1(double? value) {
-  //   if (value == null) return '0 Tk';
-  //   final formatter = NumberFormat('#,##0.00');
-  //   return '${formatter.format(value)} Tk';
-  // }
 
   String formatDate(String? rawDate) {
     if (rawDate == null || rawDate.isEmpty) return 'N/A';
     try {
-      final date = DateTime.parse(rawDate); // parse "2025-09-24"
-      return DateFormat('dd MMM yyyy').format(date); // → "24 Sep 2025"
+      final date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
     } catch (_) {
-      return rawDate; // fallback
+      return rawDate;
     }
   }
 
-  TableRow _buildTableRow(String label, String value,
-      {Color valueColor = Colors.black}) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text(
-            '$label:',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 8),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text(
-            value,
-            style:
-            TextStyle(fontWeight: FontWeight.normal, fontSize: 8, color: valueColor),
-          ),
-        ),
-      ],
-    );
-  }
-
-
-
-  Widget _buildProjectCard({required CompletedProject project}) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Content Row (Image + Table)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left: Image
-                // Expanded(
-                //   flex: 1,
-                //   child: ClipRRect(
-                //     borderRadius: BorderRadius.circular(8),
-                //     child: Container(
-                //       color: Colors.white,
-                //       child: project.imageUrl != null && project.imageUrl!.isNotEmpty
-                //           ? Image.network(
-                //         project.imageUrl!,
-                //         fit: BoxFit.contain,
-                //         errorBuilder: (_, __, ___) =>
-                //             Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-                //       )
-                //           : Image.asset('assets/images/placeholder1.jpg', fit: BoxFit.contain),
-                //     ),
-                //   ),
-                // ),
-                Expanded(
-                  flex: 1,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // 🖼️ Image section
-                          project.imageUrl != null && project.imageUrl!.isNotEmpty
-                              ? Image.network(
-                            project.imageUrl!,
-                            fit: BoxFit.contain,
-                            // height: 100, // adjust height as needed
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/images/placeholder1.jpg',
-                              fit: BoxFit.contain,
-                              // height: 100,
-                            ),
-                          )
-                              : Image.asset(
-                            'assets/images/placeholder1.jpg',
-                            fit: BoxFit.contain,
-                            // height: 100,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          // 📝 Project name under image
-                          Text(
-                            project.projectName ?? 'N/A',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Right: Table Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Text(
-                      //   project.projectName,
-                      //   style: const TextStyle(
-                      //     fontWeight: FontWeight.bold,
-                      //     fontSize: 12,
-                      //     color: Colors.green,
-                      //   ),
-                      // ),
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(4),
-                          1: FlexColumnWidth(4),
-                        },
-                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                        children: [
-                          _buildTableRow('Business Type', project.businessType_name ?? 'N/A'),
-                          _buildTableRow('Investment Time', '${project.remaining_opportunity_days ?? 0} days'),
-                          _buildTableRow('Project Duration', "${project.project_duration_viewer ?? 'N/A'}"),
-                          _buildTableRow('Start Date', formatDate(project.project_start_date)),
-                          _buildTableRow('Mature Date', formatDate(project.project_end_date)),
-                          _buildTableRow('Investment Goal', formatAmount(project.investmentGoal)),
-                          _buildTableRow('Min. Investment', formatAmount(project.min_investment_amount ?? 0)),
-                          _buildTableRow('Raised', formatAmount(project.raised)),
-                          _buildTableRow('In Waiting', formatAmount(project.remaining_goal)),
-                          _buildTableRow('ROI', project.annualRoi != null ? 'Annually ${project.annualRoi}%' : 'N/A'),
-                          _buildTableRow(
-                            'Status',
-                            project.status == 1 ? 'Running' : 'Closed',
-                            valueColor: project.status == 1 ? Colors.green : Colors.red,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8), // spacing before button
-
-            // 2. Full-Width "Details" Button
-            // SizedBox(
-            //   width: double.infinity,
-            //   height: 35,
-            //   child: ElevatedButton(
-            //     onPressed: () async {
-            //       final projectId = project.id;
-            //       if (projectId == null) {
-            //         ScaffoldMessenger.of(context).showSnackBar(
-            //           const SnackBar(content: Text('Project ID is missing')),
-            //         );
-            //         return;
-            //       }
-            //
-            //       final prefs = await SharedPreferences.getInstance();
-            //       final investorCode = prefs.getString('investor_code');
-            //       if (investorCode == null || investorCode.isEmpty) {
-            //         ScaffoldMessenger.of(context).showSnackBar(
-            //           const SnackBar(content: Text('Investor code not found.')),
-            //         );
-            //         return;
-            //       }
-            //
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (_) => ProjectDescriptionPage(
-            //             projectId: projectId,
-            //             investorCode: investorCode,
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.blueGrey,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(8),
-            //       ),
-            //       padding: const EdgeInsets.symmetric(vertical: 4),
-            //       minimumSize: const Size(double.infinity, 35),
-            //     ),
-            //     child: const Text(
-            //       'Details',
-            //       style: TextStyle(color: Colors.white, fontSize: 14),
-            //     ),
-            //   ),
-            // ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
   void _scrollToTop() {
-    _scrollController.animateTo(0,
-        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -316,9 +104,34 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
     super.dispose();
   }
 
+  Future<void> _handleDetails(CompletedProject project, BuildContext context) async {
+    final projectId = project.id;
+    if (projectId == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final investorCode = prefs.getString('investor_code');
+    if (investorCode == null || investorCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Investor code not found.')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProjectDescriptionPage(
+          projectId: projectId,
+          investorCode: investorCode,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: widget.hideAppBar
           ? null
           : AppBar(
@@ -329,30 +142,13 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by project name...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
+          // Search bar
+          CustomSearchBar(searchController: _searchController),
+
+          // Project List
           Expanded(
             child: FutureBuilder<List<CompletedProject>>(
               future: futureCompletedProjects,
@@ -374,7 +170,36 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
                   itemCount: projects.length,
                   itemBuilder: (context, index) {
                     final project = projects[index];
-                    return _buildProjectCard(project: project);
+
+                    final startDate = project.project_start_date != null &&
+                        project.project_start_date!.isNotEmpty
+                        ? DateTime.tryParse(project.project_start_date!)
+                        : null;
+
+                    return ProjectCard(
+                      projectName: project.projectName ?? 'N/A',
+                      businessType: project.businessType_name ?? 'N/A',
+                      imageUrl: project.imageUrl,
+                      projectDuration: project.project_duration_viewer ?? 'N/A',
+                      startDate: formatDate(project.project_start_date),
+                      endDate: formatDate(project.project_end_date),
+                      roiStartDate: formatDate("s"),
+                      investmentGoal: project.investmentGoal ?? 0,
+                      minInvestment: project.min_investment_amount ?? 0,
+                      raised: (project.raised ?? 0).toDouble(),
+                      inWaiting: (project.remaining_goal ?? 0).toDouble(),
+                      roi: project.annualRoi != null
+                          ? 'Annually ${project.annualRoi}%'
+                          : 'N/A',
+                      statusText: 'Matured',
+                      showInvestNow: false,
+                      showUpcoming: false,
+                      investmentStartDate: startDate != null
+                          ? DateFormat('dd MMM, yyyy').format(startDate)
+                          : null,
+                      isLoading: false,
+                      onInvestNowPressed: () => _handleDetails(project, context),
+                    );
                   },
                 );
               },

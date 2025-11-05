@@ -158,17 +158,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (!isVideo)
                     BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                      child: Container(color: Colors.black.withOpacity(0.30)),
+                      child: Container(color: Colors.black.withValues(alpha: 0.30)),
                     )
                   else
-                    Container(color: Colors.black.withOpacity(0.25)), // no blur
+                    Container(color: Colors.black.withValues(alpha: 0.25)), // no blur
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.8),
                           Colors.transparent,
-                          Colors.black.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.8),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -181,7 +181,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Align(
                       alignment: const Alignment(0, -0.1),
                       child: Card(
-                        color: Colors.black.withOpacity(0.65),
+                        color: Colors.black.withValues(alpha: 0.65),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
