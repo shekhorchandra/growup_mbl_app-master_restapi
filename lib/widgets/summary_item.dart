@@ -8,10 +8,10 @@ import 'package:growup_agro/views/wallet_balance_dialog.dart';
 import 'custom_button.dart';
 
 class SummaryItem {
-  final Widget icon;         // e.g. Icon(Icons.savings)
-  final String value;        // e.g. "547,000"
-  final String label;        // e.g. "Total Investment"
-  final VoidCallback? onTap; // optional: override default behavior
+  final Widget icon;
+  final String value;
+  final String label;
+  final VoidCallback? onTap;
 
   SummaryItem({
     required this.icon,
@@ -60,7 +60,7 @@ class DashboardSummaryCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isTight = constraints.maxWidth < 360;
-            final iconSize = isTight ? 28.0 : 35.0;
+            final iconSize = 24.0;
             final dividerHeight = isTight ? 66.0 : 78.0;
 
             List<Widget> rowChildren = [];
@@ -90,7 +90,7 @@ class DashboardSummaryCard extends StatelessWidget {
                             height: 1.1,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 2),
                         Text(
                           item.label,
                           textAlign: TextAlign.center,

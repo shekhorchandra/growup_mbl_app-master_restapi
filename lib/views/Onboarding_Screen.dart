@@ -45,12 +45,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "subtitle":
           "Seeds, fertilizers, and machinery—get all your farming needs from our trusted marketplace.",
       "image": "assets/images/agriessn.jpg",
+    },{
+      "icon": "",
+      "title": "Building Limitless Tomorrow",
+      "subtitle":
+      "",
+      "image": "assets/images/mobile_app_bg.jpg",
     },
-    {
+
+    /*{
       "isVideo": true,
       "videoSource": "asset",
       "videoPath": "assets/videos/intro.mov",
-    },
+    },*/
   ];
 
   VideoPlayerController? _videoController;
@@ -192,10 +199,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: data["icon"] == ""? CrossAxisAlignment.center : CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                data["icon"] ?? Icons.info,
+                              data["icon"] == ""
+                                  ? Image.asset(
+                                "assets/images/GrowupLogo.png",
+                                width: screenW * 0.25,
+                                height: screenW * 0.25,
+                                fit: BoxFit.contain,
+                              ) : Icon(
+                                data["icon"],
                                 color: Colors.white,
                                 size: screenW * 0.15,
                               ),
@@ -203,7 +216,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                 data["title"] ?? '',
                                 style: TextStyle(
-                                  fontSize: screenW * 0.06,
+                                  fontSize: data["icon"] == "" ? 18 : screenW * 0.06 ,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
