@@ -5,7 +5,6 @@ import 'package:growup_agro/widgets/status_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/withdraw_model.dart';
 import '../widgets/custom_button.dart';
@@ -682,7 +681,6 @@ class _WithdrawPageState extends State<WithdrawPage> {
             itemBuilder: (context, index) {
               final item = currentItems[index];
               final invoiceNo = item.invoiceNo;
-              final hasInvoice = invoiceNo != 0;
 
               return Card(
                 color: Colors.white,
