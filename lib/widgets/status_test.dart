@@ -21,6 +21,7 @@ class StatusChip extends StatelessWidget {
       'rejected' => Colors.red,
       'closed' => Colors.redAccent,
       'matured' => Colors.red,
+      'failed' => Colors.red,
       'completed' => Colors.red,
       'running' => Colors.green,
       'investment collecting' => Colors.blue,

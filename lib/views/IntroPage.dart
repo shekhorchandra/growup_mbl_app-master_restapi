@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -23,24 +22,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
   bool isLoading = false;
 
-  // 🎥 Video controller
-  late VideoPlayerController _videoController;
-  bool _videoReady = false;
-
   @override
   void initState() {
     super.initState();
-
-    // Initialize video background
-    _videoController = VideoPlayerController.asset('assets/videos/intro.mov')
-      ..setLooping(true)
-      ..setVolume(0.0) // 🔇 Mute
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() => _videoReady = true);
-          _videoController.play();
-        }
-      });
 
     // Logo Animation
     _logoController = AnimationController(
@@ -100,7 +84,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     _logoController.dispose();
     _sloganController.dispose();
     _buttonController.dispose();
-    _videoController.dispose();
     super.dispose();
   }
 
@@ -115,22 +98,15 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 🎥 Video background
-          if (_videoReady)
-            FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _videoController.value.size.width,
-                height: _videoController.value.size.height,
-                child: VideoPlayer(_videoController),
-              ),
-            )
-          else
-            Container(color: Colors.black),
+          // 🖼️ Static background image instead of video
+          Image.asset(
+            'assets/images/APP-BG1-Recovered.jpg',
+            fit: BoxFit.cover,
+          ),
 
           // semi-transparent overlay for readability
           Container(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.3),
           ),
 
           // main content

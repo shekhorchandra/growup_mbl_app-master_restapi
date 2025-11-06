@@ -10,7 +10,7 @@ class ApiConstants {
   static const String prodImgBaseUrl = "https://growupagro.tech";
 
 // Toggle environment
-  static const bool isProd = false;
+  static const bool isProd = true;
 
 // Base URL getter
   static String get baseUrl => isProd ? prodBaseUrl : devBaseUrl;
