@@ -694,7 +694,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       // const Spacer(),
 
-                      const Divider(height: 100),
+                      const Divider(height: 50),
                       Positioned(
                         bottom: 0,
                         left: 0,
