@@ -439,168 +439,168 @@ class _DepositPageState extends State<DepositPage> {
   // }
 
   // web browser + api-------------------------
-  Future<void> _handleShurjoPay() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final investorId = prefs.getString('investor_id') ?? '';
-    final email = prefs.getString('investor_email') ?? 'default@email.com';
-    final investorName = prefs.getString('investor_name') ?? '';
-    final investorPhone = prefs.getString('investor_phone') ?? '';
-    final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
-
-    final enteredAmount = _amountController.text.trim();
-    if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
-      _showSnack("Please enter a valid deposit amount.");
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    final amount = double.parse(enteredAmount);
-
-    try {
-      // -----------------------------
-      // Step 1: Initiate transaction
-      // -----------------------------
-      final initiateResponse = await http.post(
-        Uri.parse('https://growupagro.tech/api/transaction-initiate'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          "amount": amount,
-          "type": "deposit",
-          "note": "ok",
-        }),
-      );
-
-      if (initiateResponse.statusCode != 200 &&
-          initiateResponse.statusCode != 201) {
-        print('Transaction initiation failed: ${initiateResponse.body}');
-        _showSnack("Failed to initiate transaction.");
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      print('Transaction initiate status: ${initiateResponse.statusCode}');
-      print('Transaction initiate response: ${initiateResponse.body}');
-
-
-      final initiateData = jsonDecode(initiateResponse.body);
-
-      if (initiateData['success'] != true) {
-        _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // ✅ Safely extract transaction ID
-      final walletTransaction = initiateData['data']?['wallet_transaction'];
-      final transactionId = walletTransaction?['id']?.toString();
-
-      if (transactionId == null || transactionId.isEmpty) {
-        _showSnack("Transaction ID missing from server response.");
-        print("transactionId is null or empty");
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      print("Transaction ID from backend: $transactionId");
-
-      // -----------------------------
-      // Step 2: Get ShurjoPay token
-      // -----------------------------
-      final tokenResponse = await http.post(
-        Uri.parse('https://engine.shurjopayment.com/api/get_token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': 'growup_agrotech',
-          'password': 'growjjxwdm6wazy4',
-        }),
-      );
-
-      if (tokenResponse.statusCode != 200) {
-        _showSnack("Failed to get payment token.");
-        print('Token error: ${tokenResponse.body}');
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final tokenData = jsonDecode(tokenResponse.body);
-      final spToken = tokenData['token'];
-      final storeId = tokenData['store_id'].toString();
-      final orderId = 'growup_${DateTime
-          .now()
-          .millisecondsSinceEpoch}';
-
-      // -----------------------------
-      // Step 3: Initiate ShurjoPay payment
-      // -----------------------------
-      final paymentResponse = await http.post(
-        Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $spToken',
-        },
-        body: jsonEncode({
-          "prefix": "GAL",
-          "token": spToken,
-          "return_url": "https://growupagro.tech/api/shurjopay/payment/callback",
-          "cancel_url": "https://growupagro.tech/api/shurjopay/payment/callback",
-          "store_id": storeId,
-          "amount": amount,
-          "order_id": orderId,
-          "currency": "BDT",
-          "customer_name": investorName,
-          "customer_address": investorAddress,
-          "customer_city": "Dhaka",
-          "customer_email": email,
-          "customer_phone": investorPhone,
-          "customer_post_code": "1200",
-          "client_ip": "127.0.0.1",
-          "value1": investorId,
-          "value2": "N/A",
-          "value3": "wallet_deposit",
-          "value4": transactionId, // ✅ Safe and verified
-        }),
-      );
-
-      print('Payment response status: ${paymentResponse.statusCode}');
-      print('Payment response body: ${paymentResponse.body}');
-
-      if (paymentResponse.statusCode != 200) {
-        final errorJson = jsonDecode(paymentResponse.body);
-        final errorMsg = errorJson['message'] ?? 'Payment initiation failed';
-        _showSnack(errorMsg);
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final paymentData = jsonDecode(paymentResponse.body);
-      final checkoutUrl =
-          paymentData['checkout_url'] ?? paymentData['redirect_url'] ?? '';
-
-      if (checkoutUrl.isNotEmpty && checkoutUrl.startsWith('http')) {
-        final uri = Uri.parse(checkoutUrl);
-        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-          _showSnack("Could not open payment page.");
-        }
-      } else {
-        _showSnack("Invalid payment URL.");
-      }
-    } catch (e) {
-      _showSnack("Error during payment: $e");
-      print(e);
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+  // Future<void> _handleShurjoPay() async {
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
+  //
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final token = prefs.getString('auth_token');
+  //   final investorId = prefs.getString('investor_id') ?? '';
+  //   final email = prefs.getString('investor_email') ?? 'default@email.com';
+  //   final investorName = prefs.getString('investor_name') ?? '';
+  //   final investorPhone = prefs.getString('investor_phone') ?? '';
+  //   final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
+  //
+  //   final enteredAmount = _amountController.text.trim();
+  //   if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
+  //     _showSnack("Please enter a valid deposit amount.");
+  //     setState(() => _isLoading = false);
+  //     return;
+  //   }
+  //
+  //   final amount = double.parse(enteredAmount);
+  //
+  //   try {
+  //     // -----------------------------
+  //     // Step 1: Initiate transaction
+  //     // -----------------------------
+  //     final initiateResponse = await http.post(
+  //       Uri.parse('https://growupagro.tech/api/transaction-initiate'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: jsonEncode({
+  //         "amount": amount,
+  //         "type": "deposit",
+  //         "note": "ok",
+  //       }),
+  //     );
+  //
+  //     if (initiateResponse.statusCode != 200 &&
+  //         initiateResponse.statusCode != 201) {
+  //       print('Transaction initiation failed: ${initiateResponse.body}');
+  //       _showSnack("Failed to initiate transaction.");
+  //       setState(() => _isLoading = false);
+  //       return;
+  //     }
+  //
+  //     print('Transaction initiate status: ${initiateResponse.statusCode}');
+  //     print('Transaction initiate response: ${initiateResponse.body}');
+  //
+  //
+  //     final initiateData = jsonDecode(initiateResponse.body);
+  //
+  //     if (initiateData['success'] != true) {
+  //       _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
+  //       setState(() => _isLoading = false);
+  //       return;
+  //     }
+  //
+  //     // ✅ Safely extract transaction ID
+  //     final walletTransaction = initiateData['data']?['wallet_transaction'];
+  //     final transactionId = walletTransaction?['id']?.toString();
+  //
+  //     if (transactionId == null || transactionId.isEmpty) {
+  //       _showSnack("Transaction ID missing from server response.");
+  //       print("transactionId is null or empty");
+  //       setState(() => _isLoading = false);
+  //       return;
+  //     }
+  //
+  //     print("Transaction ID from backend: $transactionId");
+  //
+  //     // -----------------------------
+  //     // Step 2: Get ShurjoPay token
+  //     // -----------------------------
+  //     final tokenResponse = await http.post(
+  //       Uri.parse('https://engine.shurjopayment.com/api/get_token'),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: jsonEncode({
+  //         'username': 'growup_agrotech',
+  //         'password': 'growjjxwdm6wazy4',
+  //       }),
+  //     );
+  //
+  //     if (tokenResponse.statusCode != 200) {
+  //       _showSnack("Failed to get payment token.");
+  //       print('Token error: ${tokenResponse.body}');
+  //       setState(() => _isLoading = false);
+  //       return;
+  //     }
+  //
+  //     final tokenData = jsonDecode(tokenResponse.body);
+  //     final spToken = tokenData['token'];
+  //     final storeId = tokenData['store_id'].toString();
+  //     final orderId = 'growup_${DateTime
+  //         .now()
+  //         .millisecondsSinceEpoch}';
+  //
+  //     // -----------------------------
+  //     // Step 3: Initiate ShurjoPay payment
+  //     // -----------------------------
+  //     final paymentResponse = await http.post(
+  //       Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $spToken',
+  //       },
+  //       body: jsonEncode({
+  //         "prefix": "GAL",
+  //         "token": spToken,
+  //         "return_url": "https://growupagro.tech/api/shurjopay/payment/callback",
+  //         "cancel_url": "https://growupagro.tech/api/shurjopay/payment/callback",
+  //         "store_id": storeId,
+  //         "amount": amount,
+  //         "order_id": orderId,
+  //         "currency": "BDT",
+  //         "customer_name": investorName,
+  //         "customer_address": investorAddress,
+  //         "customer_city": "Dhaka",
+  //         "customer_email": email,
+  //         "customer_phone": investorPhone,
+  //         "customer_post_code": "1200",
+  //         "client_ip": "127.0.0.1",
+  //         "value1": investorId,
+  //         "value2": "N/A",
+  //         "value3": "wallet_deposit",
+  //         "value4": transactionId, // ✅ Safe and verified
+  //       }),
+  //     );
+  //
+  //     print('Payment response status: ${paymentResponse.statusCode}');
+  //     print('Payment response body: ${paymentResponse.body}');
+  //
+  //     if (paymentResponse.statusCode != 200) {
+  //       final errorJson = jsonDecode(paymentResponse.body);
+  //       final errorMsg = errorJson['message'] ?? 'Payment initiation failed';
+  //       _showSnack(errorMsg);
+  //       setState(() => _isLoading = false);
+  //       return;
+  //     }
+  //
+  //     final paymentData = jsonDecode(paymentResponse.body);
+  //     final checkoutUrl =
+  //         paymentData['checkout_url'] ?? paymentData['redirect_url'] ?? '';
+  //
+  //     if (checkoutUrl.isNotEmpty && checkoutUrl.startsWith('http')) {
+  //       final uri = Uri.parse(checkoutUrl);
+  //       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+  //         _showSnack("Could not open payment page.");
+  //       }
+  //     } else {
+  //       _showSnack("Invalid payment URL.");
+  //     }
+  //   } catch (e) {
+  //     _showSnack("Error during payment: $e");
+  //     print(e);
+  //   } finally {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
 
 
   Future<void> _handleSslCommerzPay() async {
@@ -637,8 +637,8 @@ class _DepositPageState extends State<DepositPage> {
         },
         body: jsonEncode({
           "amount": amount,
-          "type": "deposit",
-          "note": "ok",
+          // "type": "deposit",
+          // "note": "ok",
         }),
       );
 
@@ -680,9 +680,9 @@ class _DepositPageState extends State<DepositPage> {
         "total_amount": amount.toString(),
         "currency": "BDT",
         "tran_id": "growup_txn_${transactionId.toString()}",
-        "success_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
-        "fail_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
-        "cancel_url": "https://growupagro.tech/api/sslcommerz/payment/callback",
+        "success_url": "https://growupagro.tech//api/sslcommerz/payment/success",
+        "fail_url": "https://growupagro.tech//api/sslcommerz/payment/fail",
+        "cancel_url": "https://growupagro.tech/api/sslcommerz/payment/cancel",
         "emi_option": "0",
         "cus_name": investorName.toString(),
         "cus_email": email.toString(),
@@ -947,9 +947,11 @@ class _DepositPageState extends State<DepositPage> {
                 onPressed: () {
                   if (method == 'banktransfer') {
                     _submitDeposit();
-                  } else if (method == 'onlinepayment(shurjopay)') {
-                    _handleShurjoPay();
-                  } else if (method == 'onlinepayment(sslcommerz)') {
+                  }
+                  // else if (method == 'onlinepayment(shurjopay)') {
+                  //   _handleShurjoPay();
+                  // }
+                  else if (method == 'onlinepayment(sslcommerz)') {
                     _handleSslCommerzPay();
                   } else {
                     _submitDeposit();

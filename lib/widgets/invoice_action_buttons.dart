@@ -39,7 +39,7 @@ class _InvoiceActionButtonsState extends State<InvoiceActionButtons> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         CustomButton(
-          text: isViewing ? "Viewing..." : "View",
+          // text: isViewing ? "Viewing..." : "View",
           height: 28,
           fontSize: 10,
           icon: Icons.visibility,
@@ -51,11 +51,11 @@ class _InvoiceActionButtonsState extends State<InvoiceActionButtons> {
             setState(() => isViewing = true);
             await viewInvoice(context, widget.viewUrl);
             setState(() => isViewing = false);
-          },
+          }, text: '',
         ),
         SizedBox(width: 8),
         CustomButton(
-          text: isDownloading ? "Downloading..." : "Download",
+          // text: isDownloading ? "Downloading..." : "Download",
           height: 28,
           fontSize: 10,
           icon: Icons.download,
@@ -71,7 +71,7 @@ class _InvoiceActionButtonsState extends State<InvoiceActionButtons> {
               widget.invoiceNo,
             );
             setState(() => isDownloading = false);
-          },
+          }, text: '',
         ),
       ],
     );

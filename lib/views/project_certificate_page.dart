@@ -1,6 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/models/project_certificate_model.dart';
+import 'package:growup_agro/views/pdf_view_page.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +26,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
   late Future<List<ProjectCertificate>> _certificatesFuture;
   List<ProjectCertificate> _allCertificates = [];
   List<ProjectCertificate> _filteredCertificates = [];
+  Map<String, bool> _isDownloading = {};
 
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
@@ -84,32 +91,169 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     });
   }
 
-  Future<void> launchInBrowser(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open link')),
+  // Future<void> launchInBrowser(BuildContext context, String url) async {
+  //   final Uri uri = Uri.parse(url);
+  //   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Could not open link')),
+  //     );
+  //   }
+  // }
+  //
+  // void _openPreview(BuildContext context, String previewUrl) {
+  //   if (previewUrl.isNotEmpty) {
+  //     try {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => PreviewPage(url: previewUrl),
+  //         ),
+  //       );
+  //     } catch (e) {
+  //       debugPrint('WebView failed, opening in browser: $e');
+  //       launchInBrowser(context, previewUrl);
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Preview URL not available')),
+  //     );
+  //   }
+  // }
+
+
+  Future<void> openCertificateInApp(BuildContext context, String? viewUrl) async {
+    if (viewUrl == null || viewUrl.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('View URL not available')),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PDFViewPage(
+            url: viewUrl,
+            title: 'Certificate Preview',
+          ),
+        ),
       );
     }
   }
 
-  void _openPreview(BuildContext context, String previewUrl) {
-    if (previewUrl.isNotEmpty) {
-      try {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PreviewPage(url: previewUrl),
+
+  Future<void> downloadCertificateWithFallback(
+      BuildContext context,
+      String downloadUrl,
+      String viewUrl,
+      String fileName,
+      ) async {
+    setState(() => _isDownloading[downloadUrl] = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 60),
+          followRedirects: true,
+          validateStatus: (status) => true, // handle all status codes
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName.pdf';
+
+      final response = await dio.getUri<List<int>>(
+        Uri.parse(downloadUrl),
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            final percent = (received / total * 100)
+                .clamp(0, 100)
+                .toStringAsFixed(0);
+            debugPrint('Downloading $fileName: $percent%');
+          }
+        },
+      );
+
+      // Check content type before saving
+      final contentType = response.headers.value('content-type') ?? '';
+      if (!contentType.contains('application/pdf')) {
+        final bodyText = utf8.decode(response.data ?? []);
+        if (bodyText.contains('Unauthenticated') ||
+            bodyText.contains('<html')) {
+          throw Exception('Unauthenticated or invalid response from server');
+        } else {
+          throw Exception('Invalid response: expected PDF, got $contentType');
+        }
+      }
+
+      if (response.statusCode != 200 ||
+          response.data == null ||
+          response.data!.isEmpty) {
+        throw Exception(
+          'Server error: ${response.statusCode}. Unable to download file.',
+        );
+      }
+
+      // Save file locally
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(response.data!, flush: true);
+
+      final savedPath = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: tempPath,
+          fileName: '$fileName.pdf',
+        ),
+      );
+
+      if (savedPath != null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Downloaded successfully: $savedPath'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        await OpenFilex.open(savedPath);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
+        }
+      }
+    } catch (e) {
+      debugPrint('Download error: $e');
+
+      // Fallback: open viewUrl in WebView
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Direct download failed. Opening preview page.'),
+            backgroundColor: Colors.orange,
           ),
         );
-      } catch (e) {
-        debugPrint('WebView failed, opening in browser: $e');
-        launchInBrowser(context, previewUrl);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PreviewPage(url: viewUrl)),
+        );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preview URL not available')),
-      );
+    } finally {
+      setState(() => _isDownloading[downloadUrl] = false);
     }
   }
 
@@ -228,14 +372,39 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                           children: [
                             CustomButton(
                               icon: Icons.remove_red_eye,
-                              text: "View",
-                              onPressed: () => {
-                                 viewInvoice(context, item.previewUrl)
-                              }),
-                          ],
-                        ),
+                              text: "",
+                              onPressed: () {
+                                openCertificateInApp(context, item.viewUrl);
+                              },
+                            ),
 
-                        const SizedBox(height: 12),
+                            const SizedBox(width: 12),
+                            CustomButton(
+                              icon: _isDownloading[item.downloadUrl] == true
+                                  ? null
+                                  : Icons.download,
+                              text: _isDownloading[item.downloadUrl] == true
+                                  ? 'Downloading...'
+                                  : '',
+                              onPressed: _isDownloading[item.downloadUrl] == true
+                                  ? null
+                                  : () async {
+                                await downloadCertificateWithFallback(
+                                  context,
+                                  item.downloadUrl,
+                                  item.viewUrl,
+                                  item.name,
+                                );
+                              },
+                              // Optional: show loader if downloading
+                              loading: _isDownloading[item.downloadUrl] == true,
+                              backgroundColor: Colors.orange,
+                            ),
+                          ],
+                        )
+
+
+
                       ],
                     ),
                   ),
@@ -248,3 +417,5 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     );
   }
 }
+
+

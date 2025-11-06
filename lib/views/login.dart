@@ -122,8 +122,8 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     final width = size.width;
 
     // ⚙️ Default demo credentials
-     usernameController.text = "01833933567";
-     passwordController.text = "ja!1ma!3Pa#2";
+    //  usernameController.text = "01833933567";
+    //  passwordController.text = "ja!1ma!3Pa#2";
 
     return Container(
       decoration: const BoxDecoration(
@@ -140,7 +140,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom), // ✅ prevents bottom overflow
             child: Column(
               children: [
-                SizedBox(height: height * 0.06),
+                SizedBox(height: height * 0.03),
                 FadeTransition(
                   opacity: _logoOpacity,
                   child: SlideTransition(
@@ -150,7 +150,7 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
                         Image.asset(
                           'assets/images/GrowupLogo.png',
                           color: Colors.white,
-                          height: height * 0.23,
+                          height: height * 0.33,
                           width: width * 0.6,
                           fit: BoxFit.contain,
                         ),
