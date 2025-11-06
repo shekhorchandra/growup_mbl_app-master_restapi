@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
+import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
+import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
+import 'package:flutter_sslcommerz/sslcommerz.dart';
 import 'package:growup_agro/utils/api_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +15,11 @@ import 'package:http_parser/http_parser.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/deposit_model.dart';
+import '../paymentService/payment_service.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/info_row.dart';
+import '../widgets/invoice_action_buttons.dart';
+import '../widgets/status_test.dart';
 
 class DepositPage extends StatefulWidget {
   final int? projectId;
@@ -39,18 +48,16 @@ class _DepositPageState extends State<DepositPage> {
     text: '100',
   );
   final TextEditingController _transactionIdController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
-  final TextEditingController _shurjopayController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
   final List<String> _methods = [
     'Selected Method',
     'Cash Payment',
     'Bank Transfer',
-    "Online payment (Shurjo Pay)",
-    "Online payment Gateway (SslCommerz)",
+    "Online payment (SslCommerz)",
   ];
 
   final Map<String, Map<String, String>> _bankAccounts = {
@@ -93,13 +100,13 @@ class _DepositPageState extends State<DepositPage> {
   String _formatDate(String rawDate) {
     try {
       final date = DateTime.parse(rawDate);
-      return DateFormat('dd MMM yyyy, h:mm a').format(
-          date); // Example: 16 Jul 2025
+      return DateFormat(
+        'dd MMM yyyy, h:mm a',
+      ).format(date); // Example: 16 Jul 2025
     } catch (e) {
       return rawDate;
     }
   }
-
 
   Future<void> _handleRefresh() async {
     await _loadInvestorCode();
@@ -132,12 +139,13 @@ class _DepositPageState extends State<DepositPage> {
         if (decoded['success']) {
           final List<dynamic> data = decoded['data'];
 
-          final deposits =
-          data.map((e) => DepositHistory.fromJson(e)).toList();
+          final deposits = data.map((e) => DepositHistory.fromJson(e)).toList();
 
-          deposits.sort((a, b) =>
-              (b.updatedAt ?? DateTime(0)).compareTo(
-                  a.updatedAt ?? DateTime(0)));
+          deposits.sort(
+            (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
+              a.updatedAt ?? DateTime(0),
+            ),
+          );
 
           setState(() {
             _depositHistory = deposits;
@@ -153,21 +161,19 @@ class _DepositPageState extends State<DepositPage> {
     }
   }
 
-
   void _applyFilter() {
     final query = _searchController.text.toLowerCase().trim();
     setState(() {
       _filteredDepositHistory = query.isEmpty
           ? List.from(_depositHistory)
           : _depositHistory.where((d) {
-        return (d.amount.toString().toLowerCase().contains(query)) ||
-            (d.paymentMethod.toString().toLowerCase().contains(query)) ||
-            (d.status.toString().toLowerCase().contains(query));
-      }).toList();
+              return (d.amount.toString().toLowerCase().contains(query)) ||
+                  (d.paymentMethod.toString().toLowerCase().contains(query)) ||
+                  (d.status.toString().toLowerCase().contains(query));
+            }).toList();
       _currentPage = 0;
     });
   }
-
 
   List<dynamic> get _paginatedDepositHistory {
     final start = _currentPage * _itemsPerPage;
@@ -198,415 +204,7 @@ class _DepositPageState extends State<DepositPage> {
     }
   }
 
-// web browser---------------------------------------------------
-//   Future<void> _handleShurjoPay() async {
-//     setState(() {
-//       _isLoading = true;
-//     });
-//
-//     final prefs = await SharedPreferences.getInstance();
-//     final investorCode = prefs.getString('investor_code') ?? '';
-//     final token = prefs.getString('auth_token');
-//     final investorId = prefs.getString('investor_id') ?? '';
-//     print("Investor id: $investorId");
-//     final email = prefs.getString('investor_email') ?? 'default@email.com';
-//     final investorName = prefs.getString('investor_name') ?? '';
-//     final investorPhone = prefs.getString('investor_phone') ?? '';
-//     final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
-//
-//     if (investorCode.isEmpty) {
-//       _showSnack("Investor code missing.");
-//       setState(() => _isLoading = false);
-//       return;
-//     }
-//
-//     final enteredAmount = _amountController.text.trim();
-//     if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
-//       _showSnack("Please enter a valid deposit amount.");
-//       setState(() => _isLoading = false);
-//       return;
-//     }
-//
-//     final amount = double.parse(enteredAmount);
-//
-//     try {
-//       // Step 1: Get ShurjoPay token
-//       final tokenResponse = await http.post(
-//         Uri.parse('https://engine.shurjopayment.com/api/get_token'),
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//         body: jsonEncode({
-//           // 'username': 'sp_sandbox',
-//           // 'password': 'pyyk97hu&6u6',
-//           'username': 'growup_agrotech',
-//           'password': 'growjjxwdm6wazy4',
-//
-//         }),
-//       );
-//
-//       if (tokenResponse.statusCode != 200) {
-//         _showSnack("Failed to get payment token.");
-//         print('Token error body: ${tokenResponse.body}');
-//         setState(() => _isLoading = false);
-//         return;
-//       }
-//
-//       final tokenData = jsonDecode(tokenResponse.body);
-//       final spToken = tokenData['token'];
-//       final storeId = tokenData['store_id'].toString();
-//       final orderId = 'growup_${DateTime.now().millisecondsSinceEpoch}';
-//       print(orderId);
-//       print(storeId);
-//
-//       // Step 2: Initiate Payment
-//       final paymentResponse = await http.post(
-//         Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'Authorization': 'Bearer $spToken',
-//         },
-//         body: jsonEncode({
-//           "prefix": "GAL",
-//           "token": spToken,
-//           "return_url":
-//               "https://growupagro.tech/api/shurjopay/payment/callback",
-//           "cancel_url":
-//               "https://growupagro.tech/api/shurjopay/payment/callback",
-//           "store_id": storeId,
-//           "amount": amount,
-//           "order_id": orderId,
-//           "currency": "BDT",
-//           "customer_name": investorName,
-//           "customer_address": investorAddress,
-//           "customer_city": "Dhaka",
-//           "customer_email": email,
-//           "customer_phone": investorPhone,
-//           "customer_post_code": "1200",
-//           "client_ip": "127.0.0.1",
-//           "value1": investorId,
-//           // "value2": widget.projectId?.toString() ?? '',
-//           "value2": 'N/A',
-//           "value3": "wallet_deposit",
-//           "value4": "",
-//         }),
-//       );
-//
-//       print('Payment response status: ${paymentResponse.statusCode}');
-//       print('Payment response body: ${paymentResponse.body}');
-//
-//       if (paymentResponse.statusCode != 200) {
-//         final errorJson = jsonDecode(paymentResponse.body);
-//         final errorMsg = errorJson['message'] ?? 'Payment initiation failed';
-//         _showSnack(errorMsg);
-//         setState(() => _isLoading = false);
-//         return;
-//       }
-//
-//       final paymentData = jsonDecode(paymentResponse.body);
-//       final checkoutUrl =
-//           paymentData['checkout_url'] ?? paymentData['redirect_url'] ?? '';
-//       print('Checkout URL: $checkoutUrl');
-//
-//       if (checkoutUrl.isNotEmpty && checkoutUrl.startsWith('http')) {
-//         final uri = Uri.parse(checkoutUrl);
-//         if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-//           _showSnack("Could not open payment page.");
-//         }
-//       } else {
-//         _showSnack("Invalid payment URL.");
-//       }
-//     } catch (e) {
-//       _showSnack("Error during payment: $e");
-//     } finally {
-//       setState(() {
-//         _isLoading = false;
-//       });
-//     }
-//   }
-
-  //package-------------------------------------------------
-  // Future<void> _handleShurjoPay() async {
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final investorCode = prefs.getString('investor_code') ?? '';
-  //   final investorId = prefs.getString('investor_id') ?? '';
-  //   final email = prefs.getString('investor_email') ?? 'default@email.com';
-  //   final investorName = prefs.getString('investor_name') ?? '';
-  //   final investorPhone = prefs.getString('investor_phone') ?? '';
-  //
-  //   if (investorCode.isEmpty) {
-  //     _showSnack("Investor code missing.");
-  //     setState(() => _isLoading = false);
-  //     return;
-  //   }
-  //   if (investorName.isEmpty) {
-  //     _showSnack("Investor name missing.");
-  //     setState(() => _isLoading = false);
-  //     return;
-  //   }
-  //
-  //   if (investorPhone.isEmpty) {
-  //     _showSnack("Investor Phone missing.");
-  //     setState(() => _isLoading = false);
-  //     return;
-  //   }
-  //
-  //   final enteredAmount = _amountController.text.trim();
-  //   if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
-  //     _showSnack("Please enter a valid deposit amount.");
-  //     setState(() => _isLoading = false);
-  //     return;
-  //   }
-  //
-  //   final amount = double.parse(enteredAmount);
-  //
-  //   try {
-  //     final shurjoPay = ShurjoPay();
-  //
-  //     final request = ShurjopayRequestModel(
-  //       configs: ShurjopayConfigs(
-  //         // userName: 'growup_agrotech',
-  //         // password: 'growjjxwdm6wazy4',
-  //         userName: 'sp_sandbox',
-  //         password: 'pyyk97hu&6u6',
-  //         prefix: 'sp',
-  //         clientIP: '127.0.0.1',
-  //       ),
-  //       currency: "BDT",
-  //       amount: amount.toDouble(),
-  //       orderID: "growup_${DateTime.now().millisecondsSinceEpoch}",
-  //       customerName: investorName,
-  //       customerPhoneNumber: investorPhone,
-  //       customerEmail: email,
-  //       customerAddress: "Dhaka, Bangladesh",
-  //       customerCity: "Dhaka",
-  //       customerPostcode: "1200",
-  //       returnURL: "https://growupagro.tech/api/shurjopay/payment/callback",
-  //       cancelURL: "https://growupagro.tech/api/shurjopay/payment/callback",
-  //     );
-  //
-  //
-  //     final response = await shurjoPay.makePayment(
-  //       context: context,
-  //       shurjopayRequestModel: request,
-  //     );
-  //
-  //     if (response.status == true) {
-  //       // You can also verify payment
-  //       final verify = await shurjoPay.verifyPayment(
-  //         orderID: response.shurjopayOrderID!,
-  //       );
-  //
-  //       if (verify.spCode == "1000") {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(
-  //             content: const Text("Payment Successful"),
-  //             backgroundColor: Colors.green,
-  //             duration: const Duration(seconds: 3),
-  //           ),
-  //         );
-  //
-  //       } else {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(
-  //             content: const Text("Payment verification failed"),
-  //             backgroundColor: Colors.red,
-  //             duration: const Duration(seconds: 3),
-  //           ),
-  //         );
-  //       }
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: const Text("Payment initiation failed"),
-  //           backgroundColor: Colors.red,
-  //           duration: const Duration(seconds: 3),
-  //         ),
-  //       );
-  //
-  //     }
-  //   } catch (e) {
-  //     _showSnack("Error: $e");
-  //   } finally {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-
-  // web browser + api-------------------------
-  // Future<void> _handleShurjoPay() async {
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final token = prefs.getString('auth_token');
-  //   final investorId = prefs.getString('investor_id') ?? '';
-  //   final email = prefs.getString('investor_email') ?? 'default@email.com';
-  //   final investorName = prefs.getString('investor_name') ?? '';
-  //   final investorPhone = prefs.getString('investor_phone') ?? '';
-  //   final investorAddress = prefs.getString('investor_address') ?? 'Dhaka';
-  //
-  //   final enteredAmount = _amountController.text.trim();
-  //   if (enteredAmount.isEmpty || double.tryParse(enteredAmount) == null) {
-  //     _showSnack("Please enter a valid deposit amount.");
-  //     setState(() => _isLoading = false);
-  //     return;
-  //   }
-  //
-  //   final amount = double.parse(enteredAmount);
-  //
-  //   try {
-  //     // -----------------------------
-  //     // Step 1: Initiate transaction
-  //     // -----------------------------
-  //     final initiateResponse = await http.post(
-  //       Uri.parse('https://growupagro.tech/api/transaction-initiate'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //       body: jsonEncode({
-  //         "amount": amount,
-  //         "type": "deposit",
-  //         "note": "ok",
-  //       }),
-  //     );
-  //
-  //     if (initiateResponse.statusCode != 200 &&
-  //         initiateResponse.statusCode != 201) {
-  //       print('Transaction initiation failed: ${initiateResponse.body}');
-  //       _showSnack("Failed to initiate transaction.");
-  //       setState(() => _isLoading = false);
-  //       return;
-  //     }
-  //
-  //     print('Transaction initiate status: ${initiateResponse.statusCode}');
-  //     print('Transaction initiate response: ${initiateResponse.body}');
-  //
-  //
-  //     final initiateData = jsonDecode(initiateResponse.body);
-  //
-  //     if (initiateData['success'] != true) {
-  //       _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
-  //       setState(() => _isLoading = false);
-  //       return;
-  //     }
-  //
-  //     // ✅ Safely extract transaction ID
-  //     final walletTransaction = initiateData['data']?['wallet_transaction'];
-  //     final transactionId = walletTransaction?['id']?.toString();
-  //
-  //     if (transactionId == null || transactionId.isEmpty) {
-  //       _showSnack("Transaction ID missing from server response.");
-  //       print("transactionId is null or empty");
-  //       setState(() => _isLoading = false);
-  //       return;
-  //     }
-  //
-  //     print("Transaction ID from backend: $transactionId");
-  //
-  //     // -----------------------------
-  //     // Step 2: Get ShurjoPay token
-  //     // -----------------------------
-  //     final tokenResponse = await http.post(
-  //       Uri.parse('https://engine.shurjopayment.com/api/get_token'),
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: jsonEncode({
-  //         'username': 'growup_agrotech',
-  //         'password': 'growjjxwdm6wazy4',
-  //       }),
-  //     );
-  //
-  //     if (tokenResponse.statusCode != 200) {
-  //       _showSnack("Failed to get payment token.");
-  //       print('Token error: ${tokenResponse.body}');
-  //       setState(() => _isLoading = false);
-  //       return;
-  //     }
-  //
-  //     final tokenData = jsonDecode(tokenResponse.body);
-  //     final spToken = tokenData['token'];
-  //     final storeId = tokenData['store_id'].toString();
-  //     final orderId = 'growup_${DateTime
-  //         .now()
-  //         .millisecondsSinceEpoch}';
-  //
-  //     // -----------------------------
-  //     // Step 3: Initiate ShurjoPay payment
-  //     // -----------------------------
-  //     final paymentResponse = await http.post(
-  //       Uri.parse('https://engine.shurjopayment.com/api/secret-pay'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $spToken',
-  //       },
-  //       body: jsonEncode({
-  //         "prefix": "GAL",
-  //         "token": spToken,
-  //         "return_url": "https://growupagro.tech/api/shurjopay/payment/callback",
-  //         "cancel_url": "https://growupagro.tech/api/shurjopay/payment/callback",
-  //         "store_id": storeId,
-  //         "amount": amount,
-  //         "order_id": orderId,
-  //         "currency": "BDT",
-  //         "customer_name": investorName,
-  //         "customer_address": investorAddress,
-  //         "customer_city": "Dhaka",
-  //         "customer_email": email,
-  //         "customer_phone": investorPhone,
-  //         "customer_post_code": "1200",
-  //         "client_ip": "127.0.0.1",
-  //         "value1": investorId,
-  //         "value2": "N/A",
-  //         "value3": "wallet_deposit",
-  //         "value4": transactionId, // ✅ Safe and verified
-  //       }),
-  //     );
-  //
-  //     print('Payment response status: ${paymentResponse.statusCode}');
-  //     print('Payment response body: ${paymentResponse.body}');
-  //
-  //     if (paymentResponse.statusCode != 200) {
-  //       final errorJson = jsonDecode(paymentResponse.body);
-  //       final errorMsg = errorJson['message'] ?? 'Payment initiation failed';
-  //       _showSnack(errorMsg);
-  //       setState(() => _isLoading = false);
-  //       return;
-  //     }
-  //
-  //     final paymentData = jsonDecode(paymentResponse.body);
-  //     final checkoutUrl =
-  //         paymentData['checkout_url'] ?? paymentData['redirect_url'] ?? '';
-  //
-  //     if (checkoutUrl.isNotEmpty && checkoutUrl.startsWith('http')) {
-  //       final uri = Uri.parse(checkoutUrl);
-  //       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-  //         _showSnack("Could not open payment page.");
-  //       }
-  //     } else {
-  //       _showSnack("Invalid payment URL.");
-  //     }
-  //   } catch (e) {
-  //     _showSnack("Error during payment: $e");
-  //     print(e);
-  //   } finally {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-
-
   Future<void> _handleSslCommerzPay() async {
-    setState(() {
-      _isLoading = true;
-    });
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -626,19 +224,25 @@ class _DepositPageState extends State<DepositPage> {
     final amount = double.parse(enteredAmount);
 
     try {
-      // -----------------------------
-      // Step 1: Initiate transaction (same as before)
-      // -----------------------------
+      if (token == null || token.isEmpty) {
+        _showSnack("Authorization token missing. Please login again.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      showProcessingPaymentDialog(context);
+
+      // 🔹 Step 1: Initiate transaction
       final initiateResponse = await http.post(
-        Uri.parse('https://growupagro.tech/api/transaction-initiate'),
+        Uri.parse('https://growupagro.online/api/transaction-initiate'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
           "amount": amount,
-          // "type": "deposit",
-          // "note": "ok",
+          "type": "deposit",
+          "note": "ok",
         }),
       );
 
@@ -651,93 +255,94 @@ class _DepositPageState extends State<DepositPage> {
 
       final initiateData = jsonDecode(initiateResponse.body);
       if (initiateData['success'] != true) {
-        _showSnack(initiateData['message'] ?? 'Transaction initiation failed.');
+        _showSnack(
+          initiateData['message'] ?? 'Transaction initiation failed.',
+        );
         setState(() => _isLoading = false);
+        Navigator.pop(context);
         return;
       }
 
-      final walletTransaction = initiateData['data']?['wallet_transaction'];
-      final transactionId = walletTransaction?['id']?.toString();
+      final walletTransaction = initiateData['data'];
+      final transactionId = walletTransaction?['transaction_id']?.toString();
+      final transactionAmount = walletTransaction?['amount'];
+
       if (transactionId == null || transactionId.isEmpty) {
         _showSnack("Transaction ID missing from server response.");
         setState(() => _isLoading = false);
+        Navigator.pop(context);
         return;
       }
 
-      print("✅ Transaction ID: $transactionId");
+      Navigator.pop(context);
 
-      // -----------------------------
-      // Step 2: Initiate SSLCommerz Payment
-      // -----------------------------
-      const storeId = "datab67593a46c4062";
-      const storePassword = "datab67593a46c4062@ssl";
-
-      final sslInitUrl = "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
-
-      final sslRequestBody = {
-        "store_id": storeId,
-        "store_passwd": storePassword,
-        "total_amount": amount.toString(),
-        "currency": "BDT",
-        "tran_id": "growup_txn_${transactionId.toString()}",
-        "success_url": "https://growupagro.tech//api/sslcommerz/payment/success",
-        "fail_url": "https://growupagro.tech//api/sslcommerz/payment/fail",
-        "cancel_url": "https://growupagro.tech/api/sslcommerz/payment/cancel",
-        "emi_option": "0",
-        "cus_name": investorName.toString(),
-        "cus_email": email.toString(),
-        "cus_add1": investorAddress.toString(),
-        "cus_city": "Dhaka",
-        "cus_country": "Bangladesh",
-        "cus_phone": investorPhone.toString(),
-        "shipping_method": "NO",
-        "product_name": "Wallet Recharge",
-        "product_category": "Food",
-        "product_profile": "general",
-        "value_a": investorId.toString(),
-        "value_b": "wallet_deposit",
-        "value_c": transactionId.toString(),
-        "value_d": "growup",
-      };
-
-
-      final sslResponse = await http.post(
-        Uri.parse(sslInitUrl),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: sslRequestBody.map((key, value) => MapEntry(key, value.toString())),
+      // Initialize SSLCommerz
+      Sslcommerz sslcommerz = Sslcommerz(
+        initializer: SSLCommerzInitialization(
+          multi_card_name: "visa,master,bkash",
+          currency: SSLCurrencyType.BDT,
+          product_category: "Digital Product",
+          sdkType: SSLCSdkType.TESTBOX, // Change to LIVE later
+          store_id: "datab67593a46c4062",
+          store_passwd: "datab67593a46c4062@ssl",
+          total_amount: transactionAmount.toDouble(),
+          tran_id: transactionId,
+        ),
       );
 
+      final response = await sslcommerz.payNow();
 
-      print('🔹 SSLCommerz Init Status: ${sslResponse.statusCode}');
-      print('🔹 SSLCommerz Response: ${sslResponse.body}');
-
-      if (sslResponse.statusCode != 200) {
-        _showSnack("Failed to connect to SSLCOMMERZ.");
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final sslData = jsonDecode(sslResponse.body);
-      final gatewayUrl = sslData['GatewayPageURL'];
-
-      if (gatewayUrl != null && gatewayUrl.toString().startsWith('http')) {
-        final uri = Uri.parse(gatewayUrl);
-        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-          _showSnack("Could not open SSLCOMMERZ page.");
-        }
-      } else {
-        _showSnack("Invalid payment gateway URL from SSLCOMMERZ.");
-      }
+      showProcessingPaymentDialog(context);
+      _loadPaymentStatus(transactionId, _isLoading, context, response.status);
     } catch (e) {
-      print("❌ SSLCommerz error: $e");
-      _showSnack("Error during SSLCOMMERZ payment: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed: $e')),
+      );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  Future<void> _loadPaymentStatus(
+      String transactionId,
+      bool _isLoading,
+      BuildContext dialogContext,
+      String? status,
+      ) async {
+    final result = await PaymentService.fetchPaymentSuccess(
+      transactionId,
+      status!,
+    );
+
+    if (status == 'VALID') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result == "success"
+                ? "Transaction successful"
+                : "Transaction failed",
+          ),
+          backgroundColor: result == "success" ? Colors.green : Colors.red,
+        ),
+      );
+    } else if (status == 'Closed') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Cancel by user"), backgroundColor: Colors.red),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment failed"), backgroundColor: Colors.red),
+      );
+    }
+
+    print('Payment completed, gg TRX ID: ${result}');
+
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.pop(context);
+  }
 
   Future<void> _submitDeposit() async {
     final amount = int.tryParse(_amountController.text.trim()) ?? 0;
@@ -789,16 +394,19 @@ class _DepositPageState extends State<DepositPage> {
       ..headers['Authorization'] = 'Bearer $token'
       ..fields['investor_code'] = _investorCode
       ..fields['amount'] = amount.toString()
-      ..fields['payment_method'] =
-      _selectedMethod == 'Bank Transfer' ? 'bank' : method;
+      ..fields['payment_method'] = _selectedMethod == 'Bank Transfer'
+          ? 'bank'
+          : method;
 
     if (method == 'bank transfer') {
       request.fields['bank_name'] = _bankNameController.text;
-      request.files.add(await http.MultipartFile.fromPath(
-        'bank_payment_slip',
-        _selectedImage!.path,
-        contentType: MediaType('image', 'jpeg'),
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'bank_payment_slip',
+          _selectedImage!.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
     } else {
       request.fields['mobile_transaction_id'] = _transactionIdController.text;
       request.fields['mobile_number'] = _mobileNumberController.text;
@@ -842,7 +450,6 @@ class _DepositPageState extends State<DepositPage> {
     }
   }
 
-
   void _showSnack(String msg, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -856,176 +463,215 @@ class _DepositPageState extends State<DepositPage> {
   Widget _buildDepositForm() {
     final method = _selectedMethod.toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Deposit Method Dropdown
-          DropdownButtonFormField<String>(
-            value: _selectedMethod,
-            decoration: InputDecoration(
-              labelText: 'Deposit Method',
-              border: OutlineInputBorder(),
-              isDense: true, // makes the field more compact
-              contentPadding: EdgeInsets.symmetric(
-                vertical: 8,  // reduce vertical height
-                horizontal: 12,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,    // subtle shadow
+                offset: Offset(0, 3),     // bottom shadow only
+                blurRadius: 6,            // soft blur
+                spreadRadius: 0,
               ),
-            ),
-            items: _methods
-                .map((m) => DropdownMenuItem(
-              value: m,
-              child: Text(m, style: TextStyle(fontSize: 14)), // optional smaller text
-            ))
-                .toList(),
-            onChanged: (val) => setState(() => _selectedMethod = val!),
+            ],
           ),
-
-          const SizedBox(height: 12),
-
-          // Amount field (skip for cash)
-          if (method != 'cashpayment') ...[
-            TextField(
-              controller: _amountController,
-              decoration: InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-                isDense: true, // makes the TextField more compact
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 8, // adjust this for desired height
-                  horizontal: 12,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              SizedBox(height: 8,),
+              DropdownButtonFormField<String>(
+                value: _selectedMethod,
+                decoration: const InputDecoration(
+                  labelText: 'Deposit Method',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 ),
+                items: _methods
+                    .map(
+                      (m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(
+                      m,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                )
+                    .toList(),
+                onChanged: (val) => setState(() => _selectedMethod = val!),
               ),
-              keyboardType: TextInputType.number,
-              style: TextStyle(fontSize: 14), // smaller font reduces height
-            ),
 
-            const SizedBox(height: 12),
-          ],
+              const SizedBox(height: 24),
 
-          // Bank Transfer Fields
-          if (method == 'banktransfer') ...[
-            // User Bank Info
-            TextField(
-              controller: _bankNameController,
-              decoration: InputDecoration(
-                labelText: 'Your Bank Name (where you sent the money from)',
-                border: OutlineInputBorder(),
-                isDense: true, // makes TextField more compact
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 8,  // reduce vertical padding
-                  horizontal: 12,
+              // Amount field (skip for cash)
+              if (method != 'cashpayment') ...[
+                TextField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: 'Amount',
+                    labelStyle: const TextStyle(color: Colors.black87),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF2E7D32), width: 1.8),
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  ),
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(fontSize: 14),
                 ),
-              ),
-            ),
+                const SizedBox(height: 12),
+              ],
 
-            const SizedBox(height: 12),
+              // Bank Transfer Fields
+              if (method == 'banktransfer') ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _bankNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Your Bank Name (where you sent the money from)',
+                    labelStyle: const TextStyle(color: Colors.black87),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF2E7D32), width: 1.8),
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  ),
 
-            // Upload Deposit Document
-            _selectedImage != null
-                ? Image.file(_selectedImage!, height: 100)
-                : const Center(child: Text("Upload Deposit Document (Pdf or Image)")),
-            Center(
-              child: TextButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.add_a_photo, size: 40),
-                label: const Text(""),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-
-          // Submit/Deposit Button
-          // const SizedBox(height: 10),
-          if (method != 'cashpayment')
-            _isSubmitting
-                ? const Center(child: CircularProgressIndicator())
-                : SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (method == 'banktransfer') {
-                    _submitDeposit();
-                  }
-                  // else if (method == 'onlinepayment(shurjopay)') {
-                  //   _handleShurjoPay();
-                  // }
-                  else if (method == 'onlinepayment(sslcommerz)') {
-                    _handleSslCommerzPay();
-                  } else {
-                    _submitDeposit();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
-                child: Text(
-                  method == 'onlinepayment(shurjopay)'
-                      ? 'Pay with ShurjoPay'
-                      : method == 'onlinepayment(sslcommerz)'
-                      ? 'Pay with SSLCOMMERZ'
-                      : 'Deposit',
-                  style: const TextStyle(color: Colors.white),
+                const SizedBox(height: 12),
+
+                _selectedImage != null
+                    ? Image.file(_selectedImage!, height: 100)
+                    : const Center(
+                  child: Text("Upload Deposit Document (PDF or Image)"),
                 ),
-              )
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.add_a_photo, size: 32, color: Colors.grey,),
+                    label: const Text(""),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
-            ),
-          const SizedBox(height: 12),
+              if (method != 'cashpayment')
+                _isSubmitting
+                    ? const Center(child: CircularProgressIndicator())
+                    : SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (method == 'banktransfer') {
+                        _submitDeposit();
+                      } else if (method == 'onlinepayment(sslcommerz)') {
+                        _handleSslCommerzPay();
+                      } else {
+                        _submitDeposit();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E7D32),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: Text(
+                      method == 'onlinepayment(sslcommerz)' ? 'Pay with SSLCOMMERZ' : 'Deposit',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
 
-          // Bank Transfer Cards (only show after button)
-          if (method == 'banktransfer') ...[
-            bankTransferText(),
-            const SizedBox(height: 12),
-            _buildBankDetailsList(),
-            const SizedBox(height: 12),
-          ],
+              if (method == 'banktransfer') ...[
+                bankTransferText(),
+                const SizedBox(height: 12),
+                _buildBankDetailsList(),
+                const SizedBox(height: 12),
+              ],
 
-          // Cash Payment or ShurjoPay instructions can remain before the button
-          if (method == 'cashpayment') ...[
-            _buildCashPaymentInstructions(),
-            const SizedBox(height: 12),
-          ],
-          if (method == 'onlinepayment(shurjopay)') ...[
-            _buildShurjopayInstructions(),
-            const SizedBox(height: 12),
-          ],
+              if (method == 'cashpayment') ...[
+                _buildCashPaymentInstructions(),
+                const SizedBox(height: 12),
+              ],
 
-          // Deposit History Section
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              labelText: 'Search by amount, status and method Deposit History',
-              prefixIcon: const Icon(Icons.search),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.grey),
-              ),
-            ),
+              if (method == 'onlinepayment(sslcommerz)') ...[
+                const SizedBox(height: 12),
+                _buildSSLInstructions(),
+              ],
+            ],
           ),
-          const SizedBox(height: 16),
-          _buildDepositHistoryTable(),
-          const SizedBox(height: 45),
-        ],
-      ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Deposit History',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+
+              Divider(height: 1,),
+
+              const SizedBox(height: 16),
+
+              // Deposit History Section
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search Withdraw History (Amount, Status, Method)',
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 22),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              _buildDepositHistoryTable(),
+              const SizedBox(height: 45),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-
-  // 3. New Widget to Display Bank Details
-  // New Widget to Display Bank Details (Modified to include Copy Button)
   Widget _buildBankDetailsList() {
-    // Function to handle copying the text to the clipboard
     void _copyToClipboard(String text) {
       Clipboard.setData(ClipboardData(text: text)).then((_) {
-        // Show a temporary message (Snackbar) to confirm the copy
-        // You need access to a ScaffoldMessenger for this,
-        // which is usually available from a context in a StatelessWidget/StatefulWidget.
-        // Assuming 'context' is available here or passed:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Copied Account Number: $text'),
@@ -1034,8 +680,10 @@ class _DepositPageState extends State<DepositPage> {
         );
       });
     }
+
     return Card(
       elevation: 2,
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -1081,7 +729,10 @@ class _DepositPageState extends State<DepositPage> {
                         ),
                         IconButton(
                           icon: const Icon(
-                              Icons.copy, size: 20, color: Colors.grey),
+                            Icons.copy,
+                            size: 20,
+                            color: Colors.grey,
+                          ),
                           onPressed: () => _copyToClipboard(accountNumber),
                           tooltip: 'Copy Account Number',
                         ),
@@ -1098,12 +749,6 @@ class _DepositPageState extends State<DepositPage> {
                 ),
               );
             }),
-
-            // const SizedBox(height: 8),
-            // const Text(
-            //   '⚠️ এই পদ্ধতিতে ব্যাংকের NPSB, BFTEN,  RTGS, Fund Transfer, অথবা সরাসরি গ্র-আপের একাউন্ট এ ব্যাংক ডিপোজিট এর মাধ্যমে আপনার ওয়ালেট রিচার্জ করতে পারবেন। (ডিপোজিটের পর স্লিপটি সাবমিট করুন)',
-            //   style: TextStyle(fontSize: 12, color: Colors.orange),
-            // ),
           ],
         ),
       ),
@@ -1113,19 +758,20 @@ class _DepositPageState extends State<DepositPage> {
   Widget bankTransferText() {
     return const Center(
       child: Card(
+        color: Color(0xFFE8F5E9),
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Text(
             'ব্যাংক ট্রান্সফার ও ডিপোজিটের মাধ্যমে ওয়ালেট রিচার্জ\n'
-                'আপনার ব্যাংকের ইন্টারনেট ব্যাংকিং (iBanking), মোবাইল অ্যাপ ব্যাবহার করে '
-                'যেকোনো একটি (NPSB, BEFTN বা RTGS) পদ্ধতি ব্যবহার করে করে আপনার ব্যাংক অ্যাকাউন্ট '
-                'থেকে সরাসরি আমাদের কোম্পানি / প্রতিষ্ঠানের নিন্মোক্ত যেকোনো ব্যাংক অ্যাকাউন্টে টাকা ট্রান্সফার করতে পারবেন। '
-                'এছাড়াও, সরাসরি আমাদের তালিকাভুক্ত যেকোনো ব্যাংকের শাখায় গিয়ে ক্যাশ ডিপোজিট করেও '
-                'আপনার ওয়ালেট রিচার্জ করার সুযোগ রয়েছে।\n\n'
-                'টাকা ট্রান্সফার বা ডিপোজিট করার পর, যাচাইকরণের জন্য অনুগ্রহ করে রশিদের ছবি আপলোড করুন।',
+            'আপনার ব্যাংকের ইন্টারনেট ব্যাংকিং (iBanking), মোবাইল অ্যাপ ব্যাবহার করে '
+            'যেকোনো একটি (NPSB, BEFTN বা RTGS) পদ্ধতি ব্যবহার করে করে আপনার ব্যাংক অ্যাকাউন্ট '
+            'থেকে সরাসরি আমাদের কোম্পানি / প্রতিষ্ঠানের নিন্মোক্ত যেকোনো ব্যাংক অ্যাকাউন্টে টাকা ট্রান্সফার করতে পারবেন। '
+            'এছাড়াও, সরাসরি আমাদের তালিকাভুক্ত যেকোনো ব্যাংকের শাখায় গিয়ে ক্যাশ ডিপোজিট করেও '
+            'আপনার ওয়ালেট রিচার্জ করার সুযোগ রয়েছে।\n\n'
+            'টাকা ট্রান্সফার বা ডিপোজিট করার পর, যাচাইকরণের জন্য অনুগ্রহ করে রশিদের ছবি আপলোড করুন।',
             textAlign: TextAlign.justify,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 12,
               height: 1.6,
               color: Colors.black87,
               fontWeight: FontWeight.w500,
@@ -1135,7 +781,6 @@ class _DepositPageState extends State<DepositPage> {
       ),
     );
   }
-
 
   Widget _buildCashPaymentInstructions() {
     return Card(
@@ -1180,8 +825,10 @@ class _DepositPageState extends State<DepositPage> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF948BF3),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1193,37 +840,35 @@ class _DepositPageState extends State<DepositPage> {
     );
   }
 
-
-  Widget _buildShurjopayInstructions() {
+  Widget _buildSSLInstructions() {
     return const Card(
       elevation: 2,
       color: Color(0xFFE8F5E9), // Light green background for visibility
       child: Padding(
         padding: EdgeInsets.all(16.0),
-        child:Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text(
               'সুরক্ষিত অনলাইন পেমেন্ট এর মাধ্যমে ওয়ালেট রিচার্জ',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF2E7D32), // green tone for heading
               ),
             ),
             SizedBox(height: 8),
             Text(
-              'আমাদের সুরক্ষিত পেমেন্ট গেটওয়ে (ShurjoPay)-এর মাধ্যমে যেকোনো মোবাইল ওয়ালেট (MFS) যেমন: বিকাশ, নগদ, রকেট, ব্যাংক কার্ড (ডেবিট, ক্রেডিট, প্রিপেইড) ব্যবহার করে সহজেই আপনার ওয়ালেট রিচার্জ করতে পারবেন। '
-                  'এছাড়াও, নির্দিষ্ট ব্যাংকের ক্রেডিট কার্ড ব্যবহারকারীরা সহজ মাসিক কিস্তি (EMI) সুবিধা ব্যবহার করে ওয়ালেট রিচার্জ করতে পারবেন।',
+              'আমাদের সুরক্ষিত পেমেন্ট গেটওয়ে (SslCommerz)-এর মাধ্যমে যেকোনো মোবাইল ওয়ালেট (MFS) যেমন: বিকাশ, নগদ, রকেট, ব্যাংক কার্ড (ডেবিট, ক্রেডিট, প্রিপেইড) ব্যবহার করে সহজেই আপনার ওয়ালেট রিচার্জ করতে পারবেন। '
+              'এছাড়াও, নির্দিষ্ট ব্যাংকের ক্রেডিট কার্ড ব্যবহারকারীরা সহজ মাসিক কিস্তি (EMI) সুবিধা ব্যবহার করে ওয়ালেট রিচার্জ করতে পারবেন।',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 color: Colors.black87,
                 height: 1.5, // for better line spacing
               ),
             ),
           ],
-        )
-
+        ),
       ),
     );
   }
@@ -1238,279 +883,250 @@ class _DepositPageState extends State<DepositPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: const Text(
-            'Deposit History',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            elevation: 2,
-            child: DataTable(
-              headingRowColor: MaterialStateProperty.all(
-                  const Color(0xFF388E3C)),
-              headingTextStyle: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+        // 🔹 Scrollable list instead of table
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: currentItems.length,
+          itemBuilder: (context, index) {
+            final DepositHistory item = currentItems[index];
+
+            final sl = _currentPage * _itemsPerPage + index + 1;
+            final createdAt = item.createdAt != null
+                ? DateFormat('dd MMM yyyy, h:mm a').format(item.createdAt!)
+                : 'N/A';
+
+            return Card(
+              color: Colors.white,
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              dataRowMinHeight: 48,
-              dataRowMaxHeight: 60,
-              columnSpacing: 12,
-              columns: const [
-                DataColumn(label: Text('SL')),
-                DataColumn(label: Text('Date')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('Method')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Note')),
-                DataColumn(label: Text('Action')),
-              ],
-              rows: List.generate(currentItems.length, (index) {
-                final DepositHistory item = currentItems[index];
-
-                final invoiceNo = item.invoiceNo?.toString() ?? 'N/A';
-                final hasInvoice = item.invoiceNo != null;
-
-                final createdAt = item.createdAt != null
-                    ? DateFormat('dd MMM yyyy, h:mm a').format(item.createdAt!)
-                    : 'N/A';
-
-                return DataRow(
-                  cells: [
-                    DataCell(Text('${_currentPage * _itemsPerPage + index +
-                        1}')),
-                    DataCell(Text(createdAt)),
-                    DataCell(Text(item.amount)),
-                    DataCell(Text(item.paymentMethod)),
-                    DataCell(
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(item.status),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          item.status.toUpperCase(),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🔹 Top Row: SL + Date + Status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "SL: $sl",
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
-                      ),
+                        StatusChip(status: item.status.toUpperCase()),
+                      ],
                     ),
-                    DataCell(Text(item.note ?? 'N/A')),
-                    DataCell(
-                      item.status.toLowerCase() == "approved" && item.invoiceNo != null
-                          ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // 👁️ View Button
-                          ElevatedButton(
-                            onPressed: () => _openInvoiceInBrowser(item.invoiceNo!),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey[200], // View button color
-                              foregroundColor: Colors.black,
-                              elevation: 2,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                              minimumSize: const Size(0, 0),
-                            ),
-                            child: const Text(
-                              'View',
-                              style: TextStyle(
-                                fontSize: 10,
-                              ),
+
+                    const SizedBox(height: 6),
+
+                    //Details Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            createdAt,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    InfoRow(
+                      title: 'Amount',
+                      value: item.amount,
+                    ),
 
-                          const SizedBox(height: 2), // spacing between buttons
-/*
-                          // 💾 Download Button or Loading
-                          (downloadingInvoices.contains(item.invoiceNo))
-                              ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                              : ElevatedButton(
-                            onPressed: () => _openInvoiceInBrowser(item.invoiceNo!),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber[200], // Download button color
-                              foregroundColor: Colors.black,
-                              elevation: 2,
-                              padding:
-                              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                              minimumSize: const Size(0, 0),
-                            ),
-                            child: const Text(
-                              'Download',
-                              style: TextStyle(
-                                fontSize: 10,
-                              ),
+                    InfoRow(
+                      title: 'Method',
+                      value: item.paymentMethod,
+                    ),
+
+                    SizedBox(height: 8,),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.note_alt_outlined,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            "Note: ${item.note?.isNotEmpty == true ? item.note! : 'N/A'}",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
                             ),
                           ),
-                          */
-                        ],
-                      )
-                          : const Icon(
-                        Icons.block,
-                        color: Colors.red,
-                        size: 24,
-                      ),
-                    )
+                        ),
+                      ],
+                    ),
 
-
-
+                    item.invoiceNo == null
+                        ? Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox(
+                                child: const Icon(
+                                  Icons.block,
+                                  color: Colors.red,
+                                  size: 22,
+                                ),
+                              ),
+                          ],
+                        )
+                        : InvoiceActionButtons(
+                            invoiceNo: item.invoiceNo!,
+                            downloadUrl:
+                                'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
+                            viewUrl:
+                                'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
+                            status: item.status,
+                          ),
 
                   ],
-                );
-              }),
-
-            ),
-          ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-
-  Future<void> _openInvoiceInBrowser(String? invoiceNo) async {
-    // Exit if invoiceNo is null or empty
-    if (invoiceNo == null || invoiceNo.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid invoice number.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Show loading indicator
-    setState(() => downloadingInvoices.add(invoiceNo));
-
-    final url = 'https://growupagro.tech/api/invoice/pdf/$invoiceNo';
-
-    try {
-      final uri = Uri.parse(url);
-
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication, // opens in browser
-        );
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not open invoice in browser.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error opening invoice: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to open invoice: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      // Hide loading indicator
-      if (mounted) {
-        setState(() => downloadingInvoices.remove(invoiceNo));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Deposit Funds",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text(
+            "Deposit Funds",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
 
-      // Main scrollable content
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        // Main scrollable content
+        body: RefreshIndicator(
+          onRefresh: _handleRefresh,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: _buildDepositForm(),
           ),
         ),
-      ),
 
-      // 👇 Fixed pagination bar (always visible)
-      bottomNavigationBar: Transform.translate(
-        offset: const Offset(0, -40), // slightly lift up
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30), // proper padding around row
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                height: 26, // slightly taller for better touch area
-                child: ElevatedButton(
-                  onPressed: _currentPage > 0
-                      ? () => setState(() => _currentPage--)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5), // 7px border radius
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-                  child: const Text('Previous', style: TextStyle(fontSize: 14)),
-                ),
-              ),
-              Text(
-                'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length / _itemsPerPage).ceil()}',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(
-                height: 26, // slightly taller for better touch area
-                child: ElevatedButton(
-                  onPressed: (_currentPage + 1) * _itemsPerPage < _filteredDepositHistory.length
-                      ? () => setState(() => _currentPage++)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5), // 7px border radius
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-                  child: const Text('Next', style: TextStyle(fontSize: 14)),
-                ),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26, // subtle shadow color
+                offset: Offset(0, -2),  // shadow from the top
+                blurRadius: 6,          // soft blur
+                spreadRadius: 0,
               ),
             ],
           ),
+          child: Transform.translate(
+            offset: const Offset(0, 0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 26,
+                    child: CustomButton(
+                      text: 'Previous',
+                      fontSize: 14,
+                      height: 26,
+                      borderRadius: 5,
+                      backgroundColor: Colors.grey[400]!,
+                      onPressed: _currentPage > 0
+                          ? () => setState(() => _currentPage--)
+                          : null,
+                    ),
+                  ),
+                  Text(
+                    'Page ${_currentPage + 1} of ${(_filteredDepositHistory.length / _itemsPerPage).ceil()}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 26,
+                    child: CustomButton(
+                      text: 'Next',
+                      fontSize: 14,
+                      height: 26,
+                      borderRadius: 5,
+                      backgroundColor: Colors.grey[400]!,
+                      onPressed: (_currentPage + 1) * _itemsPerPage <
+                          _filteredDepositHistory.length
+                          ? () => setState(() => _currentPage++)
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
+
       ),
-
-
     );
   }
 
-
-
-
+  void showProcessingPaymentDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: Colors.green),
+                  SizedBox(height: 12),
+                  Text(
+                    "Processing Payment...",
+                    style: TextStyle(color: Colors.black, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
 }
-

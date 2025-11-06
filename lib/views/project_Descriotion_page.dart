@@ -558,7 +558,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
   Future<void> _triggerShurjoInvestDialog() async {
     final resData = await _showInvestDialog(
       isShurjoPay: true,
-    ); // ✅ MARKED: Added isShurjoPay
+    ); //
 
     if (resData == null) return;
 

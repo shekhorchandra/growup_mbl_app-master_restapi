@@ -143,14 +143,18 @@ class ProjectCard extends StatelessWidget {
                           // 🔹 Invest Now Button BELOW image
                           if (showInvestNow) ...[
                             const SizedBox(height: 8),
-                            CustomButton(
-                              text: isLoading ? "Loading..." : buttonText,
-                              backgroundColor: const Color(0xFF2E7D32),
-                              textColor: Colors.white,
-                              height: 28,
-                              fontSize: 12,
-                              borderRadius: 8,
-                              onPressed: isLoading ? null : onInvestNowPressed,
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                text: isLoading ? "Loading..." : buttonText,
+                                backgroundColor: const Color(0xFF2E7D32),
+                                textColor: Colors.white,
+                                height: 24,
+                                fontSize: 12,
+                                borderRadius: 8,
+                                isRound: true,
+                                onPressed: isLoading ? null : onInvestNowPressed,
+                              ),
                             ),
                           ],
                         ],
