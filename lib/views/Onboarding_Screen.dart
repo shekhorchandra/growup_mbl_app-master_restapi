@@ -16,48 +16,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int currentPage = 0;
 
-  // Onboarding pages (first one is video)
   final List<Map<String, dynamic>> pages = [
     {
       "icon": Icons.grass,
       "title": "The Future of Farming, Today.",
       "subtitle":
-          "Join a community of modern farmers. Get insights, manage crops, and grow your business.",
+      "Join a community of modern farmers. Get insights, manage crops, and grow your business.",
       "image": "assets/images/futurefram.jpg",
     },
     {
       "icon": Icons.show_chart,
       "title": "Invest in Agro-Projects",
       "subtitle":
-          "Fund promising agricultural projects and become a trusted partner in their success.",
+      "Fund promising agricultural projects and become a trusted partner in their success.",
       "image": "assets/images/animal.jpg",
     },
     {
       "icon": Icons.home,
       "title": "Own Your Farmland",
       "subtitle":
-          "Buy or invest in agricultural land. Build your dream farm for a sustainable future.",
+      "Buy or invest in agricultural land. Build your dream farm for a sustainable future.",
       "image": "assets/images/fram.jpg",
     },
     {
       "icon": Icons.shopping_cart,
       "title": "Shop for Agri-essentials",
       "subtitle":
-          "Seeds, fertilizers, and machinery—get all your farming needs from our trusted marketplace.",
+      "Seeds, fertilizers, and machinery—get all your farming needs from our trusted marketplace.",
       "image": "assets/images/agriessn.jpg",
-    },{
-      "icon": "",
-      "title": "Building Limitless Tomorrow",
-      "subtitle":
-      "",
-      "image": "assets/images/mobile_app_bg.jpg",
     },
-
-    /*{
+    {
+      "icon": "",
+      "title": "",
+      "subtitle": "",
+      "image": "assets/images/APP-BG1-Recovered.jpg",
+    },
+    /* Example video page:
+    {
       "isVideo": true,
       "videoSource": "asset",
       "videoPath": "assets/videos/intro.mov",
-    },*/
+    }, */
   ];
 
   VideoPlayerController? _videoController;
@@ -65,7 +64,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   int get _videoPageIndex => pages.indexWhere((p) => p['isVideo'] == true);
 
-  // ───────────────────────────────────────────────────────────────
   Future<void> _complete() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('seenOnboarding', true);
@@ -87,7 +85,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
@@ -100,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       _videoController!
         ..setLooping(true)
-        ..setVolume(0.0) // 🔇 Mute
+        ..setVolume(0.0)
         ..initialize().then((_) {
           if (!mounted) return;
           setState(() => _videoReady = true);
@@ -143,30 +140,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             itemBuilder: (context, index) {
               final data = pages[index];
               final isVideo = data['isVideo'] == true;
+              final isLastPage = index == pages.length - 1;
 
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // ─────────────── Background ───────────────
+                  // Background
                   if (isVideo)
-                    _VideoBackground(
-                      controller: _videoController,
-                      ready: _videoReady,
-                    )
+                    _VideoBackground(controller: _videoController, ready: _videoReady)
                   else
-                    Image.asset(
-                      data["image"]!,
-                      fit: BoxFit.cover,
-                    ),
+                    Image.asset(data["image"]!, fit: BoxFit.cover),
 
-                  // ─────────────── Overlays only for image pages ───────────────
-                  if (!isVideo) ...[
-                    // Slight blur
+                  // Blur + gradient only for non-last pages
+                  if (!isVideo && !isLastPage) ...[
                     BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                      child: Container(color: Colors.black.withOpacity(0.30)),
+                      child: Container(color: Colors.black.withOpacity(0.3)),
                     ),
-                    // Gradient overlay
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -182,8 +172,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ],
 
-                  // ─────────────── Text Card ───────────────
-                  if (!isVideo)
+                  // Card with icon/title/subtitle only for non-last pages
+                  if (!isVideo && !isLastPage)
                     Align(
                       alignment: const Alignment(0, -0.1),
                       child: Card(
@@ -199,27 +189,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: data["icon"] == ""? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            data["icon"] == "" ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                             children: [
-                              data["icon"] == ""
-                                  ? Image.asset(
-                                "assets/images/GrowupLogo.png",
-                                width: screenW * 0.25,
-                                height: screenW * 0.25,
-                                fit: BoxFit.contain,
-                              ) : Icon(
-                                data["icon"],
-                                color: Colors.white,
-                                size: screenW * 0.15,
-                              ),
+                              if (data["icon"] != "")
+                                Icon(data["icon"], color: Colors.white, size: screenW * 0.15),
                               SizedBox(height: screenH * 0.02),
                               Text(
                                 data["title"] ?? '',
                                 style: TextStyle(
-                                  fontSize: data["icon"] == "" ? 18 : screenW * 0.06 ,
+                                  fontSize: screenW * 0.09,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
+                                textAlign: data["icon"] == "" ? TextAlign.center : TextAlign.start,
                               ),
                               SizedBox(height: screenH * 0.015),
                               Text(
@@ -229,6 +212,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   color: Colors.white70,
                                   height: 1.4,
                                 ),
+                                textAlign: data["icon"] == "" ? TextAlign.center : TextAlign.start,
                               ),
                             ],
                           ),
@@ -263,17 +247,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             right: 0,
             child: Column(
               children: [
-                // Dots
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     pages.length,
-                    (i) => AnimatedContainer(
+                        (i) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: EdgeInsets.symmetric(horizontal: screenW * 0.01),
-                      width: currentPage == i
-                          ? screenW * 0.06
-                          : screenW * 0.025,
+                      width: currentPage == i ? screenW * 0.06 : screenW * 0.025,
                       height: screenH * 0.01,
                       decoration: BoxDecoration(
                         color: currentPage == i ? Colors.green : Colors.white54,
@@ -283,8 +264,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
                 SizedBox(height: screenH * 0.03),
-
-                // Next / Get Started button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -315,7 +294,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-// 🔇 Video background (muted, no controls)
 class _VideoBackground extends StatelessWidget {
   const _VideoBackground({required this.controller, required this.ready});
 
