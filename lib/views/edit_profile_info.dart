@@ -120,15 +120,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
         _loadProfileData();
       } else {
+        debugPrint('Error: $respStr');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $respStr'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed: Something went wrong'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
+      debugPrint('Error: $e');
       setState(() => _updatingProfile = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error: Something went wrong'), backgroundColor: Colors.red),
       );
+
     }
   }
 
