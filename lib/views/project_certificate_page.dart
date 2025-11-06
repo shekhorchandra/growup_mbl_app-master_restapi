@@ -372,7 +372,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                           children: [
                             CustomButton(
                               icon: Icons.remove_red_eye,
-                              text: "View",
+                              text: "",
                               onPressed: () {
                                 openCertificateInApp(context, item.viewUrl);
                               },
@@ -385,7 +385,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                                   : Icons.download,
                               text: _isDownloading[item.downloadUrl] == true
                                   ? 'Downloading...'
-                                  : 'Download',
+                                  : '',
                               onPressed: _isDownloading[item.downloadUrl] == true
                                   ? null
                                   : () async {
