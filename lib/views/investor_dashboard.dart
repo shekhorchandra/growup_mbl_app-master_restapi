@@ -1468,7 +1468,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 ),
                               ],
                             ),
-                            Image.asset('assets/icons/Shariah.png', width: 70),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0), // adjust value as needed
+                              child: Image.asset('assets/icons/Shariah.png', width: 70),
+                            ),
                           ],
                         ),
                       ),
@@ -1745,18 +1748,18 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 ),
 
                 // Properties Investment by category
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 16),
-                  child: Text(
-                    "INVESTMENT BY CATEGORY",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF2E7D32),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                // Padding(
+                //   padding: const EdgeInsets.only(left: 16, top: 16),
+                //   child: Text(
+                //     "INVESTMENT BY CATEGORY",
+                //     style: TextStyle(
+                //       fontSize: 14,
+                //       color: Color(0xFF2E7D32),
+                //       fontWeight: FontWeight.w600,
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(height: 8),
 
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
@@ -1801,6 +1804,16 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                         fontSize: 16,
                                         height: 1.0,
                                       ),
+                                    ),
+
+                                  ),
+                                  Text(
+                                    'INVESTMENT BY CATEGORY',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 14,
+                                      height: 1.0,
                                     ),
                                   ),
                                 ],
