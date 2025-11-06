@@ -2481,7 +2481,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       child: SizedBox(
         height: itemHeight,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: indent,
@@ -2498,12 +2498,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
 
                   // Right vertical line
-                  Positioned(
+                  /*Positioned(
                     left: indent * 5,
                     top: -spacing,
                     bottom: isLast ? itemHeight / 2 : -spacing,
                     child: Container(width: lineWidth, color: lineColor),
-                  ),
+                  ),*/
 
                   // Horizontal connector
                   Positioned(
@@ -2513,12 +2513,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     child: Container(height: lineWidth, color: lineColor),
                   ),
 
-                  Positioned(
+                  /*Positioned(
                     left: indent * 4.5,
                     top: itemHeight / 2 - lineWidth / 2,
                     width: indent / 2, // connects left → right
                     child: Container(height: lineWidth, color: lineColor),
-                  ),
+                  ),*/
                 ],
               ),
             ),
