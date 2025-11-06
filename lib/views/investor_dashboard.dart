@@ -22,6 +22,7 @@ import 'package:growup_agro/views/royal_palace.dart';
 import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
 import 'package:growup_agro/views/wallet_history.dart';
+import 'package:growup_agro/widgets/advertisement_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/all_properties.model.dart';
@@ -545,13 +546,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                           currentAccountPicture: CircleAvatar(
                             backgroundImage:
-                            profile['image'] != null &&
-                                profile['image'].toString().isNotEmpty
+                                profile['image'] != null &&
+                                    profile['image'].toString().isNotEmpty
                                 ? NetworkImage(
-                              "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
-                            )
+                                    "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
+                                  )
                                 : const AssetImage('assets/images/img.png')
-                            as ImageProvider,
+                                      as ImageProvider,
                           ),
                         ),
 
@@ -576,7 +577,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -661,7 +664,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -724,7 +729,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -749,8 +756,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 'Growup',
                                 style: TextStyle(fontSize: 13),
                               ),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, '/invoice_growup'),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/invoice_growup',
+                              ),
                             ),
                             ListTile(
                               dense: true,
@@ -803,7 +812,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 size: 16,
                                 color: Colors.green,
                               ),
-                              title: Text('ROI', style: TextStyle(fontSize: 13)),
+                              title: Text(
+                                'ROI',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               onTap: () =>
                                   Navigator.pushNamed(context, '/invoice_roi'),
                             ),
@@ -823,8 +835,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 'Capital Return',
                                 style: TextStyle(fontSize: 13),
                               ),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, '/capital_return'),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/capital_return',
+                              ),
                             ),
                           ],
                         ),
@@ -849,7 +863,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -911,7 +927,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -1017,7 +1035,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -1099,7 +1119,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           right: 0,
                           child: Container(
                             color: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -1108,7 +1131,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              icon: const Icon(Icons.logout, color: Colors.white),
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Colors.white,
+                              ),
                               label: const Text(
                                 'Logout',
                                 style: TextStyle(
@@ -1122,15 +1148,18 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: const Text('Confirm Logout'),
-                                    content:
-                                    const Text('Are you sure you want to logout?'),
+                                    content: const Text(
+                                      'Are you sure you want to logout?',
+                                    ),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
                                         child: const Text('Cancel'),
                                       ),
                                       TextButton(
-                                        onPressed: () => Navigator.of(context).pop(true),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
                                         child: const Text(
                                           'Logout',
                                           style: TextStyle(color: Colors.red),
@@ -1165,7 +1194,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 centerTitle: true,
                 foregroundColor: Colors.white,
                 automaticallyImplyLeading: false,
-                toolbarHeight: 70,
+                toolbarHeight: 60,
                 elevation: 0,
 
                 // Drawer avatar at the left
@@ -1501,8 +1530,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(top: 8.0), // adjust value as needed
-                              child: Image.asset('assets/icons/Shariah.png', width: 70),
+                              padding: const EdgeInsets.only(
+                                top: 8.0,
+                              ), // adjust value as needed
+                              child: Image.asset(
+                                'assets/icons/Shariah.png',
+                                width: 70,
+                              ),
                             ),
                           ],
                         ),
@@ -1792,7 +1826,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 //   ),
                 // ),
                 // const SizedBox(height: 8),
-
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
                   color: Colors.green.withValues(alpha: .03),
@@ -1837,15 +1870,17 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                         height: 1.0,
                                       ),
                                     ),
-
                                   ),
-                                  Text(
-                                    'INVESTMENT BY CATEGORY',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 14,
-                                      height: 1.0,
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      'INVESTMENT BY CATEGORY',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                        height: 1.0,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2124,7 +2159,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       )
                     else
                       ..._walletTransactions.take(3).map((tx) {
-                        final String type = tx['type']?.toString().toLowerCase() ?? '';
+                        final String type =
+                            tx['type']?.toString().toLowerCase() ?? '';
                         IconData icon;
 
                         if (type == 'withdraw') {
@@ -2147,6 +2183,28 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           tx['status'] ?? 'N/A',
                         );
                       }).toList(),
+                  ],
+                ),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, top: 16),
+                      child: Text(
+                        "GrowUp Recent Activities",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E7D32),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 0, top: 0, bottom: 8, right: 0),
+                      child: AdvertisementSlider(),
+                    ),
                   ],
                 ),
               ],
@@ -2961,10 +3019,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             ),
 
             // ✅ Fixed-width item box
-            SizedBox(
-              width: itemWidth,
-              child: child,
-            ),
+            SizedBox(width: itemWidth, child: child),
           ],
         ),
       ),
@@ -3015,5 +3070,4 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       );
     }
   }
-
 }
