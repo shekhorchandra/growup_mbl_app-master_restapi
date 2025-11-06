@@ -109,7 +109,7 @@ class _AdvertisementSliderState extends State<AdvertisementSlider> {
             height: screenWidth > 800 ? 400 : 220,
             enlargeCenterPage: true,
             autoPlay: true, // auto-play only affects images
-            autoPlayInterval: const Duration(seconds: 25),
+            autoPlayInterval: const Duration(seconds: 15),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             viewportFraction: screenWidth > 800 ? 0.6 : 0.95,
             aspectRatio: 16 / 9,

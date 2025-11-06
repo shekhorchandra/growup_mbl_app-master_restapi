@@ -22,6 +22,7 @@ import 'package:growup_agro/views/royal_palace.dart';
 import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
 import 'package:growup_agro/views/wallet_history.dart';
+import 'package:growup_agro/widgets/advertisement_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/all_properties.model.dart';
@@ -1402,13 +1403,16 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     ),
 
                                   ),
-                                  Text(
-                                    'INVESTMENT BY CATEGORY',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 14,
-                                      height: 1.0,
+                                  Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Text(
+                                      'INVESTMENT BY CATEGORY',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                        height: 1.0,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1639,77 +1643,104 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 ),
 
                 // Transactions
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Transaction title
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, top: 16),
-                          child: Text(
-                            "TRANSACTION",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF2E7D32),
-                              fontWeight: FontWeight.w600,
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Transaction title
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16, top: 16),
+                            child: Text(
+                              "TRANSACTION",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF2E7D32),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WalletHistoryPage(),
-                              ),
-                            );
-                          },
-                          child: const Row(
-                            children: [
-                              Text(
-                                'See All',
-                                style: TextStyle(color: Colors.orange),
-                              ),
-                              Icon(Icons.arrow_forward, color: Colors.orange),
-                            ],
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => WalletHistoryPage(),
+                                ),
+                              );
+                            },
+                            child: const Row(
+                              children: [
+                                Text(
+                                  'See All',
+                                  style: TextStyle(color: Colors.orange),
+                                ),
+                                Icon(Icons.arrow_forward, color: Colors.orange),
+                              ],
+                            ),
                           ),
+                        ],
+                      ),
+                      const Divider(thickness: 1, color: Colors.grey),
+
+                      if (_walletTransactions.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Text('No recent transactions.'),
+                        )
+                      else
+                        ..._walletTransactions.take(3).map((tx) {
+                          final String type = tx['type']?.toString().toLowerCase() ?? '';
+                          IconData icon;
+
+                          if (type == 'withdraw') {
+                            icon = Icons.arrow_downward;
+                          } else if (type == 'deposit') {
+                            icon = Icons.arrow_upward;
+                          } else if (type == 'investment') {
+                            icon = Icons.bar_chart;
+                          } else if (type == 'recharge') {
+                            icon = Icons.bolt;
+                          } else {
+                            icon = Icons.help_outline;
+                          }
+
+                          return _buildTransactionItem(
+                            icon,
+                            tx['type'].toString().toUpperCase(),
+                            tx['date'] ?? '', // <- use 'date' not 'created_at'
+                            '${tx['amount']} Tk',
+                            tx['status'] ?? 'N/A',
+                          );
+                        }).toList(),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, top: 16),
+                      child: Text(
+                        "GrowUp Recent Activities",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E7D32),
                         ),
-                      ],
+                      ),
                     ),
-                    const Divider(thickness: 1, color: Colors.grey),
-
-                    if (_walletTransactions.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Text('No recent transactions.'),
-                      )
-                    else
-                      ..._walletTransactions.take(3).map((tx) {
-                        final String type = tx['type']?.toString().toLowerCase() ?? '';
-                        IconData icon;
-
-                        if (type == 'withdraw') {
-                          icon = Icons.arrow_downward;
-                        } else if (type == 'deposit') {
-                          icon = Icons.arrow_upward;
-                        } else if (type == 'investment') {
-                          icon = Icons.bar_chart;
-                        } else if (type == 'recharge') {
-                          icon = Icons.bolt;
-                        } else {
-                          icon = Icons.help_outline;
-                        }
-
-                        return _buildTransactionItem(
-                          icon,
-                          tx['type'].toString().toUpperCase(),
-                          tx['date'] ?? '', // <- use 'date' not 'created_at'
-                          '${tx['amount']} Tk',
-                          tx['status'] ?? 'N/A',
-                        );
-                      }).toList(),
+                    SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 0, top: 0, bottom: 8, right: 0),
+                      child: AdvertisementSlider(),
+                    ),
                   ],
                 ),
               ],
