@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/investment_history_model.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/pagination_footer.dart';
+import '../widgets/status_test.dart';
 
 class InvestmentHistoryPage extends StatefulWidget {
   const InvestmentHistoryPage({super.key});
@@ -230,11 +231,11 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                     minHeight: 5,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 1),
                                 Text(
                                   '${(item.projectProgress ?? 0).toStringAsFixed(0)}%',
                                   style: const TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.black87,
                                   ),
@@ -248,26 +249,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: (item.projectProgress ?? 0) >= 100
-                                        ? Colors.green.withValues(alpha: 0.15)
-                                        : Colors.blue.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                  child: Text(
-                                    item.status,
-                                    style: TextStyle(
-                                      color: (item.projectProgress ?? 0) >= 100
-                                          ? Colors.green[800] // darker text
-                                          : Colors.blue[800],
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-
+                                StatusChip(status: item.status),
                               ],
                             ),
                             const SizedBox(width: 12),
@@ -279,35 +261,71 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                     '${item.projectTitle ?? 'N/A'}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: 14,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
                                   Text(
                                     'Project ID: ${item.project_id}',
                                     style: const TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
-                                    'Investment: ${currencyFormatter.format(item.totalInvestment ?? 0)}',
-                                    style: const TextStyle(fontSize: 14),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Investment:',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+
+                                      Text(
+                                        '${currencyFormatter.format(item.totalInvestment ?? 0)}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    'First Investment: ${formatDate(item.firstInvestmentDate)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Return Of Investment:',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+
+                                      Text(
+                                        '${currencyFormatter.format(item.roiDetails ?? 0)}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    'ROI: ${currencyFormatter.format(item.roiDetails ?? 0)} | Capital Return: ${currencyFormatter.format(item.capitalReturnDetails ?? 0)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black87,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Capital Return:',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+
+                                      Text(
+                                        '${currencyFormatter.format(item.capitalReturnDetails ?? 0)}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 8),
                                   Row(
@@ -316,6 +334,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                         text: 'All Investments (${item.investmentCount})',
                                         backgroundColor: Colors.green[100]!,
                                         fontSize: 10,
+                                        height: 20,
                                         textColor: Colors.green,
                                         onPressed: () {
                                           Navigator.push(
@@ -333,8 +352,9 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                       const SizedBox(width: 8),
                                       if (investorCode != null)
                                         CustomButton(
-                                          text: '60 Days ROI',
-                                          fontSize: 10,
+                                          text: '60/5 Days ROI',
+                                          fontSize: 9,
+                                          height: 20,
                                           backgroundColor: Colors.purple[100]!,
                                           textColor: Colors.purple,
                                           onPressed: () {

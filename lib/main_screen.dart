@@ -96,15 +96,16 @@ class _MainScreenState extends State<MainScreen> {
                               profile['name'] ?? 'No Name',
                               style: const TextStyle(color: Colors.white),
                             ),
-                            const SizedBox(width: 4), // minimal space
+                            const SizedBox(width: 16), // minimal space
                             GestureDetector(
                               onTap: () {
                                 Navigator.pushNamed(context, '/myprofile');
                               },
                               child: Image.asset(
                                 'assets/icons/edit.png',
-                                width: 28,
-                                height: 28,
+                                width: 24,
+                                height: 24,
+                                color: Colors.white,
                                 // Optional: apply color filter
                               ),
                             ),

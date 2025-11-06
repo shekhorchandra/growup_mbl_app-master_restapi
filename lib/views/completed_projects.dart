@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/completed_projects_model.dart';
 import '../widgets/project_card.dart';
-import '../widgets/search_bar.dart'; // ✅ Global reusable card
+import '../widgets/search_bar.dart';
 
 class CompletedProjectsPage extends StatefulWidget {
   final bool hideAppBar;
@@ -139,7 +139,7 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
         foregroundColor: Colors.white,
         title: const Text(
           'Matured Projects',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),

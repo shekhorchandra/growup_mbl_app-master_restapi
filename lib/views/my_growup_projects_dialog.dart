@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:growup_agro/models/my_growup_projects_dialog_model.dart';
 import 'package:growup_agro/utils/api_constants.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
+import 'package:growup_agro/widgets/pagination_footer.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../models/my_growup_projects_dialog_model.dart';
 
 class MyGrowupProjectsDialog extends StatefulWidget {
   const MyGrowupProjectsDialog({super.key});
@@ -15,17 +17,21 @@ class MyGrowupProjectsDialog extends StatefulWidget {
 
 class _MyGrowupProjectsDialogState extends State<MyGrowupProjectsDialog> {
   bool isLoading = false;
-  List<Project> projects = [];
-  String searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
-
+  List<Project> fullList = [];
+  List<Project> filteredList = [];
   int currentPage = 1;
   final int rowsPerPage = 10;
+  final TextEditingController _searchController = TextEditingController();
+  final currencyFormatter =
+  NumberFormat.currency(locale: 'en_US', symbol: '৳');
 
   @override
   void initState() {
     super.initState();
     fetchProjects();
+    _searchController.addListener(() {
+      _filterList(_searchController.text);
+    });
   }
 
   Future<void> fetchProjects() async {
@@ -38,8 +44,6 @@ class _MyGrowupProjectsDialogState extends State<MyGrowupProjectsDialog> {
       final url = Uri.parse(ApiConstants.investorPopUpProjects(investorCode));
 
       final response = await http.get(
-        // Uri.parse(
-        //     'https://growupagro.tech/api/investor/pop-up/my-projects?investor_code=$investorCode'),
         url,
         headers: {
           'Authorization': 'Bearer $token',
@@ -49,38 +53,47 @@ class _MyGrowupProjectsDialogState extends State<MyGrowupProjectsDialog> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        final List<Project> loaded = (jsonData['data']['projects'] as List)
-            .map((e) => Project.fromJson(e))
-            .toList();
-        setState(() => projects = loaded);
+        final List<Project> loaded =
+        (jsonData['data']['projects'] as List).map((e) => Project.fromJson(e)).toList();
+
+        setState(() {
+          fullList = loaded;
+          filteredList = loaded;
+        });
       } else {
         throw Exception('Failed to load projects: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  List<Project> get filteredProjects {
-    if (searchQuery.isEmpty) return projects;
-    return projects
-        .where((p) =>
-        p.projectName.toLowerCase().contains(searchQuery.toLowerCase()))
-        .toList();
+  void _filterList(String query) {
+    final lower = query.toLowerCase();
+    final result =
+    fullList.where((item) => item.projectName.toLowerCase().contains(lower)).toList();
+    setState(() {
+      filteredList = result;
+      currentPage = 1;
+    });
   }
 
   List<Project> get currentPageItems {
-    final filtered = filteredProjects;
     final start = (currentPage - 1) * rowsPerPage;
-    final end = (start + rowsPerPage).clamp(0, filtered.length);
-    return filtered.sublist(start, end);
+    final end = start + rowsPerPage;
+    return filteredList.sublist(
+      start,
+      end > filteredList.length ? filteredList.length : end,
+    );
   }
 
   void _nextPage() {
-    if (currentPage * rowsPerPage < filteredProjects.length) {
+    if (currentPage * rowsPerPage < filteredList.length) {
       setState(() => currentPage++);
     }
   }
@@ -90,127 +103,180 @@ class _MyGrowupProjectsDialogState extends State<MyGrowupProjectsDialog> {
       setState(() => currentPage--);
     }
   }
-  void _filterList(String value) {
-    setState(() {
-      searchQuery = value;
-      currentPage = 1;
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.height * 0.6,
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          const SizedBox(height: 12),
-          const Text(
-            'My GrowUp Projects',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Search by project name...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onChanged: _filterList,
-            ),
-            // child: TextField(
-            //   controller: _searchController,
-            //   decoration: InputDecoration(
-            //     labelText: 'Search by project name...',
-            //     prefixIcon: const Icon(Icons.search),
-            //     suffixIcon: searchQuery.isNotEmpty
-            //         ? IconButton(
-            //       icon: const Icon(Icons.clear),
-            //       onPressed: () {
-            //         _searchController.clear();
-            //         setState(() {
-            //           searchQuery = '';
-            //           currentPage = 1;
-            //         });
-            //       },
-            //     )
-            //         : null,
-            //     border: OutlineInputBorder(
-            //         borderRadius: BorderRadius.circular(10)),
-            //   ),
-            //   onChanged: (value) {
-            //     setState(() {
-            //       searchQuery = value;
-            //       currentPage = 1;
-            //     });
-            //   },
-            // ),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Card(
-                  child: DataTable(
-                    columnSpacing: 32,
-                    headingRowColor:
-                    MaterialStateProperty.all(const Color(0xFF388E3C)),
-                    headingTextStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                    columns: const [
-                      DataColumn(label: Text('SL')),
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Investment')),
-                    ],
-                    rows: List.generate(currentPageItems.length, (index) {
-                      final item = currentPageItems[index];
-                      return DataRow(cells: [
-                        DataCell(Text(
-                            '${(currentPage - 1) * rowsPerPage + index + 1}')),
-                        DataCell(Text(item.projectName)),
-                        DataCell(Text('৳${item.totalInvestment}')),
-                      ]);
-                    }),
-                  ),
+      width: MediaQuery.of(context).size.width * 0.95,
+      height: MediaQuery.of(context).size.height * 0.8,
+      child: SafeArea(
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
                 ),
+              ],
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(color: Colors.green),
+              )
+                  : Column(
+                children: [
+                  // Header Section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'My GrowUp Projects',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        CustomButton(
+                          text: "Close",
+                          onPressed: () => Navigator.pop(context),
+                          backgroundColor: Colors.red,
+                          height: 32,
+                          fontSize: 12,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        cursorColor: Colors.green,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search,
+                              color: Colors.grey, size: 20),
+                          hintText: 'Search by Project Name',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Projects List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? const Center(
+                      child: Text(
+                        'No projects found',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                        : ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: currentPageItems.length,
+                      itemBuilder: (context, index) {
+                        final project = currentPageItems[index];
+                        final sl = ((currentPage - 1) *
+                            rowsPerPage) +
+                            index +
+                            1;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 6.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 3,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment
+                                      .spaceBetween,
+                                  children: [
+                                    Text(
+                                      "SL: $sl",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    Text(
+                                      "৳${project.totalInvestment}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  project.projectName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Pagination Footer
+                  PaginationFooter(
+                    currentPage: currentPage,
+                    totalItems: filteredList.length,
+                    rowsPerPage: rowsPerPage,
+                    onPrevious: _previousPage,
+                    onNext: _nextPage,
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                  onPressed: _previousPage,
-                  child: const Text('Previous')),
-              const SizedBox(width: 16),
-              Text(
-                  'Page $currentPage of ${(filteredProjects.length / rowsPerPage).ceil()}'),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                  onPressed: _nextPage, child: const Text('Next')),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style:
-            ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Close",
-                style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        ),
       ),
     );
   }
