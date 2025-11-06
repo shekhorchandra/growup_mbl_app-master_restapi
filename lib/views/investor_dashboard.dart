@@ -532,13 +532,13 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                           currentAccountPicture: CircleAvatar(
                             backgroundImage:
-                            profile['image'] != null &&
-                                profile['image'].toString().isNotEmpty
+                                profile['image'] != null &&
+                                    profile['image'].toString().isNotEmpty
                                 ? NetworkImage(
-                              "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
-                            )
+                                    "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
+                                  )
                                 : const AssetImage('assets/images/img.png')
-                            as ImageProvider,
+                                      as ImageProvider,
                           ),
                         ),
 
@@ -563,7 +563,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -648,7 +650,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -711,7 +715,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -736,8 +742,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 'Growup',
                                 style: TextStyle(fontSize: 13),
                               ),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, '/invoice_growup'),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/invoice_growup',
+                              ),
                             ),
                             ListTile(
                               dense: true,
@@ -790,7 +798,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 size: 16,
                                 color: Colors.green,
                               ),
-                              title: Text('ROI', style: TextStyle(fontSize: 13)),
+                              title: Text(
+                                'ROI',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               onTap: () =>
                                   Navigator.pushNamed(context, '/invoice_roi'),
                             ),
@@ -810,8 +821,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 'Capital Return',
                                 style: TextStyle(fontSize: 13),
                               ),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, '/capital_return'),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/capital_return',
+                              ),
                             ),
                           ],
                         ),
@@ -836,7 +849,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -898,7 +913,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -1004,7 +1021,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           childrenPadding: const EdgeInsets.only(
                             left: 30,
                             top: 0,
@@ -1874,7 +1893,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     'The Royal Eco City',
                                     FontAwesomeIcons.crown,
                                   ),
-                                  const SizedBox(height: 20),
                                   // 2. The new Tree List for Sub-Children
                                   _buildTreeListItem(
                                     child: _buildCategoryButton22(
@@ -2079,7 +2097,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       )
                     else
                       ..._walletTransactions.take(3).map((tx) {
-                        final String type = tx['type']?.toString().toLowerCase() ?? '';
+                        final String type =
+                            tx['type']?.toString().toLowerCase() ?? '';
                         IconData icon;
 
                         if (type == 'withdraw') {
@@ -2860,65 +2879,58 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   Widget _buildTreeListItem({
     required Widget child,
     required bool isLast,
-    double indent = 60.0,
-    double spacing = 20.0,
-    double itemWidth = 210.0,
+    double indent = 90.0,
+    double spacing = 0.0,
+    double itemWidth = 200.0,
   }) {
-    const double itemHeight = 35.0;
+    const double itemHeight = 50.0;
     const double lineWidth = 2.0;
-    final Color lineColor = Colors.grey;
+    final Color lineColor = Colors.grey.shade400;
+
+    final totalWidth = itemWidth + indent * 2;
 
     return Padding(
       padding: EdgeInsets.only(bottom: spacing),
       child: SizedBox(
+        width: totalWidth,
         height: itemHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            SizedBox(
-              width: indent,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  // Left vertical line
-                  Positioned(
-                    left: indent / 2,
-                    top: -spacing,
-                    bottom: isLast ? itemHeight / 2 : -spacing,
-                    child: Container(width: lineWidth, color: lineColor),
-                  ),
-
-                  // Right vertical line
-                  Positioned(
-                    left: indent * 5,
-                    top: -spacing,
-                    bottom: isLast ? itemHeight / 2 : -spacing,
-                    child: Container(width: lineWidth, color: lineColor),
-                  ),
-
-                  // Horizontal connector
-                  Positioned(
-                    left: indent / 2,
-                    top: itemHeight / 2 - lineWidth / 2,
-                    width: indent / 2, // connects left → right
-                    child: Container(height: lineWidth, color: lineColor),
-                  ),
-
-                  Positioned(
-                    left: indent * 4.5,
-                    top: itemHeight / 2 - lineWidth / 2,
-                    width: indent / 2, // connects left → right
-                    child: Container(height: lineWidth, color: lineColor),
-                  ),
-                ],
-              ),
+            Positioned(
+              left: indent / 2,
+              top: -spacing * 2, // increased from *1.5 → *2 (makes line taller upward)
+              bottom: isLast ? itemHeight / 2 : -spacing * 1.5, // more negative → longer downward
+              child: Container(width: lineWidth, color: lineColor),
             ),
 
-            // ✅ Fixed-width item box
-            SizedBox(
-              width: itemWidth,
-              child: child,
+
+            // Right vertical line
+            Positioned(
+              left: indent * 3.7,
+              top: -spacing * 2,
+              bottom: isLast ? itemHeight / 2 : -spacing,
+              child: Container(width: lineWidth, color: lineColor),
+            ),
+
+            // Horizontal connector
+            Positioned(
+              left: indent / 2,
+              top: itemHeight / 2 - lineWidth / 2,
+              width: indent / 2, // connects left → right
+              child: Container(height: lineWidth, color: lineColor),
+            ),
+
+            Positioned(
+              left: indent * 3.2,
+              top: itemHeight / 2 - lineWidth / 2,
+              width: indent / 2, // connects left → right
+              child: Container(height: lineWidth, color: lineColor),
+            ),
+
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(width: itemWidth, child: child),
             ),
           ],
         ),
@@ -2970,5 +2982,4 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       );
     }
   }
-
 }

@@ -160,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
 
                   // ─────────────── Overlays only for image pages ───────────────
-                  if (!isVideo) ...[
+                  if (data["icon"] != "")  ...[
                     // Slight blur
                     BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
@@ -204,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               data["icon"] == ""
                                   ? Image.asset(
                                 "assets/images/GrowupLogo.png",
-                                width: screenW * 0.25,
+                                width: screenW ,
                                 height: screenW * 0.25,
                                 fit: BoxFit.contain,
                               ) : Icon(
@@ -216,7 +216,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               Text(
                                 data["title"] ?? '',
                                 style: TextStyle(
-                                  fontSize: data["icon"] == "" ? 18 : screenW * 0.06 ,
+                                  fontSize: data["icon"] == "" ? 20 : screenW * 0.06 ,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
