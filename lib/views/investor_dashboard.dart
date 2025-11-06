@@ -495,19 +495,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 profile['name'] ?? 'No Name',
                                 style: const TextStyle(color: Colors.white),
                               ),
-                              const SizedBox(width: 16), // minimal space
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/myprofile');
-                                },
-                                child: Image.asset(
-                                  'assets/icons/edit.png',
-                                  width: 24,
-                                  height: 24,
-                                  color: Colors.white,
-                                  // Optional: apply color filter
-                                ),
-                              ),
+                              // const SizedBox(width: 16), // minimal space
+                              // GestureDetector(
+                              //   onTap: () {
+                              //     Navigator.pushNamed(context, '/myprofile');
+                              //   },
+                              //   child: Image.asset(
+                              //     'assets/icons/edit.png',
+                              //     width: 24,
+                              //     height: 24,
+                              //     color: Colors.white,
+                              //     // Optional: apply color filter
+                              //   ),
+                              // ),
                             ],
                           ),
                           accountEmail: Row(
@@ -526,6 +526,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                   fontSize: 12,
                                 ),
                                 overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/myprofile');
+                                },
+                                child: Image.asset(
+                                  'assets/icons/edit.png',
+                                  width: 24,
+                                  height: 24,
+                                  color: Colors.white,
+                                  // Optional: apply color filter
+                                ),
                               ),
                             ],
                           ),
@@ -1079,41 +1092,60 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           '/blogs',
                         ),
 
-                        ListTile(
-                          leading: const Icon(
-                            FontAwesomeIcons.rightFromBracket,
-                            color: Colors.green,
-                          ),
-                          title: const Text('Logout'),
-                          onTap: () async {
-                            final shouldLogout = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Confirm Logout'),
-                                content: const Text(
-                                  'Are you sure you want to logout?',
+                        const Divider(height: 50),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            color: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                minimumSize: const Size.fromHeight(45),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                    ).pop(false), // Cancel
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                    ).pop(true), // Confirm
-                                    child: const Text('Logout'),
-                                  ),
-                                ],
                               ),
-                            );
+                              icon: const Icon(Icons.logout, color: Colors.white),
+                              label: const Text(
+                                'Logout',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onPressed: () async {
+                                final shouldLogout = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Confirm Logout'),
+                                    content:
+                                    const Text('Are you sure you want to logout?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Logout',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
 
-                            if (shouldLogout == true) {
-                              await _logout(); // This handles API + navigation
-                            }
-                          },
+                                if (shouldLogout == true) {
+                                  await _logout();
+                                }
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
