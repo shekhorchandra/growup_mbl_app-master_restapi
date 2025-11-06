@@ -152,6 +152,7 @@ class ProjectCard extends StatelessWidget {
                                 height: 24,
                                 fontSize: 12,
                                 borderRadius: 8,
+                                isRound: true,
                                 onPressed: isLoading ? null : onInvestNowPressed,
                               ),
                             ),
