@@ -201,176 +201,187 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                       elevation: 1,
                       child: Padding(
                         padding: const EdgeInsets.all(8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Column(
                           children: [
-                            Column(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: (item.projectImage != null && item.projectImage!.isNotEmpty)
-                                      ? Image.network(
-                                    '${ApiConstants.imgBaseUrl}${item.projectImage}',
-                                    width: 90,
-                                    height: 70,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.broken_image, size: 60),
-                                  )
-                                      : const Icon(Icons.broken_image, size: 60),
+                                Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: (item.projectImage != null && item.projectImage!.isNotEmpty)
+                                          ? Image.network(
+                                        '${ApiConstants.imgBaseUrl}${item.projectImage}',
+                                        width: 90,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.broken_image, size: 60),
+                                      )
+                                          : const Icon(Icons.broken_image, size: 60),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    SizedBox(
+                                      width: 90,
+                                      child: LinearProgressIndicator(
+                                        value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
+                                        color: (item.projectProgress ?? 0) >= 100
+                                            ? Colors.green
+                                            : Colors.blue,
+                                        backgroundColor: Colors.grey[300],
+                                        minHeight: 5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      '${(item.projectProgress ?? 0).toStringAsFixed(0)}%',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      '45 Days Remaining',
+                                      style: const TextStyle(
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    StatusChip(status: item.status),
+                                  ],
                                 ),
-                                const SizedBox(height: 6),
-                                SizedBox(
-                                  width: 90,
-                                  child: LinearProgressIndicator(
-                                    value: ((item.projectProgress ?? 0) / 100).clamp(0.0, 1.0),
-                                    color: (item.projectProgress ?? 0) >= 100
-                                        ? Colors.green
-                                        : Colors.blue,
-                                    backgroundColor: Colors.grey[300],
-                                    minHeight: 5,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${item.projectTitle ?? 'N/A'}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Project ID: ${item.project_id}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Investment:',
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+
+                                          Text(
+                                            '${currencyFormatter.format(item.totalInvestment ?? 0)}',
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Return Of Investment:',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+
+                                          Text(
+                                            '${currencyFormatter.format(item.roiDetails ?? 0)}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Capital Return:',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+
+                                          Text(
+                                            '${currencyFormatter.format(item.capitalReturnDetails ?? 0)}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 1),
-                                Text(
-                                  '${(item.projectProgress ?? 0).toStringAsFixed(0)}%',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  '45 Days Remaining',
-                                  style: const TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                StatusChip(status: item.status),
                               ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: Row(
                                 children: [
-                                  Text(
-                                    '${item.projectTitle ?? 'N/A'}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                  Expanded(
+                                    child: CustomButton(
+                                      text: 'All Investments (${item.investmentCount})',
+                                      backgroundColor: Colors.green[100]!,
+                                      fontSize: 10,
+                                      height: 20,
+                                      textColor: Colors.green,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProjectInvestmentDetailPage(
+                                              projectId: item.project_id,
+                                              projectTitle: item.projectTitle ?? 'N/A',
+                                              projectCategory: item.projectCategory ?? 'N/A',
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                  Text(
-                                    'Project ID: ${item.project_id}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Investment:',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-
-                                      Text(
-                                        '${currencyFormatter.format(item.totalInvestment ?? 0)}',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Return Of Investment:',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-
-                                      Text(
-                                        '${currencyFormatter.format(item.roiDetails ?? 0)}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Capital Return:',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-
-                                      Text(
-                                        '${currencyFormatter.format(item.capitalReturnDetails ?? 0)}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      CustomButton(
-                                        text: 'All Investments (${item.investmentCount})',
-                                        backgroundColor: Colors.green[100]!,
-                                        fontSize: 10,
+                                  const SizedBox(width: 8),
+                                  if (investorCode != null)
+                                    Expanded(
+                                      child: CustomButton(
+                                        text: '60/5 Days ROI',
+                                        fontSize: 9,
                                         height: 20,
-                                        textColor: Colors.green,
+                                        backgroundColor: Colors.purple[100]!,
+                                        textColor: Colors.purple,
                                         onPressed: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => ProjectInvestmentDetailPage(
+                                              builder: (_) => RoiDetailsPage(
+                                                investorCode: investorCode!,
                                                 projectId: item.project_id,
-                                                projectTitle: item.projectTitle ?? 'N/A',
-                                                projectCategory: item.projectCategory ?? 'N/A',
                                               ),
                                             ),
                                           );
                                         },
                                       ),
-                                      const SizedBox(width: 8),
-                                      if (investorCode != null)
-                                        CustomButton(
-                                          text: '60/5 Days ROI',
-                                          fontSize: 9,
-                                          height: 20,
-                                          backgroundColor: Colors.purple[100]!,
-                                          textColor: Colors.purple,
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => RoiDetailsPage(
-                                                  investorCode: investorCode!,
-                                                  projectId: item.project_id,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                    ],
-                                  ),
+                                    ),
                                 ],
                               ),
                             ),

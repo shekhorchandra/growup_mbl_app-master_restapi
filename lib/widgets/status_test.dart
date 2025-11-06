@@ -21,7 +21,8 @@ class StatusChip extends StatelessWidget {
       'rejected' => Colors.red,
       'closed' => Colors.redAccent,
       'matured' => Colors.red,
-      'completed' => Colors.blue,
+      'failed' => Colors.red,
+      'completed' => Colors.red,
       'running' => Colors.green,
       'investment collecting' => Colors.blue,
       _ => Colors.black54,
@@ -30,7 +31,7 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.only(topLeft: Radius.circular(100),
           bottomRight: Radius.circular(100),
           topRight: Radius.circular(25),

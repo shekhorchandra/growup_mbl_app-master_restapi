@@ -13,6 +13,8 @@ class CustomButton extends StatelessWidget {
   final double verticalPadding;
   final double height;
   final FontWeight fontWeight;
+  final bool useExtraRoundedCorners;
+  final bool isRound;
 
   const CustomButton({
     super.key,
@@ -28,11 +30,15 @@ class CustomButton extends StatelessWidget {
     this.verticalPadding = 0,
     this.height = 24,
     this.fontWeight = FontWeight.w500,
+    this.useExtraRoundedCorners = true,
+    this.isRound = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = onPressed == null || loading;
+
+    final double radiusMultiplier = useExtraRoundedCorners ? 4 : 2;
 
     return SizedBox(
       height: height,
@@ -43,10 +49,14 @@ class CustomButton extends StatelessWidget {
           foregroundColor: textColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(borderRadius * 2),
-              bottomRight: Radius.circular(borderRadius * 2),
-              topRight: Radius.circular(borderRadius / 2),
-              bottomLeft: Radius.circular(borderRadius / 2),
+              topLeft: Radius.circular(
+                isRound ? 25 : borderRadius * radiusMultiplier,
+              ),
+              bottomRight: Radius.circular(
+                isRound ? 25 : borderRadius * radiusMultiplier,
+              ),
+              topRight: Radius.circular(isRound ? 25 : borderRadius / 2),
+              bottomLeft: Radius.circular(isRound ? 25 : borderRadius / 2),
             ),
           ),
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -54,37 +64,36 @@ class CustomButton extends StatelessWidget {
         ),
         child: loading
             ? const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white,
-          ),
-        )
-            : Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null)
-              Icon(icon, size: 18, color: textColor),
-            if (icon != null) const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: fontSize,
-                  fontWeight: fontWeight,
-                  height: 1.2,
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
                 ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) Icon(icon, size: 18, color: textColor),
+                  if (icon != null) const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      text,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: fontSize,
+                        fontWeight: fontWeight,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

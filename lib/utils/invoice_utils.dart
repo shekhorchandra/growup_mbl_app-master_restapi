@@ -73,7 +73,7 @@ Future<void> downloadInvoice(BuildContext context, String? url, String invoiceNo
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to download: $e')),
+      SnackBar(content: Text('Failed to download')),
     );
   }
 }
