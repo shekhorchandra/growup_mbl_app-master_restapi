@@ -30,6 +30,7 @@ import '../widgets/achievement_card.dart';
 import '../widgets/appbar_content.dart';
 import '../widgets/category_item.dart';
 import '../widgets/home_image_slider.dart';
+import '../widgets/properties_carousel_section.dart';
 import '../widgets/status_test.dart';
 import '../widgets/summary_item.dart';
 import 'IntroPage.dart';
@@ -1521,6 +1522,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                 //  Properties For You (Static cards)
                 Container(
+                  color: Colors.green.withValues(alpha: .1),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1528,7 +1530,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 16),
+                            padding: const EdgeInsets.only(left: 16, top: 8),
                             child: Text(
                               "PROPERTIES YOU MAY INVEST",
                               style: TextStyle(
@@ -1538,11 +1540,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 8),
 
                           TextButton(
                             onPressed: () {
-                              //Navigator.pop(context); // Close the drawer or dialog if needed
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -1566,8 +1566,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ],
                       ),
+                      Divider(thickness: 1, color: Colors.grey, height: 1,),
+                      SizedBox(height: 16,),
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.32,
                         child: FutureBuilder<AllPropertiesResponse>(
                           future: fetchProperties(),
                           builder: (context, snapshot) {
@@ -1588,53 +1589,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             final propertyPackages =
                                 snapshot.data!.propertyPackages;
 
-                            // Ensure you have enough data to display 2 items
-                            // If you have less than 2, the viewportFraction might look odd.
-                            final displayPackages = propertyPackages.take(
-                              propertyPackages.length,
-                            );
-
-                            return CarouselSlider(
-                              options: CarouselOptions(
-                                height: double.infinity,
-                                autoPlay: true,
-                                autoPlayInterval: const Duration(seconds: 5),
-
-                                // 🏆 KEY CHANGE 1: Show two items simultaneously
-                                viewportFraction: 0.5,
-
-                                // 🏆 KEY CHANGE 2: Disable center enlargement since we show multiple
-                                enlargeCenterPage: true,
-
-                                enableInfiniteScroll: true,
-
-                                // Add a little padding to the carousel itself for spacing (optional but recommended)
-                                pageSnapping:
-                                    true, // Optional: ensures snapping to whole pages (items)
-                                // The sliding step remains 1 by default, which is exactly what you need.
-                              ),
-
-                              // You should use the full list here, not just .take(3), to ensure infinite scroll works well.
-                              items: displayPackages.map((package) {
-                                return Builder(
-                                  builder: (BuildContext context) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4.0,
-                                      ),
-                                      // Add padding between cards
-                                      child: _buildPropertyCard(
-                                        context: context,
-                                        imageUrl:
-                                            "https://growupagro.tech${package.imageUrl}",
-                                        propertyName: package.propertyName,
-                                        packageName: package.packageName,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }).toList(),
-                            );
+                            return PropertiesCarouselSection(propertyPackages: propertyPackages);
                           },
                         ),
                       ),
@@ -1642,6 +1597,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
+                SizedBox(height: 16,),
                 // Transactions
                 Card(
                   color: Colors.white,
@@ -2500,8 +2456,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     required Widget child,
     required bool isLast,
     double indent = 60.0,
+    double rightIndent = 60.0,
     double spacing = 20.0,
-    double itemWidth = 210.0,
   }) {
     const double itemHeight = 35.0;
     const double lineWidth = 2.0;
@@ -2520,50 +2476,56 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  // Left vertical line
                   Positioned(
                     left: indent / 2,
                     top: -spacing,
                     bottom: isLast ? itemHeight / 2 : -spacing,
                     child: Container(width: lineWidth, color: lineColor),
                   ),
-
-                  // Right vertical line
-                  /*Positioned(
-                    left: indent * 5,
-                    top: -spacing,
-                    bottom: isLast ? itemHeight / 2 : -spacing,
-                    child: Container(width: lineWidth, color: lineColor),
-                  ),*/
-
-                  // Horizontal connector
                   Positioned(
                     left: indent / 2,
                     top: itemHeight / 2 - lineWidth / 2,
-                    width: indent / 2, // connects left → right
+                    width: indent / 2,
                     child: Container(height: lineWidth, color: lineColor),
                   ),
-
-                  /*Positioned(
-                    left: indent * 4.5,
-                    top: itemHeight / 2 - lineWidth / 2,
-                    width: indent / 2, // connects left → right
-                    child: Container(height: lineWidth, color: lineColor),
-                  ),*/
                 ],
               ),
             ),
 
-            // ✅ Fixed-width item box
+            Expanded(
+              child: SizedBox(
+                height: itemHeight,
+                child: child,
+              ),
+            ),
+
             SizedBox(
-              width: itemWidth,
-              child: child,
+              width: rightIndent,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    right: rightIndent / 2,
+                    top: -spacing,
+                    bottom: isLast ? itemHeight / 2 : -spacing,
+                    child: Container(width: lineWidth, color: lineColor),
+                  ),
+                  Positioned(
+                    right: rightIndent / 2,
+                    top: itemHeight / 2 - lineWidth / 2,
+                    width: rightIndent / 2,
+                    child: Container(height: lineWidth, color: lineColor),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
