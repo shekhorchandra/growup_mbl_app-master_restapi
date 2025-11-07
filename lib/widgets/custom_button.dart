@@ -30,7 +30,7 @@ class CustomButton extends StatelessWidget {
     this.verticalPadding = 0,
     this.height = 24,
     this.fontWeight = FontWeight.w500,
-    this.useExtraRoundedCorners = true,
+    this.useExtraRoundedCorners = false,
     this.isRound = false,
   });
 
