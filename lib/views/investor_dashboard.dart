@@ -342,7 +342,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
     } else {
       throw Exception("Failed to load properties");
     }
-
   }
 
   //transaction
@@ -499,7 +498,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           accountEmail: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              const Icon(Icons.person, color: Colors.white, size: 16),
+                              const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 "${profile['code']}",
@@ -513,12 +516,17 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pop(context);
-                                  Future.delayed(const Duration(milliseconds: 200), () {
-                                    if (mounted) {
-                                      Navigator.of(context, rootNavigator: true)
-                                          .pushNamed('/myprofile');
-                                    }
-                                  });
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      if (mounted) {
+                                        Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).pushNamed('/myprofile');
+                                      }
+                                    },
+                                  );
                                 },
                                 child: Image.asset(
                                   'assets/icons/edit.png',
@@ -530,144 +538,274 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             ],
                           ),
                           currentAccountPicture: CircleAvatar(
-                            backgroundImage: profile['image'] != null &&
-                                profile['image'].toString().isNotEmpty
+                            backgroundImage:
+                                profile['image'] != null &&
+                                    profile['image'].toString().isNotEmpty
                                 ? NetworkImage(
-                              "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
-                            )
+                                    "${ApiConstants.imgBaseUrl}/storage/${profile['image']}",
+                                  )
                                 : const AssetImage('assets/images/img.png')
-                            as ImageProvider,
+                                      as ImageProvider,
                           ),
                         ),
 
                         // ---------------- Dashboard ----------------
-                        _drawerTile(context, FontAwesomeIcons.tachometerAlt,
-                            'Dashboard', '/dashboard'),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.tachometerAlt,
+                          'Dashboard',
+                          '/dashboard',
+                        ),
 
                         // ---------------- Wallet ----------------
                         ExpansionTile(
-                          leading:
-                          const Icon(FontAwesomeIcons.wallet, color: Colors.green),
-                          title: const Text('Wallet',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.wallet,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Wallet',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.wallet, 'My Wallet',
-                                '/wallet'),
-                            _drawerTile(context, FontAwesomeIcons.moneyCheck, 'Deposit',
-                                '/deposit'),
-                            _drawerTile(context, FontAwesomeIcons.arrowDown, 'Withdraw',
-                                '/withdraw'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.wallet,
+                              'My Wallet',
+                              '/wallet',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.moneyCheck,
+                              'Deposit',
+                              '/deposit',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.arrowDown,
+                              'Withdraw',
+                              '/withdraw',
+                            ),
                           ],
                         ),
 
                         // ---------------- Growup ----------------
                         ExpansionTile(
-                          leading:
-                          const Icon(FontAwesomeIcons.seedling, color: Colors.green),
-                          title: const Text('Growup',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.seedling,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Growup',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.folderOpen, 'Projects',
-                                '/projects'),
-                            _drawerTile(context, FontAwesomeIcons.projectDiagram,
-                                'Invested Projects', '/myprojects'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.folderOpen,
+                              'Projects',
+                              '/projects',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.projectDiagram,
+                              'Invested Projects',
+                              '/myprojects',
+                            ),
                           ],
                         ),
 
                         // ---------------- Invoices ----------------
                         ExpansionTile(
-                          leading: const Icon(FontAwesomeIcons.fileInvoiceDollar,
-                              color: Colors.green),
-                          title: const Text('Invoices',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.fileInvoiceDollar,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Invoices',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.fileInvoice, 'Growup',
-                                '/invoice_growup'),
-                            _drawerTile(context, FontAwesomeIcons.fileInvoiceDollar,
-                                'Recharge', '/invoice_recharge'),
-                            _drawerTile(context, FontAwesomeIcons.coins, 'ROI',
-                                '/invoice_roi'),
-                            _drawerTile(context, FontAwesomeIcons.handHoldingDollar,
-                                'Capital Return', '/capital_return'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.fileInvoice,
+                              'Growup',
+                              '/invoice_growup',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.fileInvoiceDollar,
+                              'Recharge',
+                              '/invoice_recharge',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.coins,
+                              'ROI',
+                              '/invoice_roi',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.handHoldingDollar,
+                              'Capital Return',
+                              '/capital_return',
+                            ),
                           ],
                         ),
 
                         // ---------------- Investment History ----------------
-                        _drawerTile(context, FontAwesomeIcons.history,
-                            'Investment History', '/investmenthistory'),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.history,
+                          'Investment History',
+                          '/investmenthistory',
+                        ),
 
                         // ---------------- Properties ----------------
                         ExpansionTile(
-                          leading:
-                          const Icon(FontAwesomeIcons.building, color: Colors.green),
-                          title: const Text('Properties',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.building,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Properties',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.building,
-                                'Package Details', '/properties'),
-                            _drawerTile(context, FontAwesomeIcons.shoppingBag,
-                                'Ordered Properties', '/ordered_properties'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.building,
+                              'Package Details',
+                              '/properties',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.shoppingBag,
+                              'Ordered Properties',
+                              '/ordered_properties',
+                            ),
                           ],
                         ),
 
                         // ---------------- Products ----------------
                         ExpansionTile(
-                          leading:
-                          const Icon(FontAwesomeIcons.box, color: Colors.green),
-                          title: const Text('Products',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.box,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Products',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.box, 'All Products',
-                                '/products'),
-                            _drawerTile(context, FontAwesomeIcons.boxOpen, 'My Orders',
-                                '/myorders'),
-                            _drawerTile(context, FontAwesomeIcons.truck,
-                                'Track My Orders', '/track_orders'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.box,
+                              'All Products',
+                              '/products',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.boxOpen,
+                              'My Orders',
+                              '/myorders',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.truck,
+                              'Track My Orders',
+                              '/track_orders',
+                            ),
                           ],
                         ),
 
                         // ---------------- Profile ----------------
-                        _drawerTile(context, FontAwesomeIcons.user, 'Profile', '/profile'),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.user,
+                          'Profile',
+                          '/profile',
+                        ),
 
                         // ---------------- Certification ----------------
                         ExpansionTile(
-                          leading: const Icon(FontAwesomeIcons.certificate,
-                              color: Colors.green),
-                          title: const Text('Certification',
-                              style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          leading: const Icon(
+                            FontAwesomeIcons.certificate,
+                            color: Colors.green,
+                          ),
+                          title: const Text(
+                            'Certification',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           childrenPadding: const EdgeInsets.only(left: 30),
                           children: [
-                            _drawerTile(context, FontAwesomeIcons.fileAlt, 'TAX Certificate',
-                                '/tax_certificate'),
-                            _drawerTile(context, FontAwesomeIcons.coins,
-                                'Investment Certificate', '/project_certificate'),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.fileAlt,
+                              'TAX Certificate',
+                              '/tax_certificate',
+                            ),
+                            _drawerTile(
+                              context,
+                              FontAwesomeIcons.coins,
+                              'Investment Certificate',
+                              '/project_certificate',
+                            ),
                           ],
                         ),
 
                         // ---------------- Miscellaneous ----------------
-                        _drawerTile(context, FontAwesomeIcons.infoCircle, 'About Us',
-                            '/about_us'),
-                        _drawerTile(context, FontAwesomeIcons.newspaper, 'News', '/news'),
-                        _drawerTile(context, FontAwesomeIcons.blog, 'Blog', '/blogs'),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.infoCircle,
+                          'About Us',
+                          '/about_us',
+                        ),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.newspaper,
+                          'News',
+                          '/news',
+                        ),
+                        _drawerTile(
+                          context,
+                          FontAwesomeIcons.blog,
+                          'Blog',
+                          '/blogs',
+                        ),
 
                         const Divider(height: 50),
 
                         // ---------------- Logout ----------------
                         Container(
                           color: Colors.white,
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
@@ -680,17 +818,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             label: const Text(
                               'Logout',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600),
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             onPressed: () async {
                               final shouldLogout = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Confirm Logout'),
-                                  content:
-                                  const Text('Are you sure you want to logout?'),
+                                  content: const Text(
+                                    'Are you sure you want to logout?',
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
@@ -700,8 +840,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(true),
-                                      child: const Text('Logout',
-                                          style: TextStyle(color: Colors.red)),
+                                      child: const Text(
+                                        'Logout',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -721,7 +863,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             },
           ),
         ),
-
 
         backgroundColor: Colors.white,
 
@@ -1068,8 +1209,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(top: 8.0), // adjust value as needed
-                              child: Image.asset('assets/icons/Shariah.png', width: 70),
+                              padding: const EdgeInsets.only(top: 8.0),
+                              // adjust value as needed
+                              child: Image.asset(
+                                'assets/icons/Shariah.png',
+                                width: 70,
+                              ),
                             ),
                           ],
                         ),
@@ -1088,25 +1233,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                               aspectRatio: 1.6,
                               //  same ratio for consistent height
                               items: [
-                                CategoryItem(
-                                  icon: SvgPicture.asset(
-                                    Assets.iconsLiveProject,
-                                    colorFilter: const ColorFilter.mode(
-                                      Colors.green,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  title: 'Live Projects',
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const LiveProjectsPage(),
-                                      ),
-                                    );
-                                  },
-                                ),
                                 CategoryItem(
                                   icon: SvgPicture.asset(
                                     Assets.iconsTotalInvestment,
@@ -1145,36 +1271,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     );
                                   },
                                 ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // ✅ Second row (2 cards, same height as first row)
-                            CategoryGridCard(
-                              minCrossAxisCount: 2,
-                              maxCrossAxisCount: 2,
-                              aspectRatio: 2.5, //  same as above
-                              items: [
-                                CategoryItem(
-                                  icon: SvgPicture.asset(
-                                    Assets.iconsMach,
-                                    colorFilter: const ColorFilter.mode(
-                                      Colors.green,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  title: 'Matured Projects',
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const CompletedProjectsPage(),
-                                      ),
-                                    );
-                                  },
-                                ),
                                 CategoryItem(
                                   icon: SvgPicture.asset(
                                     Assets.iconsEarning,
@@ -1190,6 +1286,57 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             const AllProjectsPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            CategoryGridCard(
+                              minCrossAxisCount: 2,
+                              maxCrossAxisCount: 2,
+                              aspectRatio: 2.5, //  same as above
+                              items: [
+                                CategoryItem(
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsLiveProject,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  title: 'Live Projects',
+                                  isLive: true,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LiveProjectsPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                CategoryItem(
+                                  itemBgColor: Colors.red.shade50,
+                                  icon: SvgPicture.asset(
+                                    Assets.iconsMach,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.green,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  title: 'Matured Projects',
+                                  textColor: Colors.red,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CompletedProjectsPage(),
                                       ),
                                     );
                                   },
@@ -1277,7 +1424,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                             final projects = snapshot.data!;
                             // Use CarouselSlider instead of SingleChildScrollView + Row
-                            return ShariahProjectCarousel(projects: projects,);
+                            return ShariahProjectCarousel(projects: projects);
                           },
                         ),
                       ],
@@ -1298,7 +1445,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 //   ),
                 // ),
                 // const SizedBox(height: 8),
-
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
                   color: Colors.green.withValues(alpha: .03),
@@ -1343,7 +1489,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                         height: 1.0,
                                       ),
                                     ),
-
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(4.0),
@@ -1507,8 +1652,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ],
                       ),
-                      Divider(thickness: 1, color: Colors.grey, height: 1,),
-                      SizedBox(height: 16,),
+                      Divider(thickness: 1, color: Colors.grey, height: 1),
+                      SizedBox(height: 16),
                       SizedBox(
                         child: FutureBuilder<AllPropertiesResponse>(
                           future: fetchProperties(),
@@ -1530,7 +1675,9 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             final propertyPackages =
                                 snapshot.data!.propertyPackages;
 
-                            return PropertiesCarouselSection(propertyPackages: propertyPackages);
+                            return PropertiesCarouselSection(
+                              propertyPackages: propertyPackages,
+                            );
                           },
                         ),
                       ),
@@ -1538,7 +1685,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
-                SizedBox(height: 16,),
+                SizedBox(height: 16),
                 // Transactions
                 Card(
                   color: Colors.white,
@@ -1593,7 +1740,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         )
                       else
                         ..._walletTransactions.take(3).map((tx) {
-                          final String type = tx['type']?.toString().toLowerCase() ?? '';
+                          final String type =
+                              tx['type']?.toString().toLowerCase() ?? '';
                           IconData icon;
 
                           if (type == 'withdraw') {
@@ -1635,7 +1783,12 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                     SizedBox(height: 10),
                     Padding(
-                      padding: const EdgeInsets.only(left: 0, top: 0, bottom: 8, right: 0),
+                      padding: const EdgeInsets.only(
+                        left: 0,
+                        top: 0,
+                        bottom: 8,
+                        right: 0,
+                      ),
                       child: AdvertisementSlider(),
                     ),
                   ],
@@ -2191,10 +2344,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             ),
 
             Expanded(
-              child: SizedBox(
-                height: itemHeight,
-                child: child,
-              ),
+              child: SizedBox(height: itemHeight, child: child),
             ),
 
             SizedBox(
@@ -2223,7 +2373,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       ),
     );
   }
-
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -2271,20 +2420,17 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
   }
 
   Widget _drawerTile(
-      BuildContext context,
-      IconData icon,
-      String title,
-      String route,
-      ) {
+    BuildContext context,
+    IconData icon,
+    String title,
+    String route,
+  ) {
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       visualDensity: const VisualDensity(vertical: -4),
       leading: Icon(icon, color: Colors.green, size: 16),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 13),
-      ),
+      title: Text(title, style: const TextStyle(fontSize: 13)),
       onTap: () {
         Navigator.pop(context);
         Future.delayed(const Duration(milliseconds: 200), () {
@@ -2295,5 +2441,4 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       },
     );
   }
-
 }
