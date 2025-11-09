@@ -93,7 +93,7 @@ class _AdvertisementSliderState extends State<AdvertisementSlider> {
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
                   mediaPath,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   width: double.infinity,
                   loadingBuilder: (context, child, progress) =>
                   progress == null

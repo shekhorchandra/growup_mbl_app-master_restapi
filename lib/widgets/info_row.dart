@@ -7,6 +7,7 @@ class InfoRow extends StatelessWidget {
   final double fontSize;
   final bool showDivider;
   final TextStyle? style;
+  final FontWeight fontWeight;
 
   const InfoRow({
     super.key,
@@ -14,6 +15,7 @@ class InfoRow extends StatelessWidget {
     required this.value,
     this.fontSize = 14,
     this.showDivider = true,
+    this.fontWeight = FontWeight.w600,
     this.style,
   });
 
@@ -28,7 +30,7 @@ class InfoRow extends StatelessWidget {
             flex: 5,
             child: Text(
               "$title:",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
+              style: TextStyle(fontWeight: fontWeight, fontSize: fontSize),
             ),
           ),
           Expanded(

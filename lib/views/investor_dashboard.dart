@@ -14,7 +14,6 @@ import 'package:growup_agro/views/auto_slider_card.dart';
 import 'package:growup_agro/views/commercial_city.dart';
 import 'package:growup_agro/views/residencial_city_page.dart';
 import 'package:growup_agro/views/rosa_health.dart';
-import 'package:growup_agro/views/rosa_hitech.dart';
 import 'package:growup_agro/views/royal_eco_city.dart';
 import 'package:growup_agro/views/royal_eco_tourism.dart';
 import 'package:growup_agro/views/royal_north_bengal_club.dart';
@@ -922,8 +921,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           return Transform.translate(
                             offset: const Offset(0, 2),
                             child: AspectRatio(
-                              aspectRatio:
-                                  1, // Ensure the widget is always square
+                              aspectRatio: 1,
                               child: avatar,
                             ),
                           );
@@ -1226,12 +1224,10 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // First row (3 cards)
                             CategoryGridCard(
                               minCrossAxisCount: 3,
                               maxCrossAxisCount: 3,
-                              aspectRatio: 1.6,
-                              //  same ratio for consistent height
+                              iconSize: 20,
                               items: [
                                 CategoryItem(
                                   icon: SvgPicture.asset(
@@ -1298,7 +1294,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             CategoryGridCard(
                               minCrossAxisCount: 2,
                               maxCrossAxisCount: 2,
-                              aspectRatio: 2.5, //  same as above
+                              iconSize: 22,
                               items: [
                                 CategoryItem(
                                   icon: SvgPicture.asset(
@@ -1432,19 +1428,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
-                // Properties Investment by category
-                // Padding(
-                //   padding: const EdgeInsets.only(left: 16, top: 16),
-                //   child: Text(
-                //     "INVESTMENT BY CATEGORY",
-                //     style: TextStyle(
-                //       fontSize: 14,
-                //       color: Color(0xFF2E7D32),
-                //       fontWeight: FontWeight.w600,
-                //     ),
-                //   ),
-                // ),
-                // const SizedBox(height: 8),
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
                   color: Colors.green.withValues(alpha: .03),
@@ -1513,7 +1496,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           ),
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 4),
 
                         // This is the section with your buttons, it remains unchanged.
                         Padding(
@@ -1522,79 +1505,128 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: _buildCategoryButton6(
-                                      'Residential ',
+                              CategoryGridCard(
+                                minCrossAxisCount: 3,
+                                maxCrossAxisCount: 3,
+                                iconSize: 18,
+                                items: [
+                                  CategoryItem(
+                                    icon: Icon(
                                       FontAwesomeIcons.city,
+                                      color: Colors.green,
                                     ),
+                                    title: 'Residential',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ResidencialCityPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildCategoryButton7(
-                                      'Commercial ',
+                                  CategoryItem(
+                                    icon: Icon(
                                       FontAwesomeIcons.handshake,
+                                      color: Colors.green,
                                     ),
+                                    title: 'Commercial',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CommercialPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  CategoryItem(
+                                    icon: Icon(FontAwesomeIcons.microchip),
+                                    title: 'ROSA HiTech City',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const HealthCityPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
 
-                              // Row 3: ROSA HiTech City + ROSA Health (No change)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildCategoryButton8(
-                                      'ROSA HiTech City',
-                                      FontAwesomeIcons.microchip,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildCategoryButton9(
-                                      'ROSA Health',
-                                      FontAwesomeIcons.heartbeat,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: 16),
 
-                              // --- NEW SECTION FOR THE ROYAL CLUB AND ITS CHILDREN ---
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // 1. The Parent Button (remains the same)
-                                  _buildCategoryButton20(
-                                    'The Royal Eco City',
-                                    FontAwesomeIcons.crown,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // 2. The new Tree List for Sub-Children
-                                  _buildTreeListItem(
-                                    child: _buildCategoryButton22(
-                                      'The Royal Agro Eco Tourism',
-                                      FontAwesomeIcons.seedling,
+                              CategoryGridCard(
+                                minCrossAxisCount: 2,
+                                maxCrossAxisCount: 2,
+                                iconSize: 18,
+                                items: [
+                                  CategoryItem(
+                                    icon: Icon(
+                                      FontAwesomeIcons.crown,
+                                      color: Colors.green,
                                     ),
-                                    isLast: false,
+                                    title: 'The Royal Eco City',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const RoyalEcoCityPage()),
+                                      );
+                                    },
+
+                                    subItems: [
+                                      CategoryItem(
+                                        icon: const Icon(FontAwesomeIcons.tree, color: Colors.green),
+                                        title: 'The Royal Agro Eco Tourism',
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const EcotourismCityPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      CategoryItem(
+                                        icon: const Icon(FontAwesomeIcons.treeCity, color: Colors.green),
+                                        title: 'The Royal Palace',
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const PalaceCityPage()),
+                                          );
+                                        },
+                                        isLive: false,
+                                      ),
+                                      CategoryItem(
+                                        icon: const Icon(FontAwesomeIcons.treeCity, color: Colors.green),
+                                        title: 'The Royal North-Bengal Club',
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const NorthCityPage()),
+                                          );
+                                        },
+                                        isLive: false,
+                                      ),
+                                    ],
                                   ),
-                                  _buildTreeListItem(
-                                    child: _buildCategoryButton23(
-                                      'The Royal Palace',
-                                      FontAwesomeIcons.landmark,
-                                    ),
-                                    isLast: false,
-                                  ),
-                                  _buildTreeListItem(
-                                    child: _buildCategoryButton24(
-                                      'The Royal North-Bengal Club',
-                                      FontAwesomeIcons.users,
-                                    ),
-                                    isLast: true, // Mark the last item
+                                  CategoryItem(
+                                    icon: Icon(FontAwesomeIcons.heartbeat),
+                                    title: 'ROSA Health',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                          const HealthCityPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -1793,6 +1825,33 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ),
                   ],
                 ),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, top: 16),
+                      child: Text(
+                        "GrowUp Global Insight",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E7D32),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 0,
+                        top: 0,
+                        bottom: 8,
+                        right: 0,
+                      ),
+                      child: AdvertisementSlider(),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1920,93 +1979,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
       ),
     );
   }
-
-  //Eco city
-  Widget _buildCategoryButton8(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const RosahitechCityPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: Colors.green), // 👈 icon
-            const SizedBox(width: 8), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: size,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //health care
-  Widget _buildCategoryButton9(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const HealthCityPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: Colors.green), // 👈 icon
-            const SizedBox(width: 8), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: size,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   //health care
   Widget _buildCategoryButton20(String label, IconData icon) {
     double size = 14;

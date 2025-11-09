@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:growup_agro/models/project_certificate_model.dart';
 import 'package:growup_agro/views/pdf_view_page.dart';
+import 'package:growup_agro/widgets/info_row.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/invoice_utils.dart';
 import '../views/web_view_page.dart';
 import '../widgets/invoice_action_buttons.dart';
-import '../widgets/custom_button.dart'; // 👈 your global CustomButton
+import '../widgets/custom_button.dart';
 
 class ProjectCertificatesPage extends StatefulWidget {
   const ProjectCertificatesPage({super.key});
@@ -91,36 +92,6 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
     });
   }
 
-  // Future<void> launchInBrowser(BuildContext context, String url) async {
-  //   final Uri uri = Uri.parse(url);
-  //   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Could not open link')),
-  //     );
-  //   }
-  // }
-  //
-  // void _openPreview(BuildContext context, String previewUrl) {
-  //   if (previewUrl.isNotEmpty) {
-  //     try {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => PreviewPage(url: previewUrl),
-  //         ),
-  //       );
-  //     } catch (e) {
-  //       debugPrint('WebView failed, opening in browser: $e');
-  //       launchInBrowser(context, previewUrl);
-  //     }
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Preview URL not available')),
-  //     );
-  //   }
-  // }
-
-
   Future<void> openCertificateInApp(BuildContext context, String? viewUrl) async {
     if (viewUrl == null || viewUrl.isEmpty) {
       if (context.mounted) {
@@ -141,119 +112,6 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
           ),
         ),
       );
-    }
-  }
-
-
-  Future<void> downloadCertificateWithFallback(
-      BuildContext context,
-      String downloadUrl,
-      String viewUrl,
-      String fileName,
-      ) async {
-    setState(() => _isDownloading[downloadUrl] = true);
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-
-      final dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 20),
-          receiveTimeout: const Duration(seconds: 60),
-          followRedirects: true,
-          validateStatus: (status) => true, // handle all status codes
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-        ),
-      );
-
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = '${tempDir.path}/$fileName.pdf';
-
-      final response = await dio.getUri<List<int>>(
-        Uri.parse(downloadUrl),
-        options: Options(responseType: ResponseType.bytes),
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            final percent = (received / total * 100)
-                .clamp(0, 100)
-                .toStringAsFixed(0);
-            debugPrint('Downloading $fileName: $percent%');
-          }
-        },
-      );
-
-      // Check content type before saving
-      final contentType = response.headers.value('content-type') ?? '';
-      if (!contentType.contains('application/pdf')) {
-        final bodyText = utf8.decode(response.data ?? []);
-        if (bodyText.contains('Unauthenticated') ||
-            bodyText.contains('<html')) {
-          throw Exception('Unauthenticated or invalid response from server');
-        } else {
-          throw Exception('Invalid response: expected PDF, got $contentType');
-        }
-      }
-
-      if (response.statusCode != 200 ||
-          response.data == null ||
-          response.data!.isEmpty) {
-        throw Exception(
-          'Server error: ${response.statusCode}. Unable to download file.',
-        );
-      }
-
-      // Save file locally
-      final tempFile = File(tempPath);
-      await tempFile.writeAsBytes(response.data!, flush: true);
-
-      final savedPath = await FlutterFileDialog.saveFile(
-        params: SaveFileDialogParams(
-          sourceFilePath: tempPath,
-          fileName: '$fileName.pdf',
-        ),
-      );
-
-      if (savedPath != null) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Downloaded successfully: $savedPath'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-        await OpenFilex.open(savedPath);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Save cancelled.')));
-        }
-      }
-    } catch (e) {
-      debugPrint('Download error: $e');
-
-      // Fallback: open viewUrl in WebView
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Direct download failed. Opening preview page.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PreviewPage(url: viewUrl)),
-        );
-      }
-    } finally {
-      setState(() => _isDownloading[downloadUrl] = false);
     }
   }
 
@@ -280,7 +138,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
           'Project Certificates',
           style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -337,22 +195,41 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 🟢 Project Title
-                        Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
+                        // Project Title
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start, // ensures text aligns nicely
+                          children: [
+                            // 🟢 Left side: item name (can wrap into 2 lines)
+                            Expanded(
+                              child: Text(
+                                item.name,
+                                maxLines: 2, // allow up to 2 lines
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
 
+                            const SizedBox(width: 12),
+
+                            // ⚫ Right side: code text (fixed)
+                            Text(
+                              "Code: ${item.code}",
+                              style: const TextStyle(color: Colors.black87),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 4),
                         // Project Info Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Code: ${item.code}",
+                            Text("Ends: ${item.endDate}",
                                 style: const TextStyle(color: Colors.black87)),
                             Text("ROI: ${item.roi}%",
                                 style: const TextStyle(
@@ -360,51 +237,18 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
                                     fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text("Ends: ${item.endDate}",
-                            style: const TextStyle(color: Colors.black54)),
 
                         const SizedBox(height: 12),
 
                         //Your Custom Button (full width)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            CustomButton(
-                              icon: Icons.remove_red_eye,
-                              text: "",
-                              onPressed: () {
-                                openCertificateInApp(context, item.viewUrl);
-                              },
-                            ),
-
-                            const SizedBox(width: 12),
-                            CustomButton(
-                              icon: _isDownloading[item.downloadUrl] == true
-                                  ? null
-                                  : Icons.download,
-                              text: _isDownloading[item.downloadUrl] == true
-                                  ? 'Downloading...'
-                                  : '',
-                              onPressed: _isDownloading[item.downloadUrl] == true
-                                  ? null
-                                  : () async {
-                                await downloadCertificateWithFallback(
-                                  context,
-                                  item.downloadUrl,
-                                  item.viewUrl,
-                                  item.name,
-                                );
-                              },
-                              // Optional: show loader if downloading
-                              loading: _isDownloading[item.downloadUrl] == true,
-                              backgroundColor: Colors.orange,
-                            ),
-                          ],
-                        )
-
-
-
+                        InvoiceActionButtons(
+                          invoiceNo: item.code,
+                          downloadUrl:
+                          item.downloadUrl,
+                          viewUrl:
+                          item.downloadUrl,
+                          status: "approved",
+                        ),
                       ],
                     ),
                   ),

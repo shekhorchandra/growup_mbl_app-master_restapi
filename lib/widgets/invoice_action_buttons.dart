@@ -42,9 +42,10 @@ class _InvoiceActionButtonsState extends State<InvoiceActionButtons> {
           // text: isViewing ? "Viewing..." : "View",
           height: 28,
           fontSize: 10,
+          textColor: Colors.blue,
           icon: Icons.visibility,
           loading: isViewing,
-          backgroundColor: Colors.green.shade400,
+          backgroundColor: Colors.blue.shade50,
           onPressed: isViewing
               ? null
               : () async {
@@ -56,11 +57,12 @@ class _InvoiceActionButtonsState extends State<InvoiceActionButtons> {
         SizedBox(width: 8),
         CustomButton(
           // text: isDownloading ? "Downloading..." : "Download",
+          textColor: Colors.orange,
           height: 28,
           fontSize: 10,
           icon: Icons.download,
           loading: isDownloading,
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange.shade50,
           onPressed: isDownloading
               ? null
               : () async {

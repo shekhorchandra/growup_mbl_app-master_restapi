@@ -6,7 +6,8 @@ class CategoryItem {
   final Color itemBgColor;
   final Color textColor;
   final VoidCallback? onTap;
-  final bool isLive; // ✅ New flag for live badge
+  final bool isLive;
+  final List<CategoryItem> subItems;
 
   const CategoryItem({
     required this.icon,
@@ -14,20 +15,27 @@ class CategoryItem {
     this.itemBgColor = Colors.white,
     this.textColor = const Color(0xFF555555),
     this.onTap,
-    this.isLive = false, // ✅ default false
+    this.isLive = false,
+    this.subItems = const [],
   });
+
+  bool get hasSubItems => subItems.isNotEmpty;
 }
 
 class CategoryGridCard extends StatelessWidget {
   const CategoryGridCard({
     super.key,
     required this.items,
-    this.iconColor = const Color(0xFF2E7D32),
+    this.iconColor = Colors.green,
     this.bgColor = Colors.white,
     this.minCrossAxisCount = 3,
     this.maxCrossAxisCount = 4,
     this.titleFontSize = 10,
-    this.aspectRatio,
+    this.iconSize = 50,
+    this.horizontalGap = 12,
+    this.verticalGap = 12,
+    this.cardHeight = 70,
+    this.subCardHeight = 60,
   });
 
   final List<CategoryItem> items;
@@ -36,56 +44,86 @@ class CategoryGridCard extends StatelessWidget {
   final int minCrossAxisCount;
   final int maxCrossAxisCount;
   final double titleFontSize;
-  final double? aspectRatio;
+  final double iconSize;
+  final double horizontalGap;
+  final double verticalGap;
+  final double cardHeight;
+  final double subCardHeight;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        final crossAxisCount = c.maxWidth < 520 ? minCrossAxisCount : maxCrossAxisCount;
+        final width = c.maxWidth;
+        final crossAxisCount = width < 520
+            ? minCrossAxisCount
+            : maxCrossAxisCount;
+        final totalGapsWidth = (crossAxisCount - 1) * horizontalGap;
+        final tileWidth = (width - totalGapsWidth) / crossAxisCount;
 
-        final childAspectRatio = aspectRatio ??
-            (c.maxWidth < 400
-                ? 1.1
-                : c.maxWidth < 520
-                ? 1.25
-                : 1.35);
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: childAspectRatio,
-          ),
-          itemBuilder: (context, index) => _buildCard(context, items[index]),
+        return Wrap(
+          spacing: horizontalGap,
+          runSpacing: verticalGap,
+          children: items
+              .map(
+                (item) => SizedBox(
+                  width: tileWidth,
+                  child: _buildParentWithSubtree(context, item),
+                ),
+              )
+              .toList(),
         );
       },
     );
   }
 
-  Widget _buildCard(BuildContext context, CategoryItem item) {
+  // ---------- Tree + Card ----------
+  Widget _buildParentWithSubtree(BuildContext context, CategoryItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildCard(context, item, iconSize, cardHeight),
+        if (item.hasSubItems) const SizedBox(height: 10),
+        if (item.hasSubItems) _buildSubTree(item.subItems),
+      ],
+    );
+  }
+
+  Widget _buildSubTree(List<CategoryItem> subItems) {
+    return Column(
+      children: List.generate(subItems.length, (index) {
+        final sub = subItems[index];
+        final isLast = index == subItems.length - 1;
+
+        return _TreeRow(
+          isLast: isLast,
+          subCardHeight: subCardHeight,
+          child: _buildCard(null, sub, iconSize * 0.7, subCardHeight),
+        );
+      }),
+    );
+  }
+
+  // ---------- Card UI ----------
+  Widget _buildCard(
+    BuildContext? context,
+    CategoryItem item,
+    double? iconSize,
+    double height,
+  ) {
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(16),
       onTap: item.onTap,
       child: Stack(
         children: [
-          // 🟩 Main card container
           Container(
+            height: height, // ✅ fixed height
             decoration: BoxDecoration(
               color: item.itemBgColor,
               border: Border(
-                left: BorderSide(
-                  color: Colors.green[700]!,
-                  width: 3,
-                ),
+                left: BorderSide(color: Colors.green[700]!, width: 3),
               ),
-              borderRadius: const BorderRadius.all(
-                Radius.circular(16),
-              ),
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.15),
@@ -95,38 +133,30 @@ class CategoryGridCard extends StatelessWidget {
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Flexible(
-                  flex: 6,
-                  child: IconTheme(
-                    data: IconThemeData(size: 50, color: iconColor),
-                    child: Center(child: _wrapIcon(item.icon, 50)),
-                  ),
+                IconTheme(
+                  data: IconThemeData(size: iconSize, color: iconColor),
+                  child: Center(child: _wrapIcon(item.icon, iconSize!)),
                 ),
                 const SizedBox(height: 6),
-                Flexible(
-                  flex: 4,
-                  child: Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: titleFontSize,
-                      height: 1.25,
-                      fontWeight: FontWeight.w500,
-                      color: item.textColor,
-                    ),
+                Text(
+                  item.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: titleFontSize,
+                    height: 1.25,
+                    fontWeight: FontWeight.w500,
+                    color: item.textColor,
                   ),
                 ),
               ],
             ),
           ),
-
-          // 🔴 “LIVE” badge overlay
           if (item.isLive)
             Positioned(
               top: 8,
@@ -154,9 +184,69 @@ class CategoryGridCard extends StatelessWidget {
   }
 
   Widget _wrapIcon(Widget icon, double size) {
-    if (icon is Icon) {
-      return Icon(icon.icon, size: size);
-    }
-    return SizedBox(height: size, width: size, child: FittedBox(child: icon));
+    if (icon is Icon) return Icon(icon.icon, size: size);
+    return SizedBox(
+      height: size,
+      width: size,
+      child: FittedBox(child: icon),
+    );
+  }
+}
+
+/// ---------- Tree connector row ----------
+class _TreeRow extends StatelessWidget {
+  const _TreeRow({
+    required this.isLast,
+    required this.child,
+    this.indent = 30,
+    this.lineWidth = 2,
+    required this.subCardHeight,
+  });
+
+  final bool isLast;
+  final Widget child;
+  final double indent;
+  final double subCardHeight;
+  final double lineWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color lineColor = Colors.grey.shade400;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: indent,
+            height: subCardHeight, // match subCardHeight for visual alignment
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Vertical line
+                Positioned.fill(
+                  left: indent / 2 - (lineWidth / 2),
+                  bottom: isLast ? subCardHeight / 2 : 0,
+                  top: -10,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(width: lineWidth, color: lineColor),
+                  ),
+                ),
+                // Horizontal line
+                Positioned(
+                  left: indent / 2,
+                  top: subCardHeight / 2 - (lineWidth / 2),
+                  right: 0,
+                  child: Container(height: lineWidth, color: lineColor),
+                ),
+              ],
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
+    );
   }
 }

@@ -43,7 +43,7 @@ class PaginationFooter extends StatelessWidget {
             CustomButton(
               text: "Previous",
               height: 30,
-              backgroundColor: Colors.grey[400]!,
+              backgroundColor: Colors.green[300]!,
               textColor: Colors.white,
               onPressed: currentPage > 1 ? onPrevious : null,
             ),
@@ -54,7 +54,7 @@ class PaginationFooter extends StatelessWidget {
             CustomButton(
               text: "Next",
               height: 30,
-              backgroundColor: Colors.grey[400]!,
+              backgroundColor: Colors.green[300]!,
               textColor: Colors.white,
               onPressed: currentPage < totalPages ? onNext : null,
             ),
