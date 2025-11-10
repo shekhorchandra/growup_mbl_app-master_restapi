@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -551,7 +550,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         // ---------------- Dashboard ----------------
                         _drawerTile(
                           context,
-                          FontAwesomeIcons.tachometerAlt,
+                          FontAwesomeIcons.gaugeHigh,
                           'Dashboard',
                           '/dashboard',
                         ),
@@ -615,7 +614,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             ),
                             _drawerTile(
                               context,
-                              FontAwesomeIcons.projectDiagram,
+                              FontAwesomeIcons.diagramProject,
                               'Invested Projects',
                               '/myprojects',
                             ),
@@ -667,7 +666,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         // ---------------- Investment History ----------------
                         _drawerTile(
                           context,
-                          FontAwesomeIcons.history,
+                          FontAwesomeIcons.clockRotateLeft,
                           'Investment History',
                           '/investmenthistory',
                         ),
@@ -695,7 +694,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             ),
                             _drawerTile(
                               context,
-                              FontAwesomeIcons.shoppingBag,
+                              FontAwesomeIcons.bagShopping,
                               'Ordered Properties',
                               '/ordered_properties',
                             ),
@@ -763,7 +762,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           children: [
                             _drawerTile(
                               context,
-                              FontAwesomeIcons.fileAlt,
+                              FontAwesomeIcons.fileLines,
                               'TAX Certificate',
                               '/tax_certificate',
                             ),
@@ -779,7 +778,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         // ---------------- Miscellaneous ----------------
                         _drawerTile(
                           context,
-                          FontAwesomeIcons.infoCircle,
+                          FontAwesomeIcons.circleInfo,
                           'About Us',
                           '/about_us',
                         ),
@@ -1616,7 +1615,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                     ],
                                   ),
                                   CategoryItem(
-                                    icon: Icon(FontAwesomeIcons.heartbeat),
+                                    icon: Icon(FontAwesomeIcons.heartPulse),
                                     title: 'ROSA Health',
                                     onTap: () {
                                       Navigator.push(
@@ -1807,7 +1806,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       child: Text(
                         "GrowUp Recent Activities",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF2E7D32),
                         ),
@@ -1834,7 +1833,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                       child: Text(
                         "GrowUp Global Insight",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF2E7D32),
                         ),
@@ -1854,299 +1853,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // left drawer
-  Widget _buildDrawerItem(
-    IconData icon,
-    String title,
-    BuildContext context,
-    String route,
-  ) {
-    return ListTile(
-      dense: true,
-      // makes the tile vertically smaller
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      // reduce left/right padding
-      visualDensity: const VisualDensity(vertical: -4),
-      // shrink vertical space
-      leading: Icon(
-        icon,
-        color: Colors.green,
-        size: 18, // smaller icon
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500, // smaller text
-        ),
-      ),
-      onTap: () {
-        Navigator.pushNamed(context, route); // navigate to route
-      },
-    );
-  }
-
-  // residential
-  Widget _buildCategoryButton6(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ResidencialCityPage(),
-            ),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: Colors.green), // 👈 icon
-            const SizedBox(width: 8), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: size,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //Commercial
-  Widget _buildCategoryButton7(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5, // make a bit wider for icon+text
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CommercialPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: Colors.green), // 👈 icon
-            const SizedBox(width: 8), // space between icon & text
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: size,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  //health care
-  Widget _buildCategoryButton20(String label, IconData icon) {
-    double size = 14;
-
-    return SizedBox(
-      width: size * 5,
-      height: size * 3.5,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const RoyalEcoCityPage()),
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey, width: 1),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: Colors.green),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: size,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton22(String title, IconData icon) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SizedBox(
-        height: 35.0,
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EcotourismCityPage(),
-              ),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            side: const BorderSide(color: Colors.grey, width: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(icon, color: Colors.green, size: 12), // ✅ use parameter
-              const SizedBox(width: 16),
-              Text(
-                title, // ✅ use parameter
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton23(String title, IconData icon) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SizedBox(
-        height: 35.0,
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const PalaceCityPage()),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            side: const BorderSide(color: Colors.grey, width: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(icon, color: Colors.green, size: 12), // ✅ use parameter
-              const SizedBox(width: 16),
-              Text(
-                title, // ✅ use parameter
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton24(String title, IconData icon) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SizedBox(
-        height: 35.0,
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NorthCityPage()),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            side: const BorderSide(color: Colors.grey, width: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(icon, color: Colors.green, size: 12),
-              const SizedBox(width: 6),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 10,
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -2273,77 +1979,6 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
           )
           .toList();
     });
-  }
-
-  Widget _buildTreeListItem({
-    required Widget child,
-    required bool isLast,
-    double indent = 60.0,
-    double rightIndent = 60.0,
-    double spacing = 20.0,
-  }) {
-    const double itemHeight = 35.0;
-    const double lineWidth = 2.0;
-    final Color lineColor = Colors.grey;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: spacing),
-      child: SizedBox(
-        height: itemHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: indent,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    left: indent / 2,
-                    top: -spacing,
-                    bottom: isLast ? itemHeight / 2 : -spacing,
-                    child: Container(width: lineWidth, color: lineColor),
-                  ),
-                  Positioned(
-                    left: indent / 2,
-                    top: itemHeight / 2 - lineWidth / 2,
-                    width: indent / 2,
-                    child: Container(height: lineWidth, color: lineColor),
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SizedBox(height: itemHeight, child: child),
-            ),
-
-            SizedBox(
-              width: rightIndent,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    right: rightIndent / 2,
-                    top: -spacing,
-                    bottom: isLast ? itemHeight / 2 : -spacing,
-                    child: Container(width: lineWidth, color: lineColor),
-                  ),
-                  Positioned(
-                    right: rightIndent / 2,
-                    top: itemHeight / 2 - lineWidth / 2,
-                    width: rightIndent / 2,
-                    child: Container(height: lineWidth, color: lineColor),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _logout() async {

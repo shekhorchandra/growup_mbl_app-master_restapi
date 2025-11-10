@@ -55,37 +55,48 @@ class CategoryGridCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final width = c.maxWidth;
-        final crossAxisCount = width < 520
-            ? minCrossAxisCount
-            : maxCrossAxisCount;
+        final crossAxisCount =
+        width < 520 ? minCrossAxisCount : maxCrossAxisCount;
         final totalGapsWidth = (crossAxisCount - 1) * horizontalGap;
         final tileWidth = (width - totalGapsWidth) / crossAxisCount;
 
-        return Wrap(
-          spacing: horizontalGap,
-          runSpacing: verticalGap,
-          children: items
-              .map(
-                (item) => SizedBox(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: horizontalGap,
+              runSpacing: verticalGap,
+              children: items
+                  .map(
+                    (item) => SizedBox(
                   width: tileWidth,
-                  child: _buildParentWithSubtree(context, item),
+                  child: _buildParentCard(context, item),
                 ),
               )
-              .toList(),
+                  .toList(),
+            ),
+
+            ...items.where((i) => i.hasSubItems).map(
+                  (item) => Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: _buildFullWidthSubTree(context, item),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  // ---------- Tree + Card ----------
-  Widget _buildParentWithSubtree(BuildContext context, CategoryItem item) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildCard(context, item, iconSize, cardHeight),
-        if (item.hasSubItems) const SizedBox(height: 10),
-        if (item.hasSubItems) _buildSubTree(item.subItems),
-      ],
+  Widget _buildParentCard(BuildContext context, CategoryItem item) {
+    return _buildCard(context, item, iconSize, cardHeight);
+  }
+
+  Widget _buildFullWidthSubTree(BuildContext context, CategoryItem item) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: screenWidth,
+      child: _buildSubTree(item.subItems),
     );
   }
 
@@ -104,20 +115,19 @@ class CategoryGridCard extends StatelessWidget {
     );
   }
 
-  // ---------- Card UI ----------
   Widget _buildCard(
-    BuildContext? context,
-    CategoryItem item,
-    double? iconSize,
-    double height,
-  ) {
+      BuildContext? context,
+      CategoryItem item,
+      double? iconSize,
+      double height,
+      ) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: item.onTap,
       child: Stack(
         children: [
           Container(
-            height: height, // ✅ fixed height
+            height: height,
             decoration: BoxDecoration(
               color: item.itemBgColor,
               border: Border(
@@ -162,7 +172,8 @@ class CategoryGridCard extends StatelessWidget {
               top: 8,
               right: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.red.shade600,
                   borderRadius: BorderRadius.circular(8),
@@ -193,7 +204,6 @@ class CategoryGridCard extends StatelessWidget {
   }
 }
 
-/// ---------- Tree connector row ----------
 class _TreeRow extends StatelessWidget {
   const _TreeRow({
     required this.isLast,
@@ -220,10 +230,11 @@ class _TreeRow extends StatelessWidget {
         children: [
           SizedBox(
             width: indent,
-            height: subCardHeight, // match subCardHeight for visual alignment
+            height: subCardHeight,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
+
                 // Vertical line
                 Positioned.fill(
                   left: indent / 2 - (lineWidth / 2),
@@ -234,6 +245,7 @@ class _TreeRow extends StatelessWidget {
                     child: Container(width: lineWidth, color: lineColor),
                   ),
                 ),
+
                 // Horizontal line
                 Positioned(
                   left: indent / 2,

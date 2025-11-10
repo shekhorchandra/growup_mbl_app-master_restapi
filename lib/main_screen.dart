@@ -137,7 +137,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
 
                       // ---------------- MENU ITEMS ----------------
-                      _drawerTile(context, FontAwesomeIcons.tachometerAlt,
+                      _drawerTile(context, FontAwesomeIcons.gaugeHigh,
                           'Dashboard', '/dashboard'),
 
                       ExpansionTile(
@@ -167,7 +167,7 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           _drawerTile(context, FontAwesomeIcons.folderOpen, 'Projects',
                               '/projects'),
-                          _drawerTile(context, FontAwesomeIcons.projectDiagram,
+                          _drawerTile(context, FontAwesomeIcons.diagramProject,
                               'Invested Projects', '/myprojects'),
                         ],
                       ),
@@ -193,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
                         ],
                       ),
 
-                      _drawerTile(context, FontAwesomeIcons.history,
+                      _drawerTile(context, FontAwesomeIcons.clockRotateLeft,
                           'Investment History', '/investmenthistory'),
 
                       ExpansionTile(
@@ -206,7 +206,7 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           _drawerTile(context, FontAwesomeIcons.building,
                               'Package Details', '/properties'),
-                          _drawerTile(context, FontAwesomeIcons.shoppingBag,
+                          _drawerTile(context, FontAwesomeIcons.bagShopping,
                               'Ordered Properties', '/ordered_properties'),
                         ],
                       ),
@@ -221,7 +221,7 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           _drawerTile(context, FontAwesomeIcons.box, 'All Products',
                               '/products'),
-                          _drawerTile(context, FontAwesomeIcons.shoppingCart, 'My Cart',
+                          _drawerTile(context, FontAwesomeIcons.cartShopping, 'My Cart',
                               '/cart'),
                           _drawerTile(context, FontAwesomeIcons.boxOpen, 'My Orders',
                               '/myorders'),
@@ -240,14 +240,14 @@ class _MainScreenState extends State<MainScreen> {
                             TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                         childrenPadding: const EdgeInsets.only(left: 30),
                         children: [
-                          _drawerTile(context, FontAwesomeIcons.fileAlt,
+                          _drawerTile(context, FontAwesomeIcons.fileLines,
                               'TAX Certificate', '/tax_certificate'),
                           _drawerTile(context, FontAwesomeIcons.coins,
                               'Investment Certificate', '/project_certificate'),
                         ],
                       ),
 
-                      _drawerTile(context, FontAwesomeIcons.infoCircle, 'About Us',
+                      _drawerTile(context, FontAwesomeIcons.circleInfo, 'About Us',
                           '/about_us'),
                       _drawerTile(context, FontAwesomeIcons.newspaper, 'News', '/news'),
                       _drawerTile(context, FontAwesomeIcons.blog, 'Blog', '/blogs'),
@@ -323,37 +323,6 @@ class _MainScreenState extends State<MainScreen> {
         selectedIndex: _bottomNavIndex,
         onItemTapped: _onItemTapped,
       ),
-    );
-  }
-
-  Widget _buildDrawerItem(
-      IconData icon,
-      String title,
-      BuildContext context,
-      String route,
-      ) {
-    return ListTile(
-      dense: true,
-      // makes the tile vertically smaller
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      // reduce left/right padding
-      visualDensity: const VisualDensity(vertical: -4),
-      // shrink vertical space
-      leading: Icon(
-        icon,
-        color: Colors.green,
-        size: 18, // smaller icon
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500, // smaller text
-        ),
-      ),
-      onTap: () {
-        Navigator.pushNamed(context, route); // navigate to route
-      },
     );
   }
 
