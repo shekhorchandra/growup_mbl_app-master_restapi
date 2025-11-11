@@ -20,25 +20,34 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
   final Map<int, bool> _isExpanded = {};
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+  String _investorCode = '';
 
   @override
   void initState() {
     super.initState();
-    certificatesFuture = fetchCertificates();
+    _loadInvestorCode();
+  }
+
+  Future<void> _loadInvestorCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final investorCode = prefs.getString('investor_code') ?? '';
+    setState(() {
+      _investorCode = investorCode;
+      certificatesFuture = fetchCertificates();
+    });
   }
 
   Future<List<dynamic>> fetchCertificates() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
-      final investorCode = prefs.getString('investor_code') ?? '';
 
-      if (investorCode.isEmpty || token.isEmpty) {
+      if (_investorCode.isEmpty || token.isEmpty) {
         throw Exception('Missing token or investor code. Please log in again.');
       }
 
       final url = Uri.parse(
-          'https://growupagro.tech/api/tax-certificates?investor_code=$investorCode');
+          'https://growupagro.online/api/tax-certificates?investor_code=$_investorCode');
 
       final response = await http.get(
         url,
@@ -107,7 +116,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
             hintStyle: TextStyle(color: Colors.white70),
             border: InputBorder.none,
           ),
-          style: TextStyle(color: Colors.white, fontSize: 18),
+          style: const TextStyle(color: Colors.white, fontSize: 18),
         )
             : const Text(
           'Tax Certificates',
@@ -158,6 +167,12 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
               final projects = cert['projects'] as List;
               final expanded = _isExpanded[index] ?? false;
 
+              // Generate dynamic URLs
+              final viewUrl =
+                  'https://growupagro.online/api/investor/tax-certificates/${fiscal['start']}?investor_code=$_investorCode';
+              final downloadUrl =
+                  'https://growupagro.online/api/investor/tax-certificates/${fiscal['start']}/download?investor_code=$_investorCode';
+
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                 padding: const EdgeInsets.all(16),
@@ -167,7 +182,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: Colors.grey.withOpacity(0.3),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -209,7 +224,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
                       ],
                     ),
 
-                    // ✅ Expandable section with animation only (AnimatedSize)
+                    // Expandable section
                     AnimatedSize(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.linear,
@@ -258,8 +273,8 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
                           ),
                           const SizedBox(height: 8),
                           InvoiceActionButtons(
-                            viewUrl: cert['preview_url'],
-                            downloadUrl: cert['download_url'],
+                            viewUrl: viewUrl,
+                            downloadUrl: downloadUrl,
                             invoiceNo: fiscal['start'].toString(),
                             status: 'approved',
                           ),

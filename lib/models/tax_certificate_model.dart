@@ -7,7 +7,7 @@ class TaxCertificate {
   final double tax;
   final double netRoi;
   final String issuedOn;
-  final String downloadLink;
+  final String download_url;
 
   TaxCertificate({
     required this.investorName,
@@ -18,7 +18,7 @@ class TaxCertificate {
     required this.tax,
     required this.netRoi,
     required this.issuedOn,
-    required this.downloadLink,
+    required this.download_url,
   });
 
   factory TaxCertificate.fromJson(Map<String, dynamic> json, String investorName) {
@@ -33,7 +33,7 @@ class TaxCertificate {
       tax: (json['tax'] as num).toDouble(),
       netRoi: (json['net_roi'] as num).toDouble(),
       issuedOn: json['issued_on'],
-      downloadLink: json['download_link'],
+      download_url: json['download_url'],
     );
   }
 }
