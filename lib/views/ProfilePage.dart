@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:growup_agro/utils/api_constants.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -75,10 +78,14 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   String nomineeAddress = '';
   int? selectedRelationId;
   int? nomineeId;
-  String? nomineebankAccountName;
-  String? nomineebankName;
-  String? nomineebranch;
-  String? nomineeaccountNo;
+  String nomineeBankHolder = '';
+  String nomineeBankName = '';
+  String nomineeBranch = '';
+  String nomineeAccountNo = '';
+  String nomineeBkash = '';
+  String nomineeNagad = '';
+  String nomineeRocket = '';
+
 
   // Bank Info
   String bankHolder = '';
@@ -91,6 +98,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   String bkash = 'N/A';
   String nagad = 'N/A';
   String rocket = 'N/A';
+
+  File? nidFrontFile;
+  File? nidBackFile;
 
   @override
   void initState() {
@@ -130,20 +140,20 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           // Investor Info
           final investor = data['investor'] ?? {};
           profileImageUrl = investor['image'] != null
-              ? 'https://growupagro.tech/storage/${investor['image']}'
+              ? 'https://growupagro.online/storage/${investor['image']}'
               : null;
 
           // ✅ Correct NID keys
           nidFrontUrl =
-              (investor['nid_front'] != null &&
-                  investor['nid_front'].toString().isNotEmpty)
-              ? 'https://growupagro.tech/storage/${investor['nid_front']}'
+          (investor['nid_front'] != null &&
+              investor['nid_front'].toString().isNotEmpty)
+              ? 'https://growupagro.online/storage/${investor['nid_front']}'
               : null;
 
           nidBackUrl =
-              (investor['nid_back'] != null &&
-                  investor['nid_back'].toString().isNotEmpty)
-              ? 'https://growupagro.tech/storage/${investor['nid_back']}'
+          (investor['nid_back'] != null &&
+              investor['nid_back'].toString().isNotEmpty)
+              ? 'https://growupagro.online/storage/${investor['nid_back']}'
               : null;
 
           // Debug prints
@@ -169,9 +179,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           filteredUpazilas = allUpazilas
               .where(
                 (u) =>
-                    u['district_id'].toString() ==
-                    selectedDistrictId.toString(),
-              )
+            u['district_id'].toString() ==
+                selectedDistrictId.toString(),
+          )
               .toList();
 
           selectedUpazilaId = investor['upazila_id'] != null
@@ -200,6 +210,8 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
             selectedRelationId = int.tryParse(relations.first['id'].toString());
           }
 
+
+
           // Bank Info
           final bankInfo = data['banking_information'] ?? {};
           bankHolder = bankInfo['bank_account_name'] ?? '';
@@ -211,6 +223,17 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           nagad = bankInfo['nagad_number'] ?? 'N/A';
           rocket = bankInfo['rocket_number'] ?? 'N/A';
 
+          // Nominee Bank Info
+          final nomineeBank = data['nominee_bank'] ?? {};
+          nomineeBankHolder = nomineeBank['bank_account_name'] ?? '';
+          nomineeBankName = nomineeBank['bank_name'] ?? '';
+          nomineeBranch = nomineeBank['branch_name'] ?? '';
+          nomineeAccountNo = nomineeBank['account_number'] ?? '';
+          nomineeBkash = nomineeBank['bkash_number'] ?? 'N/A';
+          nomineeNagad = nomineeBank['nagad_number'] ?? 'N/A';
+          nomineeRocket = nomineeBank['rocket_number'] ?? 'N/A';
+
+
           // Profile completion
           final profileCompletionData = data['profile_completion'];
           profileCompletion = profileCompletionData != null
@@ -219,9 +242,9 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
 
           missingFields = profileCompletionData != null
               ? List<String>.from(
-                  (profileCompletionData['missing_fields'] ?? [])
-                      .whereType<String>(),
-                )
+            (profileCompletionData['missing_fields'] ?? [])
+                .whereType<String>(),
+          )
               : [];
 
           isLoading = false;
@@ -244,29 +267,44 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
 
-      final body = {
-        'investor_code': investorCode,
-        'phone': phone,
-        'email': email,
-        'district_id': selectedDistrictId?.toString() ?? '',
-        'upazila_id': selectedUpazilaId?.toString() ?? '', // <-- null-safe
-        'nid': nid,
-        'address': address,
-      };
-
       final url = Uri.parse(ApiConstants.updateInvestorInfo);
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-        body: body,
-      );
+      // Prepare multipart request
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
 
-      final result = json.decode(response.body);
-      if (result['success']) {
+      // Add regular text fields
+      request.fields['investor_code'] = investorCode;
+      request.fields['phone'] = phone;
+      request.fields['email'] = email;
+      request.fields['district_id'] = selectedDistrictId?.toString() ?? '';
+      request.fields['upazila_id'] = selectedUpazilaId?.toString() ?? '';
+      request.fields['nid'] = nid;
+      request.fields['address'] = address;
+
+      // ✅ Add NID front image if user selected a new one
+      if (nidFrontFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('nid_front', nidFrontFile!.path),
+        );
+      }
+
+      // ✅ Add NID back image if user selected a new one
+      if (nidBackFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('nid_back', nidBackFile!.path),
+        );
+      }
+
+      // Send request
+      final response = await request.send();
+      final responseData = await http.Response.fromStream(response);
+      final result = json.decode(responseData.body);
+
+      if (response.statusCode == 200 && result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Investor info updated successfully!'),
@@ -276,6 +314,18 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         setState(() {
           isEditingInvestor = false;
         });
+
+        // Optionally refresh profile
+        await fetchInvestorProfile();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Update failed: ${result['message'] ?? 'Unknown error'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -283,6 +333,26 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
       );
     } finally {
       setState(() => isUpdatingInvestor = false);
+    }
+  }
+
+  Future<void> pickNidFront() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        nidFrontFile = File(picked.path);
+      });
+    }
+  }
+
+  Future<void> pickNidBack() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        nidBackFile = File(picked.path);
+      });
     }
   }
 
@@ -299,25 +369,24 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
         'name': nomineeName,
         'contact': nomineeContact,
         'nid': nomineeNid,
-        'relation': selectedRelationId.toString(),
+        'relation': selectedRelationId?.toString() ?? '',
         'address': nomineeAddress,
-        // Include nominee bank info
-        'bank_account_name': nomineebankAccountName,
-        'bank_name': nomineebankName,
-        'branch_name': nomineebranch,
-        'account_number': nomineeaccountNo,
+        'nominee_bank_account_name': nomineeBankHolder,
+        'nominee_bank_name': nomineeBankName,
+        'nominee_branch_name': nomineeBranch,
+        'nominee_account_number': nomineeAccountNo,
       };
+
+      // Include nominee_id if updating
+      if (nomineeId != null) {
+        body['nominee_id'] = nomineeId.toString();
+      }
 
       final url = Uri.parse(
         nomineeId == null
             ? ApiConstants.createNomineeInfo()
             : ApiConstants.updateNomineeInfo,
       );
-
-      // Include nominee_id if updating
-      if (nomineeId != null) {
-        body['nominee_id'] = nomineeId.toString();
-      }
 
       final response = await http.post(
         url,
@@ -506,27 +575,27 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                       circularStrokeCap: CircularStrokeCap.round,
                       center: ClipOval(
                         child:
-                            profileImageUrl == null || profileImageUrl!.isEmpty
+                        profileImageUrl == null || profileImageUrl!.isEmpty
                             ? Image.asset(
-                                'assets/images/img.png',
-                                width: 110,
-                                height: 110,
-                                fit: BoxFit.cover,
-                              )
+                          'assets/images/img.png',
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                        )
                             : Image.network(
-                                profileImageUrl!,
-                                width: 110,
-                                height: 110,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Image.asset(
-                                    'assets/images/img.png',
-                                    width: 110,
-                                    height: 110,
-                                    fit: BoxFit.cover,
-                                  );
-                                },
-                              ),
+                          profileImageUrl!,
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/img.png',
+                              width: 110,
+                              height: 110,
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        ),
                       ),
                     ),
 
@@ -581,7 +650,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                       ),
                       const SizedBox(height: 6),
                       ...missingFields.map(
-                        (field) => Text(
+                            (field) => Text(
                           "• $field",
                           style: const TextStyle(color: Colors.black87),
                         ),
@@ -663,7 +732,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                     ),
                   ],
                 ),
-                Divider(height: 1,),
+                Divider(height: 1),
                 const SizedBox(height: 12),
                 ...children,
                 if (isEditing) ...[
@@ -683,22 +752,22 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                         duration: const Duration(milliseconds: 300),
                         child: isLoadingButton
                             ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
                             : const Text(
-                                'Update',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                          'Update',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -712,53 +781,55 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
   }
 
   Widget buildEditableField(
-    String label,
-    String value,
-    Function(String) onChanged,
-    bool editable, {
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
+      String label,
+      String value,
+      Function(String) onChanged,
+      bool editable, {
+        TextInputType keyboardType = TextInputType.text,
+        String? Function(String?)? validator,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: editable
           ? TextFormField(
-              initialValue: value,
-              keyboardType: keyboardType,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-              decoration: InputDecoration(
-                labelText: label,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
-              ),
-              onChanged: onChanged,
-              validator: validator,
-            )
+        initialValue: value,
+        keyboardType: keyboardType,
+        style: const TextStyle(fontSize: 14, color: Colors.black87),
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 14,
+          ),
+        ),
+        onChanged: onChanged,
+        validator: validator,
+      )
           : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    (value.isNotEmpty && value.toUpperCase() != "NULL") ? value : 'N/A',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Colors.black,
             ),
+          ),
+          Flexible(
+            child: Text(
+              (value.isNotEmpty && value.toUpperCase() != "NULL")
+                  ? value
+                  : 'N/A',
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -812,441 +883,499 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: fetchInvestorProfile,
-              child: SingleChildScrollView(
-                physics:
-                    const AlwaysScrollableScrollPhysics(), // Important to allow pull-down
-                padding: const EdgeInsets.only(bottom: 20, top: 8),
-                child: Column(
-                  children: [
-                    IndexedStack(index: _selectedIndex, children: _pages),
-                    buildProfileCompletionCard(),
+        onRefresh: fetchInvestorProfile,
+        child: SingleChildScrollView(
+          physics:
+          const AlwaysScrollableScrollPhysics(), // Important to allow pull-down
+          padding: const EdgeInsets.only(bottom: 20, top: 8),
+          child: Column(
+            children: [
+              IndexedStack(index: _selectedIndex, children: _pages),
+              buildProfileCompletionCard(),
 
-                    // Investor Info Section
-                    buildSectionCard(
-                      title: 'Investor Info',
-                      isEditing: isEditingInvestor,
-                      onEditToggle: () {
-                        setState(() {
-                          isEditingInvestor = !isEditingInvestor;
-                        });
-                      },
-                      onUpdate: updateInvestorInfo,
-                      formKey: _formKeyInvestor,
-                      isLoadingButton: isUpdatingInvestor,
+              // Investor Info Section
+              buildSectionCard(
+                title: 'Investor Info',
+                isEditing: isEditingInvestor,
+                onEditToggle: () {
+                  setState(() {
+                    isEditingInvestor = !isEditingInvestor;
+                  });
+                },
+                onUpdate: updateInvestorInfo,
+                formKey: _formKeyInvestor,
+                isLoadingButton: isUpdatingInvestor,
+                children: [
+                  buildEditableField(
+                    'Phone',
+                    phone,
+                        (val) => setState(() => phone = val),
+                    isEditingInvestor,
+                    keyboardType: TextInputType.phone,
+                    validator: phoneValidator,
+                  ),
+                  buildEditableField(
+                    'Email',
+                    email,
+                        (val) => setState(() => email = val),
+                    isEditingInvestor,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: emailValidator,
+                  ),
+                  // District dropdown
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: 'District',
+                    ),
+                    value:
+                    districts.any(
+                          (d) =>
+                      int.tryParse(d['id'].toString()) ==
+                          selectedDistrictId,
+                    )
+                        ? selectedDistrictId
+                        : null,
+                    items: districts.map((d) {
+                      return DropdownMenuItem<int>(
+                        value: int.tryParse(d['id'].toString()),
+                        child: Text(d['name']),
+                      );
+                    }).toList(),
+                    onChanged: isEditingInvestor
+                        ? (val) {
+                      setState(() {
+                        selectedDistrictId = val;
+
+                        // Filter upazilas for this district
+                        filteredUpazilas = allUpazilas
+                            .where(
+                              (u) =>
+                          u['district_id'].toString() ==
+                              val.toString(),
+                        )
+                            .toList();
+
+                        // Select first upazila automatically if available
+                        selectedUpazilaId =
+                        filteredUpazilas.isNotEmpty
+                            ? filteredUpazilas.first['id']
+                            : null;
+                      });
+                    }
+                        : null,
+                  ),
+
+                  SizedBox(height: 16),
+
+                  // Upazila dropdown
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: 'Upazila',
+                    ),
+                    value:
+                    filteredUpazilas.any(
+                          (u) => u['id'] == selectedUpazilaId,
+                    )
+                        ? selectedUpazilaId
+                        : null,
+                    items: filteredUpazilas.map((u) {
+                      return DropdownMenuItem<int>(
+                        value: u['id'],
+                        child: Text(u['name']),
+                      );
+                    }).toList(),
+                    onChanged: isEditingInvestor
+                        ? (val) => setState(() => selectedUpazilaId = val)
+                        : null,
+                    validator: null, // <- no validation if optional
+                  ),
+
+                  SizedBox(height: 16),
+
+                  // NID Front & Back Images (always visible)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        buildEditableField(
-                          'Phone',
-                          phone,
-                          (val) => setState(() => phone = val),
-                          isEditingInvestor,
-                          keyboardType: TextInputType.phone,
-                          validator: phoneValidator,
-                        ),
-                        buildEditableField(
-                          'Email',
-                          email,
-                          (val) => setState(() => email = val),
-                          isEditingInvestor,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: emailValidator,
-                        ),
-                        // District dropdown
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'District',
-                          ),
-                          value:
-                              districts.any(
-                                (d) =>
-                                    int.tryParse(d['id'].toString()) ==
-                                    selectedDistrictId,
-                              )
-                              ? selectedDistrictId
-                              : null,
-                          items: districts.map((d) {
-                            return DropdownMenuItem<int>(
-                              value: int.tryParse(d['id'].toString()),
-                              child: Text(d['name']),
-                            );
-                          }).toList(),
-                          onChanged: isEditingInvestor
-                              ? (val) {
-                                  setState(() {
-                                    selectedDistrictId = val;
-
-                                    // Filter upazilas for this district
-                                    filteredUpazilas = allUpazilas
-                                        .where(
-                                          (u) =>
-                                              u['district_id'].toString() ==
-                                              val.toString(),
-                                        )
-                                        .toList();
-
-                                    // Select first upazila automatically if available
-                                    selectedUpazilaId =
-                                        filteredUpazilas.isNotEmpty
-                                        ? filteredUpazilas.first['id']
-                                        : null;
-                                  });
-                                }
-                              : null,
-                        ),
-
-                        SizedBox(height: 16),
-
-                        // Upazila dropdown
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Upazila',
-                          ),
-                          value:
-                              filteredUpazilas.any(
-                                (u) => u['id'] == selectedUpazilaId,
-                              )
-                              ? selectedUpazilaId
-                              : null,
-                          items: filteredUpazilas.map((u) {
-                            return DropdownMenuItem<int>(
-                              value: u['id'],
-                              child: Text(u['name']),
-                            );
-                          }).toList(),
-                          onChanged: isEditingInvestor
-                              ? (val) => setState(() => selectedUpazilaId = val)
-                              : null,
-                          validator: null, // <- no validation if optional
-                        ),
-
-                        SizedBox(height: 16),
-
-                        // NID Front & Back Images (always visible)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        // ✅ NID Front
+                        Expanded(
+                          child: Column(
                             children: [
-                              // NID Front
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'NID Front',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        nidFrontUrl ??
-                                            'https://via.placeholder.com/150?text=NID+Front',
+                              const Text(
+                                'NID Front',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // ✅ Show image (from API or new file)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: nidFrontFile != null
+                                    ? Image.file(
+                                  nidFrontFile!,
+                                  width: double.infinity,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.network(
+                                  nidFrontUrl ??
+                                      'https://via.placeholder.com/150?text=NID+Front',
+                                  width: double.infinity,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      Container(
                                         width: double.infinity,
                                         height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          width: double.infinity,
-                                          height: 120,
-                                          color: Colors.grey.shade300,
-                                          child: const Icon(
-                                            Icons.image_not_supported,
-                                            size: 50,
-                                            color: Colors.grey,
-                                          ),
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          size: 50,
+                                          color: Colors.grey,
                                         ),
                                       ),
-                                    ),
-                                  ],
                                 ),
                               ),
 
-                              const SizedBox(
-                                width: 12,
-                              ), // spacing between images
-                              // NID Back
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'NID Back',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        nidBackUrl ??
-                                            'https://via.placeholder.com/150?text=NID+Back',
-                                        width: double.infinity,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          width: double.infinity,
-                                          height: 120,
-                                          color: Colors.grey.shade300,
-                                          child: const Icon(
-                                            Icons.image_not_supported,
-                                            size: 50,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              const SizedBox(height: 8),
+
+                              // ✅ Upload Button
+                              CustomButton(
+                                text: "Upload NID Front",
+                                icon: Icons.upload,
+                                onPressed: pickNidFront,
+                                backgroundColor: Colors.green[300]!, // same color as before
+                                textColor: Colors.white,
+                                height: 30, // match your previous height
+                                borderRadius: 8, // rounded corners
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                horizontalPadding: 16,
+                                verticalPadding: 0,
+                                useExtraRoundedCorners: false,
+                                isRound: false,
                               ),
+
                             ],
                           ),
                         ),
 
-                        buildEditableField(
-                          'NID Number',
-                          nid,
-                          (val) => setState(() => nid = val),
-                          isEditingInvestor,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Address',
-                          address,
-                          (val) => setState(() => address = val),
-                          isEditingInvestor,
-                          validator: requiredValidator,
-                        ),
-                      ],
-                    ),
+                        const SizedBox(width: 12),
 
-                    // Bank Info Section
-                    buildSectionCard(
-                      title: 'Bank Info',
-                      isEditing: isEditingBank,
-                      onEditToggle: () {
-                        setState(() {
-                          isEditingBank = !isEditingBank;
-                        });
-                      },
-                      onUpdate: updateBankInfo,
-                      formKey: _formKeyBank,
-                      isLoadingButton: isUpdatingBank,
-                      children: [
-                        buildEditableField(
-                          'Holder Name',
-                          bankHolder,
-                          (val) => setState(() => bankHolder = val),
-                          isEditingBank,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Bank Name',
-                          bankName,
-                          (val) => setState(() => bankName = val),
-                          isEditingBank,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Branch',
-                          branch,
-                          (val) => setState(() => branch = val),
-                          isEditingBank,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Account No',
-                          accountNo,
-                          (val) => setState(() => accountNo = val),
-                          isEditingBank,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Routing No',
-                          routingNo,
-                          (val) => setState(() => routingNo = val),
-                          isEditingBank,
-                          validator: requiredValidator,
-                        ),
-                      ],
-                    ),
+                        // ✅ NID Back
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'NID Back',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
 
-                    // Mobile Banking Section
-                    buildSectionCard(
-                      title: 'Mobile Banking',
-                      isEditing: isEditingMobileBanking,
-                      onEditToggle: () {
-                        setState(() {
-                          isEditingMobileBanking = !isEditingMobileBanking;
-                        });
-                      },
-                      onUpdate: updateMobileBankingInfo,
-                      formKey: _formKeyMobileBank,
-                      isLoadingButton: isUpdatingMobileBanking,
-                      children: [
-                        buildEditableField(
-                          'Bkash',
-                          bkash,
-                          (val) => setState(() => bkash = val),
-                          isEditingMobileBanking,
-                          validator: (val) {
-                            if (isEditingMobileBanking) {
-                              if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
-                                  (nagad == 'N/A' || nagad.trim().isEmpty) &&
-                                  (rocket == 'N/A' || rocket.trim().isEmpty)) {
-                                return 'At least one mobile banking number is required';
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                        buildEditableField(
-                          'Nagad',
-                          nagad,
-                          (val) => setState(() => nagad = val),
-                          isEditingMobileBanking,
-                          validator: (val) {
-                            if (isEditingMobileBanking) {
-                              if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
-                                  (nagad == 'N/A' || nagad.trim().isEmpty) &&
-                                  (rocket == 'N/A' || rocket.trim().isEmpty)) {
-                                return 'At least one mobile banking number is required';
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                        buildEditableField(
-                          'Rocket',
-                          rocket,
-                          (val) => setState(() => rocket = val),
-                          isEditingMobileBanking,
-                          validator: (val) {
-                            if (isEditingMobileBanking) {
-                              if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
-                                  (nagad == 'N/A' || nagad.trim().isEmpty) &&
-                                  (rocket == 'N/A' || rocket.trim().isEmpty)) {
-                                return 'At least one mobile banking number is required';
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
+                              // ✅ Show image (from API or new file)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: nidBackFile != null
+                                    ? Image.file(
+                                  nidBackFile!,
+                                  width: double.infinity,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.network(
+                                  nidBackUrl ??
+                                      'https://via.placeholder.com/150?text=NID+Back',
+                                  width: double.infinity,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      Container(
+                                        width: double.infinity,
+                                        height: 120,
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                ),
+                              ),
 
-                    // Nominee Info Section
-                    buildSectionCard(
-                      title: 'Nominee Info',
-                      isEditing: isEditingNominee,
-                      onEditToggle: () {
-                        setState(() {
-                          isEditingNominee = !isEditingNominee;
-                        });
-                      },
-                      onUpdate: updateNomineeInfo,
-                      formKey: _formKeyNominee,
-                      isLoadingButton: isUpdatingNominee,
-                      children: [
-                        buildEditableField(
-                          'Name',
-                          nomineeName,
-                          (val) => setState(() => nomineeName = val),
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Contact',
-                          nomineeContact,
-                          (val) => setState(() => nomineeContact = val),
-                          isEditingNominee,
-                          validator: phoneValidator,
-                        ),
-                        buildEditableField(
-                          'NID Number',
-                          nomineeNid,
-                          (val) => setState(() => nomineeNid = val),
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Relation',
+                              const SizedBox(height: 8),
+
+                              // ✅ Upload Button
+                              CustomButton(
+                                text: "Upload NID Back",
+                                icon: Icons.upload, // same icon
+                                onPressed: pickNidBack,
+                                backgroundColor: Colors.green[300]!, // same as your button color
+                                textColor: Colors.white,
+                                height: 30, // same height you wanted
+                                borderRadius: 8, // subtle round corners
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                horizontalPadding: 16,
+                                verticalPadding: 0,
+                                useExtraRoundedCorners: false,
+                                isRound: false,
+                              ),
+
+
+                            ],
                           ),
-                          value:
-                              relations.any(
-                                (r) => r['id'] == selectedRelationId,
-                              )
-                              ? selectedRelationId
-                              : null,
-                          items: relations
-                              .map<DropdownMenuItem<int>>((r) {
-                                final id = r['id'] as int?;
-                                final name = r['name'] as String? ?? 'Unknown';
-                                if (id == null) {
-                                  // Skip this item if id is null to avoid errors
-                                  // return null;
-                                }
-                                return DropdownMenuItem<int>(
-                                  value: id,
-                                  child: Text(name),
-                                );
-                              })
-                              .whereType<DropdownMenuItem<int>>()
-                              .toList(),
-
-                          onChanged: isEditingNominee
-                              ? (val) =>
-                                    setState(() => selectedRelationId = val)
-                              : null,
-                          validator: (value) =>
-                              value == null ? 'Please select a relation' : null,
-                        ),
-                        SizedBox(height: 8),
-
-                        buildEditableField(
-                          'Address',
-                          nomineeAddress,
-                          (val) => setState(() => nomineeAddress = val),
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Account Holder Name',
-                          nomineebankAccountName ?? '',
-                          (val) => setState(() => nomineebankAccountName = val),
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Bank Name',
-                          nomineebankName ?? '',
-                          (val) => setState(() => nomineebankName = val),
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Branch Name',
-                          nomineebranch ?? '', // <-- fixed
-                          (val) => setState(() => nomineebranch = val),
-                          // <-- fixed
-                          isEditingNominee,
-                          validator: requiredValidator,
-                        ),
-                        buildEditableField(
-                          'Account Number',
-                          nomineeaccountNo ?? '', // <-- fixed
-                          (val) => setState(() => nomineeaccountNo = val),
-                          // <-- fixed
-                          isEditingNominee,
-                          validator: requiredValidator,
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  buildEditableField(
+                    'NID Number',
+                    nid,
+                        (val) => setState(() => nid = val),
+                    isEditingInvestor,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Address',
+                    address,
+                        (val) => setState(() => address = val),
+                    isEditingInvestor,
+                    validator: requiredValidator,
+                  ),
+                ],
               ),
-            ),
+
+              // Bank Info Section
+              buildSectionCard(
+                title: 'Bank Info',
+                isEditing: isEditingBank,
+                onEditToggle: () {
+                  setState(() {
+                    isEditingBank = !isEditingBank;
+                  });
+                },
+                onUpdate: updateBankInfo,
+                formKey: _formKeyBank,
+                isLoadingButton: isUpdatingBank,
+                children: [
+                  buildEditableField(
+                    'Holder Name',
+                    bankHolder,
+                        (val) => setState(() => bankHolder = val),
+                    isEditingBank,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Bank Name',
+                    bankName,
+                        (val) => setState(() => bankName = val),
+                    isEditingBank,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Branch',
+                    branch,
+                        (val) => setState(() => branch = val),
+                    isEditingBank,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Account No',
+                    accountNo,
+                        (val) => setState(() => accountNo = val),
+                    isEditingBank,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Routing No',
+                    routingNo,
+                        (val) => setState(() => routingNo = val),
+                    isEditingBank,
+                    validator: requiredValidator,
+                  ),
+                ],
+              ),
+
+              // Mobile Banking Section
+              buildSectionCard(
+                title: 'Mobile Banking',
+                isEditing: isEditingMobileBanking,
+                onEditToggle: () {
+                  setState(() {
+                    isEditingMobileBanking = !isEditingMobileBanking;
+                  });
+                },
+                onUpdate: updateMobileBankingInfo,
+                formKey: _formKeyMobileBank,
+                isLoadingButton: isUpdatingMobileBanking,
+                children: [
+                  buildEditableField(
+                    'Bkash',
+                    bkash,
+                        (val) => setState(() => bkash = val),
+                    isEditingMobileBanking,
+                    validator: (val) {
+                      if (isEditingMobileBanking) {
+                        if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
+                            (nagad == 'N/A' || nagad.trim().isEmpty) &&
+                            (rocket == 'N/A' || rocket.trim().isEmpty)) {
+                          return 'At least one mobile banking number is required';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  buildEditableField(
+                    'Nagad',
+                    nagad,
+                        (val) => setState(() => nagad = val),
+                    isEditingMobileBanking,
+                    validator: (val) {
+                      if (isEditingMobileBanking) {
+                        if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
+                            (nagad == 'N/A' || nagad.trim().isEmpty) &&
+                            (rocket == 'N/A' || rocket.trim().isEmpty)) {
+                          return 'At least one mobile banking number is required';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  buildEditableField(
+                    'Rocket',
+                    rocket,
+                        (val) => setState(() => rocket = val),
+                    isEditingMobileBanking,
+                    validator: (val) {
+                      if (isEditingMobileBanking) {
+                        if ((bkash == 'N/A' || bkash.trim().isEmpty) &&
+                            (nagad == 'N/A' || nagad.trim().isEmpty) &&
+                            (rocket == 'N/A' || rocket.trim().isEmpty)) {
+                          return 'At least one mobile banking number is required';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+
+              // Nominee Info Section
+              buildSectionCard(
+                title: 'Nominee Info',
+                isEditing: isEditingNominee,
+                onEditToggle: () {
+                  setState(() {
+                    isEditingNominee = !isEditingNominee;
+                  });
+                },
+                onUpdate: updateNomineeInfo,
+                formKey: _formKeyNominee,
+                isLoadingButton: isUpdatingNominee,
+                children: [
+                  buildEditableField(
+                    'Name',
+                    nomineeName,
+                        (val) => setState(() => nomineeName = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Contact',
+                    nomineeContact,
+                        (val) => setState(() => nomineeContact = val),
+                    isEditingNominee,
+                    validator: phoneValidator,
+                  ),
+                  buildEditableField(
+                    'NID Number',
+                    nomineeNid,
+                        (val) => setState(() => nomineeNid = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: 'Relation',
+                    ),
+                    value:
+                    relations.any(
+                          (r) => r['id'] == selectedRelationId,
+                    )
+                        ? selectedRelationId
+                        : null,
+                    items: relations
+                        .map<DropdownMenuItem<int>>((r) {
+                      final id = r['id'] as int?;
+                      final name = r['name'] as String? ?? 'Unknown';
+                      if (id == null) {
+                        // Skip this item if id is null to avoid errors
+                        // return null;
+                      }
+                      return DropdownMenuItem<int>(
+                        value: id,
+                        child: Text(name),
+                      );
+                    })
+                        .whereType<DropdownMenuItem<int>>()
+                        .toList(),
+
+                    onChanged: isEditingNominee
+                        ? (val) =>
+                        setState(() => selectedRelationId = val)
+                        : null,
+                    validator: (value) =>
+                    value == null ? 'Please select a relation' : null,
+                  ),
+                  SizedBox(height: 8),
+
+                  buildEditableField(
+                    'Address',
+                    nomineeAddress,
+                        (val) => setState(() => nomineeAddress = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Account Holder Name',
+                    nomineeBankHolder ?? '',
+                        (val) => setState(() => nomineeBankHolder = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Bank Name',
+                    nomineeBankName ?? '',
+                        (val) => setState(() => nomineeBankName = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Branch Name',
+                    nomineeBranch ?? '',
+                        (val) => setState(() => nomineeBranch = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                  buildEditableField(
+                    'Account Number',
+                    nomineeAccountNo ?? '',
+                        (val) => setState(() => nomineeAccountNo = val),
+                    isEditingNominee,
+                    validator: requiredValidator,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
