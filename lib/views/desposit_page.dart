@@ -97,16 +97,16 @@ class _DepositPageState extends State<DepositPage> {
     super.dispose();
   }
 
-  String _formatDate(String rawDate) {
-    try {
-      final date = DateTime.parse(rawDate);
-      return DateFormat(
-        'dd MMM yyyy, h:mm a',
-      ).format(date); // Example: 16 Jul 2025
-    } catch (e) {
-      return rawDate;
-    }
-  }
+  // String _formatDate(String rawDate) {
+  //   try {
+  //     final date = DateTime.parse(rawDate);
+  //     return DateFormat(
+  //       'dd MMM yyyy, h:mm a',
+  //     ).format(date); // Example: 16 Jul 2025
+  //   } catch (e) {
+  //     return rawDate;
+  //   }
+  // }
 
   Future<void> _handleRefresh() async {
     await _loadInvestorCode();
@@ -184,18 +184,18 @@ class _DepositPageState extends State<DepositPage> {
     return _filteredDepositHistory.sublist(start, end);
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
+  // Color _getStatusColor(String status) {
+  //   switch (status.toLowerCase()) {
+  //     case 'pending':
+  //       return Colors.orange;
+  //     case 'approved':
+  //       return Colors.green;
+  //     case 'rejected':
+  //       return Colors.red;
+  //     default:
+  //       return Colors.grey;
+  //   }
+  // }
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -980,26 +980,32 @@ class _DepositPageState extends State<DepositPage> {
                     ),
 
                     item.invoiceNo == null
-                        ? Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            SizedBox(
-                                child: const Icon(
-                                  Icons.block,
-                                  color: Colors.red,
-                                  size: 22,
+                        ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                  child: const Icon(
+                                    Icons.block,
+                                    color: Colors.red,
+                                    size: 22,
+                                  ),
                                 ),
-                              ),
-                          ],
-                        )
-                        : InvoiceActionButtons(
-                            invoiceNo: item.invoiceNo!,
-                            downloadUrl:
-                                'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
-                            viewUrl:
-                                'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
-                            status: item.status,
+                            ],
                           ),
+                        )
+                        : Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: InvoiceActionButtons(
+                              invoiceNo: item.invoiceNo!,
+                              downloadUrl:
+                                  'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
+                              viewUrl:
+                                  'https://growupagro.tech/api/invoice/pdf/${item.invoiceNo!}',
+                              status: item.status,
+                            ),
+                        ),
 
                   ],
                 ),
@@ -1059,7 +1065,8 @@ class _DepositPageState extends State<DepositPage> {
                       fontSize: 14,
                       height: 26,
                       borderRadius: 5,
-                      backgroundColor: Colors.grey[400]!,
+                      backgroundColor: Color(0xFF8BC34A),
+                      textColor: Colors.white,
                       onPressed: _currentPage > 0
                           ? () => setState(() => _currentPage--)
                           : null,
@@ -1079,13 +1086,15 @@ class _DepositPageState extends State<DepositPage> {
                       fontSize: 14,
                       height: 26,
                       borderRadius: 5,
-                      backgroundColor: Colors.grey[400]!,
+                      backgroundColor: Color(0xFF8BC34A),
+                      textColor: Colors.white,
                       onPressed: (_currentPage + 1) * _itemsPerPage <
                           _filteredDepositHistory.length
                           ? () => setState(() => _currentPage++)
                           : null,
                     ),
                   ),
+
                 ],
               ),
             ),

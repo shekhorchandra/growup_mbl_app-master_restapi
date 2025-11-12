@@ -74,8 +74,9 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
 
       if (projects == null || projects.isEmpty) return [];
 
-      _allProjects =
-          projects.map<MyProjectsModel>((p) => MyProjectsModel.fromJson(p)).toList();
+      _allProjects = projects
+          .map<MyProjectsModel>((p) => MyProjectsModel.fromJson(p))
+          .toList();
       _filteredProjects = _allProjects;
       return _allProjects;
     } else {
@@ -157,8 +158,8 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
       centerTitle: true,
       actions: [
         IconButton(
-          icon: Icon(_isSearching ? Icons.close : Icons.search,
-              color: Colors.white),
+          icon:
+          Icon(_isSearching ? Icons.close : Icons.search, color: Colors.white),
           onPressed: () {
             setState(() {
               if (_isSearching) _searchController.clear();
@@ -180,6 +181,51 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
+  }
+
+  // ✅ Your project status logic integrated here
+  Map<String, dynamic> _getProjectStatus(MyProjectsModel project) {
+    final now = DateTime.now();
+
+    DateTime? startDate = project.project_start_date != null &&
+        project.project_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_start_date!)
+        : null;
+
+    DateTime? roiStartDate = project.roi_start_date != null &&
+        project.roi_start_date!.isNotEmpty
+        ? DateTime.tryParse(project.roi_start_date!)
+        : null;
+
+    DateTime? endDate = project.project_end_date != null &&
+        project.project_end_date!.isNotEmpty
+        ? DateTime.tryParse(project.project_end_date!)
+        : null;
+
+    String status = 'Unknown';
+    int priority = 5;
+
+    if (startDate != null &&
+        roiStartDate != null &&
+        now.isAfter(startDate) &&
+        now.isBefore(roiStartDate)) {
+      status = 'Investment Collecting';
+      priority = 1;
+    } else if (roiStartDate != null &&
+        endDate != null &&
+        now.isAfter(roiStartDate) &&
+        now.isBefore(endDate)) {
+      status = 'Running';
+      priority = 2;
+    } else if (startDate != null && now.isBefore(startDate)) {
+      status = 'Upcoming';
+      priority = 3;
+    } else if (endDate != null && now.isAfter(endDate)) {
+      status = 'Matured';
+      priority = 4;
+    }
+
+    return {'status': status, 'priority': priority};
   }
 
   @override
@@ -206,15 +252,9 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
             itemCount: projects.length,
             itemBuilder: (context, index) {
               final project = projects[index];
-              final now = DateTime.now();
 
-              DateTime? startDate;
-
-              try {
-                if (project.project_start_date?.isNotEmpty ?? false) {
-                  startDate = DateTime.parse(project.project_start_date!);
-                }
-              } catch (_) {}
+              final statusData = _getProjectStatus(project);
+              final statusText = statusData['status'];
 
               final goal = double.tryParse(
                   project.investmentGoal?.replaceAll(',', '') ?? '0') ??
@@ -224,10 +264,15 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                   0;
               final inWaiting = goal - raised;
 
-              final showUpcoming =
-                  startDate != null && now.isBefore(startDate);
-              final showInvestNow =
-                  project.status == 1 && raised <= goal;
+              final showUpcoming = statusText == 'Upcoming';
+              final showInvestNow = statusText == 'Investment Collecting';
+
+              DateTime? startDate;
+              try {
+                if (project.project_start_date?.isNotEmpty ?? false) {
+                  startDate = DateTime.parse(project.project_start_date!);
+                }
+              } catch (_) {}
 
               return ProjectCard(
                 buttonText: "Re-Invest",
@@ -239,18 +284,17 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                 projectDuration: project.projectDurationViewer ?? 'N/A',
                 startDate: formatDate(project.project_start_date),
                 endDate: formatDate(project.project_end_date),
-                roiStartDate: "",
+                roiStartDate: formatDate(project.roi_start_date),
                 investmentGoal: goal,
                 minInvestment: double.tryParse(
-                    project.minInvestmentAmount?.replaceAll(',', '') ??
-                        '0') ??
+                    project.minInvestmentAmount?.replaceAll(',', '') ?? '0') ??
                     0,
                 raised: raised,
                 inWaiting: inWaiting,
                 roi: project.annualRoi != null
                     ? 'Annually ${project.annualRoi}%'
                     : 'N/A',
-                statusText: project.status == 1 ? 'Running' : 'Closed',
+                statusText: statusText,
                 showInvestNow: showInvestNow,
                 showUpcoming: showUpcoming,
                 investmentStartDate: startDate != null
@@ -267,8 +311,8 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
           ? FloatingActionButton(
         onPressed: _scrollToTop,
         backgroundColor: Colors.orange,
-        child: const Icon(Icons.arrow_upward,
-            color: Colors.white, size: 20),
+        child:
+        const Icon(Icons.arrow_upward, color: Colors.white, size: 20),
       )
           : null,
     );

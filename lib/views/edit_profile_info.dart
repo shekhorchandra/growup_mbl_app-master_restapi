@@ -258,7 +258,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -273,7 +273,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 16),
 
             // Input fields with border
-            _buildInput('Full Name', fullNameController),
+            _buildInput('Full Name', fullNameController, TextInputType.name),
             _buildInput('Email Address', emailController, TextInputType.emailAddress),
             _buildInput('Phone Number', phoneController, TextInputType.phone),
             const SizedBox(height: 16),
@@ -331,7 +331,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Form(
       key: _passwordFormKey,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

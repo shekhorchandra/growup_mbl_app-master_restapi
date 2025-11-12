@@ -180,7 +180,7 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
                       projectName: project.projectName ?? 'N/A',
                       businessType: project.businessType_name ?? 'N/A',
                       imageUrl: project.imageUrl,
-                      projectDuration: project.project_duration_viewer ?? 'N/A',
+                      projectDuration: '${project.project_duration_viewer ?? 'N/A'} Months',
                       startDate: formatDate(project.project_start_date),
                       endDate: formatDate(project.project_end_date),
                       roiStartDate: formatDate("s"),

@@ -166,7 +166,7 @@ class _ProjectCertificatesPageState extends State<ProjectCertificatesPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: Colors.green),
+              child: CircularProgressIndicator(),
             );
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));

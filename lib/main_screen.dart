@@ -8,6 +8,7 @@ import 'package:growup_agro/views/all_projects.dart';
 import 'package:growup_agro/views/all_properties.dart';
 import 'package:growup_agro/views/investor_dashboard.dart';
 import 'package:growup_agro/widgets/bottom_nav_bar.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -257,43 +258,27 @@ class _MainScreenState extends State<MainScreen> {
                       // ---------------- LOGOUT ----------------
                       Container(
                         color: Colors.white,
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            minimumSize: const Size.fromHeight(45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          icon: const Icon(Icons.logout, color: Colors.white),
-                          label: const Text(
-                            'Logout',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: CustomButton(
+                          text: "Logout",
+                          icon: Icons.logout,
                           onPressed: () async {
                             final shouldLogout = await showDialog<bool>(
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Confirm Logout'),
-                                content:
-                                const Text('Are you sure you want to logout?'),
+                                content: const Text('Are you sure you want to logout?'),
                                 actions: [
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
+                                    onPressed: () => Navigator.of(context).pop(false),
                                     child: const Text('Cancel'),
                                   ),
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: const Text('Logout',
-                                        style: TextStyle(color: Colors.red)),
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text(
+                                      'Logout',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -303,8 +288,19 @@ class _MainScreenState extends State<MainScreen> {
                               await _logout();
                             }
                           },
+                          backgroundColor: Colors.red, // 🔴 same red as before
+                          textColor: Colors.white,
+                          height: 45, // ✅ same as previous ElevatedButton
+                          borderRadius: 10, // ✅ match your logout shape
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          horizontalPadding: 16,
+                          verticalPadding: 0,
+                          useExtraRoundedCorners: false,
+                          isRound: false,
                         ),
                       ),
+
                     ],
                   ),
                 ),

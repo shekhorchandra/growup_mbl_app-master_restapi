@@ -21,6 +21,7 @@ import 'package:growup_agro/views/live.dart';
 import 'package:growup_agro/views/short_duration.dart';
 import 'package:growup_agro/views/wallet_history.dart';
 import 'package:growup_agro/widgets/advertisement_slider.dart';
+import 'package:growup_agro/widgets/custom_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/all_properties.model.dart';
@@ -453,7 +454,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Yes'),
+                child: const Text('Yes', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -800,44 +801,23 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         // ---------------- Logout ----------------
                         Container(
                           color: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              minimumSize: const Size.fromHeight(45),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            icon: const Icon(Icons.logout, color: Colors.white),
-                            label: const Text(
-                              'Logout',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          child: CustomButton(
+                            text: "Logout",
+                            icon: Icons.logout,
                             onPressed: () async {
                               final shouldLogout = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Confirm Logout'),
-                                  content: const Text(
-                                    'Are you sure you want to logout?',
-                                  ),
+                                  content: const Text('Are you sure you want to logout?'),
                                   actions: [
                                     TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
+                                      onPressed: () => Navigator.of(context).pop(false),
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
+                                      onPressed: () => Navigator.of(context).pop(true),
                                       child: const Text(
                                         'Logout',
                                         style: TextStyle(color: Colors.red),
@@ -851,8 +831,19 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                 await _logout();
                               }
                             },
+                            backgroundColor: Colors.red, // 🔴 same red as before
+                            textColor: Colors.white,
+                            height: 45, // ✅ same as previous ElevatedButton
+                            borderRadius: 10, // ✅ match your logout shape
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            horizontalPadding: 16,
+                            verticalPadding: 0,
+                            useExtraRoundedCorners: false,
+                            isRound: false,
                           ),
                         ),
+
                       ],
                     ),
                   ),
@@ -1171,6 +1162,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
 
                 SizedBox(height: 8),
 
+
+              //Growup INVESTMENT BY CATEGORY
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(alpha: .05),
@@ -1364,7 +1357,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: const Text(
-                                'PROJECTS YOU MAY INVEST',
+                                'PROJECTS\nYOU MAY INVEST',
                                 style: TextStyle(
                                   color: Color(0xFF2E7D32),
                                   fontWeight: FontWeight.w600,
@@ -1427,6 +1420,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ),
                 ),
 
+                //PROPERTIES INVESTMENT BY CATEGORY
                 Container(
                   // CHANGED: Set the color to transparent to remove the white background
                   color: Colors.green.withValues(alpha: .03),
@@ -1602,7 +1596,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                                         isLive: false,
                                       ),
                                       CategoryItem(
-                                        icon: const Icon(FontAwesomeIcons.treeCity, color: Colors.green),
+                                        icon: const Icon(FontAwesomeIcons.chessKing, color: Colors.green),
                                         title: 'The Royal North-Bengal Club',
                                         onTap: () {
                                           Navigator.push(
@@ -1717,6 +1711,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                 ),
 
                 SizedBox(height: 16),
+
                 // Transactions
                 Card(
                   color: Colors.white,
@@ -1798,6 +1793,8 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                     ],
                   ),
                 ),
+
+                // GrowUp Recent Activities
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
@@ -1825,6 +1822,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                   ],
                 ),
 
+                // GrowUp Global Insight
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [

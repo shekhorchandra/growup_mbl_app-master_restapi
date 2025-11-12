@@ -202,7 +202,7 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
                       businessType: project.businessType_name ?? 'N/A',
                       imageUrl: project.imageUrl,
                       projectDuration:
-                      project.project_duration_viewer ?? 'N/A',
+                      '${project.project_duration_viewer ?? 'N/A'} Months',
                       startDate: formatDate(project.project_start_date),
                       endDate: formatDate(project.project_end_date),
                       roiStartDate: formatDate(project.roi_start_date),

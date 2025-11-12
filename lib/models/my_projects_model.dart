@@ -13,6 +13,7 @@ class MyProjectsModel {
   final String? businessTypeName;
   final String? project_start_date;
   final String? project_end_date;
+  final String roi_start_date;
 
   MyProjectsModel({
     this.id,
@@ -29,6 +30,7 @@ class MyProjectsModel {
     this.businessTypeName,
     this.project_start_date,
     this.project_end_date,
+    required this.roi_start_date,
   });
 
   factory MyProjectsModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +49,7 @@ class MyProjectsModel {
       businessTypeName: json['businessType_name'],
       project_start_date: json['project_start_date'],
       project_end_date: json['project_end_date'],
+      roi_start_date: json['roi_start_date']?.toString() ?? 'N/A',
     );
   }
 

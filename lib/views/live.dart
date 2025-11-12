@@ -204,8 +204,8 @@ class _LiveProjectsPageState extends State<LiveProjectsPage> {
                       businessType: project.businessType_name ?? 'N/A',
                       imageUrl: project.imageUrl,
                       projectDuration:
-                      project.project_duration_viewer ?? 'N/A',
-                      startDate: formatDate(project.project_start_date),
+                      '${project.project_duration_viewer ?? 'N/A'} Months',
+                        startDate: formatDate(project.project_start_date),
                       endDate: formatDate(project.project_end_date),
                       roiStartDate: formatDate(project.roi_start_date),
                       investmentGoal: goal,

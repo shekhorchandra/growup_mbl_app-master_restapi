@@ -215,9 +215,9 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    _sectionDivider("Key Points"),
-                    _buildKeyPointsCard(project),
-                    const SizedBox(height: 16),
+                    // _sectionDivider("Key Points"),
+                    // _buildKeyPointsCard(project),
+                    // const SizedBox(height: 16),
 
                     _sectionDivider("Summary"),
                     _buildSummaryCard(project),
@@ -279,26 +279,26 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
     ],
   );
 
-  Widget _buildKeyPointsCard(ProjectDetailsModel project) {
-    return Container(
-      decoration: _cardBoxDecoration(),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InfoRow(
-            title: "Duration",
-            value: _getKeyPoint("Duration of Investment"),
-          ),
-          InfoRow(
-            title: "Projected ROI",
-            value: _getKeyPoint("Projected ROI (Return on Investment)"),
-          ),
-          InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
-        ],
-      ),
-    );
-  }
+  // Widget _buildKeyPointsCard(ProjectDetailsModel project) {
+  //   return Container(
+  //     decoration: _cardBoxDecoration(),
+  //     padding: const EdgeInsets.all(12),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         InfoRow(
+  //           title: "Duration",
+  //           value: _getKeyPoint("Duration of Investment"),
+  //         ),
+  //         InfoRow(
+  //           title: "Projected ROI",
+  //           value: _getKeyPoint("Projected ROI (Return on Investment)"),
+  //         ),
+  //         InfoRow(title: "Risk Factor", value: _getKeyPoint("Risk Factor")),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildSummaryCard(ProjectDetailsModel project) {
     final nf = NumberFormat.decimalPattern();

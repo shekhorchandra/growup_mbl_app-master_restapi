@@ -866,7 +866,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
                     fontSize: 14,
                     height: 26,
                     borderRadius: 5,
-                    backgroundColor: Colors.grey[400]!,
+                    backgroundColor: Color(0xFF8BC34A),
+                    textColor: Colors.white,
                     onPressed: _currentPage > 0
                         ? () => setState(() => _currentPage--)
                         : null,
@@ -886,7 +887,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
                     fontSize: 14,
                     height: 26,
                     borderRadius: 5,
-                    backgroundColor: Colors.grey[400]!,
+                    backgroundColor: Color(0xFF8BC34A),
+                    textColor: Colors.white,
                     onPressed: (_currentPage + 1) * _itemsPerPage <
                         _filteredWithdrawHistory.length
                         ? () => setState(() => _currentPage++)

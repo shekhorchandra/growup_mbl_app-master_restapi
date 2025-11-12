@@ -150,7 +150,7 @@ class _WalletHistoryPageState extends State<WalletHistoryPage> {
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
         onRefresh: _fetchWalletHistory,
         child: Column(

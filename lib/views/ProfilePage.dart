@@ -140,7 +140,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           // Investor Info
           final investor = data['investor'] ?? {};
           profileImageUrl = investor['image'] != null
-              ? 'https://growupagro.online/storage/${investor['image']}'
+              ? 'https://growupagro.tech/storage/${investor['image']}'
               : null;
 
           // ✅ Correct NID keys
@@ -1043,20 +1043,23 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                               const SizedBox(height: 8),
 
                               // ✅ Upload Button
-                              CustomButton(
-                                text: "Upload NID Front",
-                                icon: Icons.upload,
-                                onPressed: pickNidFront,
-                                backgroundColor: Colors.green[300]!, // same color as before
-                                textColor: Colors.white,
-                                height: 30, // match your previous height
-                                borderRadius: 8, // rounded corners
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                horizontalPadding: 16,
-                                verticalPadding: 0,
-                                useExtraRoundedCorners: false,
-                                isRound: false,
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CustomButton(
+                                  text: "Upload NID Front",
+                                  icon: Icons.upload,
+                                  onPressed: pickNidFront,
+                                  backgroundColor: Colors.green[300]!, // same color as before
+                                  textColor: Colors.white,
+                                  height: 30, // match your previous height
+                                  borderRadius: 8, // rounded corners
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  horizontalPadding: 16,
+                                  verticalPadding: 0,
+                                  useExtraRoundedCorners: false,
+                                  isRound: false,
+                                ),
                               ),
 
                             ],
@@ -1110,20 +1113,23 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                               const SizedBox(height: 8),
 
                               // ✅ Upload Button
-                              CustomButton(
-                                text: "Upload NID Back",
-                                icon: Icons.upload, // same icon
-                                onPressed: pickNidBack,
-                                backgroundColor: Colors.green[300]!, // same as your button color
-                                textColor: Colors.white,
-                                height: 30, // same height you wanted
-                                borderRadius: 8, // subtle round corners
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                horizontalPadding: 16,
-                                verticalPadding: 0,
-                                useExtraRoundedCorners: false,
-                                isRound: false,
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CustomButton(
+                                  text: "Upload NID Back",
+                                  icon: Icons.upload, // same icon
+                                  onPressed: pickNidBack,
+                                  backgroundColor: Colors.green[300]!, // same as your button color
+                                  textColor: Colors.white,
+                                  height: 30, // same height you wanted
+                                  borderRadius: 8, // subtle round corners
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  horizontalPadding: 16,
+                                  verticalPadding: 0,
+                                  useExtraRoundedCorners: false,
+                                  isRound: false,
+                                ),
                               ),
 
 
