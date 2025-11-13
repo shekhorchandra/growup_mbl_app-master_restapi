@@ -160,19 +160,28 @@ class _TotalProjectsPageState extends State<TotalProjectsPage> {
                         ? DateTime.tryParse(project.project_start_date!)
                         : null;
 
-                    final bool isRunning = project.status == 1;
+                    // final bool isRunning = project.status == 1;
+                    // final double goal = project.investmentGoal ?? 0;
+                    // final double raised = project.raised ?? 0;
+                    // final bool canInvest = isRunning && (raised <= goal);
+                    //
+                    // bool showInvestNow = false;
+                    // bool showUpcoming = false;
+                    //
+                    // if (startDate != null && now.isBefore(startDate)) {
+                    //   showUpcoming = true;
+                    // } else if (canInvest) {
+                    //   showInvestNow = true;
+                    // }
+
                     final double goal = project.investmentGoal ?? 0;
                     final double raised = project.raised ?? 0;
-                    final bool canInvest = isRunning && (raised <= goal);
 
-                    bool showInvestNow = false;
-                    bool showUpcoming = false;
 
-                    if (startDate != null && now.isBefore(startDate)) {
-                      showUpcoming = true;
-                    } else if (canInvest) {
-                      showInvestNow = true;
-                    }
+
+                    final bool showInvestNow = statusText == 'Investment Collecting';
+                    final bool showUpcoming = startDate != null && now.isBefore(startDate);
+
 
                     return ProjectCard(
                       projectName: project.projectName ?? 'N/A',

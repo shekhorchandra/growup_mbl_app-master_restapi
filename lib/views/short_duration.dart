@@ -194,8 +194,9 @@ class _ShortProjectsPageState extends State<ShortProjectsPage> {
                     final raised = project.raised ?? 0;
                     final showUpcoming =
                         startDate != null && now.isBefore(startDate);
-                    final showInvestNow =
-                        project.status == 1 && raised <= goal;
+                    // final showInvestNow =
+                    //     project.status == 1 && raised <= goal;
+                    final showInvestNow = statusText == 'Investment Collecting';
 
                     return ProjectCard(
                       projectName: project.projectName ?? 'N/A',

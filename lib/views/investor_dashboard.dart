@@ -11,6 +11,7 @@ import 'package:growup_agro/views/all_projects.dart';
 import 'package:growup_agro/views/all_properties.dart';
 import 'package:growup_agro/views/auto_slider_card.dart';
 import 'package:growup_agro/views/commercial_city.dart';
+import 'package:growup_agro/views/global_insights.dart';
 import 'package:growup_agro/views/residencial_city_page.dart';
 import 'package:growup_agro/views/rosa_health.dart';
 import 'package:growup_agro/views/royal_eco_city.dart';
@@ -796,7 +797,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                           '/blogs',
                         ),
 
-                        const Divider(height: 50),
+                        const Divider(height: 20, thickness: 1, color: Colors.green),
 
                         // ---------------- Logout ----------------
                         Container(
@@ -1845,7 +1846,7 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
                         bottom: 8,
                         right: 0,
                       ),
-                      child: AdvertisementSlider(),
+                      child: GlobalInsightsSlider(),
                     ),
                   ],
                 ),

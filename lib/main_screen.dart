@@ -253,7 +253,7 @@ class _MainScreenState extends State<MainScreen> {
                       _drawerTile(context, FontAwesomeIcons.newspaper, 'News', '/news'),
                       _drawerTile(context, FontAwesomeIcons.blog, 'Blog', '/blogs'),
 
-                      const Divider(height: 50),
+                      const Divider(height: 20, thickness: 1, color: Colors.green),
 
                       // ---------------- LOGOUT ----------------
                       Container(
