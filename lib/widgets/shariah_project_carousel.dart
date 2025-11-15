@@ -182,16 +182,16 @@ class _ShariahProjectCarouselState extends State<ShariahProjectCarousel> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.004),
+                      SizedBox(height: screenHeight * 0.005),
                       ...[
                         _infoRow(label: 'Type:', value: type),
                         _infoRow(label: 'Goal:', value: goal),
-                        _infoRow(label: 'Duration:', value: duration),
+                        _infoRow(label: 'Duration:', value: duration + 'Month'),
                         _infoRow(label: 'Min Invest:', value: minInvestment),
                         _infoRow(label: 'Time:', value: time),
                       ],
                       SizedBox(height: screenHeight * 0.01),
-                      SizedBox(
+                      /*SizedBox(
                         width: double.infinity,
                         child: CustomButton(
                           text: "Invest Now",
@@ -222,7 +222,7 @@ class _ShariahProjectCarouselState extends State<ShariahProjectCarousel> {
                             );
                           },
                         ),
-                      ),
+                      ),*/
                     ],
                   ),
                 ),
@@ -280,7 +280,7 @@ class _ShariahProjectCarouselState extends State<ShariahProjectCarousel> {
   Widget _infoRow({
     required String label,
     required String value,
-    double fontSize = 10,
+    double fontSize = 12,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

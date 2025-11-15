@@ -12,6 +12,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:shurjopay/models/config.dart';
+import 'package:shurjopay/models/payment_verification_model.dart';
+import 'package:shurjopay/models/shurjopay_request_model.dart';
+import 'package:shurjopay/models/shurjopay_response_model.dart';
+import 'package:shurjopay/shurjopay.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/deposit_model.dart';
@@ -57,7 +62,7 @@ class _DepositPageState extends State<DepositPage> {
     'Selected Method',
     'Cash Payment',
     'Bank Transfer',
-    "Online payment (SslCommerz)",
+    "Online payment (ShurjoPay)",
   ];
 
   final Map<String, Map<String, String>> _bankAccounts = {
@@ -204,6 +209,89 @@ class _DepositPageState extends State<DepositPage> {
     }
   }
 
+  void shurjoPay({
+    required transactionAmount,
+    required String transactionId,
+    required String investorName,
+    required String investorPhone,
+    required String investorEmail,
+    required String investorAddress,
+    required bool isLoading, required String investorId,
+    int? walletTransactionId,
+  }) async {
+    final shurjoPay = ShurjoPay();
+
+    ShurjopayConfigs shurjopayConfigs = ShurjopayConfigs(
+      prefix: "SP",
+      userName: "sp_sandbox",
+      password: "pyyk97hu&6u6",
+      clientIP: "127.0.0.1",
+    );
+
+    ShurjopayResponseModel shurjopayResponseModel = ShurjopayResponseModel();
+    ShurjopayVerificationModel shurjopayVerificationModel = ShurjopayVerificationModel();
+
+    ShurjopayRequestModel shurjopayRequestModel =
+    ShurjopayRequestModel(
+      configs: shurjopayConfigs,
+      currency: "BDT",
+      amount: transactionAmount,
+      orderID: transactionId,
+      discountAmount: 0,
+      discountPercentage: 0,
+      customerName: investorName,
+      customerPhoneNumber: investorPhone,
+      customerAddress: investorAddress,
+      customerEmail: investorEmail,
+      customerCity: "Dhaka",
+      customerPostcode: "0000",
+      value1: investorId,
+      value2: "N/A",
+      value3: "wallet_deposit",
+      value4: walletTransactionId.toString(),
+      // Live: https://www.engine.shurjopayment.com/return_url
+      returnURL:
+      "https://www.sandbox.shurjopayment.com/return_url",
+      // Live: https://www.engine.shurjopayment.com/cancel_url
+      cancelURL:
+      "https://www.sandbox.shurjopayment.com/cancel_url",
+    );
+    shurjopayResponseModel = await shurjoPay.makePayment(
+      context: context,
+      shurjopayRequestModel: shurjopayRequestModel,
+    );
+    if (shurjopayResponseModel.status == true) {
+      try {
+        shurjopayVerificationModel =
+        await shurjoPay.verifyPayment(
+          orderID: shurjopayResponseModel.shurjopayOrderID!,
+        );
+        print(shurjopayVerificationModel.spCode);
+        print(shurjopayVerificationModel.spMessage);
+        if (shurjopayVerificationModel.spCode == "1000") {
+          print("Payment Varified");
+
+          showProcessingPaymentDialog(context);
+          _loadPaymentStatus(
+            shurjopayVerificationModel.orderId!,
+            isLoading,
+            context,
+            "ShurjoPay",
+          );
+
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Something went wrong"), backgroundColor: Colors.red),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Something went wrong"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Future<void> _handleSslCommerzPay() async {
 
     final prefs = await SharedPreferences.getInstance();
@@ -265,6 +353,7 @@ class _DepositPageState extends State<DepositPage> {
 
       final walletTransaction = initiateData['data'];
       final transactionId = walletTransaction?['transaction_id']?.toString();
+      final walletTransactionId = walletTransaction?['wallet_transaction_id'];
       final transactionAmount = walletTransaction?['amount'];
 
       if (transactionId == null || transactionId.isEmpty) {
@@ -276,8 +365,21 @@ class _DepositPageState extends State<DepositPage> {
 
       Navigator.pop(context);
 
+      shurjoPay(
+        walletTransactionId : walletTransactionId,
+        investorId: investorId,
+        transactionId: transactionId,
+        transactionAmount: transactionAmount
+            .toDouble(),
+        investorName: investorName,
+        investorPhone: investorPhone,
+        investorEmail: email,
+        investorAddress: investorAddress,
+        isLoading: _isLoading,
+      );
+
       // Initialize SSLCommerz
-      Sslcommerz sslcommerz = Sslcommerz(
+      /*Sslcommerz sslcommerz = Sslcommerz(
         initializer: SSLCommerzInitialization(
           multi_card_name: "visa,master,bkash",
           currency: SSLCurrencyType.BDT,
@@ -293,7 +395,7 @@ class _DepositPageState extends State<DepositPage> {
       final response = await sslcommerz.payNow();
 
       showProcessingPaymentDialog(context);
-      _loadPaymentStatus(transactionId, _isLoading, context, response.status);
+      _loadPaymentStatus(transactionId, _isLoading, context, response.status);*/
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -315,7 +417,7 @@ class _DepositPageState extends State<DepositPage> {
       status!,
     );
 
-    if (status == 'VALID') {
+    if (status == 'VALID' || status == 'ShurjoPay') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -581,7 +683,7 @@ class _DepositPageState extends State<DepositPage> {
                     onPressed: () {
                       if (method == 'banktransfer') {
                         _submitDeposit();
-                      } else if (method == 'onlinepayment(sslcommerz)') {
+                      } else if (method == 'onlinepayment(shurjopay)') {
                         _handleSslCommerzPay();
                       } else {
                         _submitDeposit();
@@ -592,7 +694,7 @@ class _DepositPageState extends State<DepositPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     child: Text(
-                      method == 'onlinepayment(sslcommerz)' ? 'Pay with SSLCOMMERZ' : 'Deposit',
+                      method == 'onlinepayment(shurjopay)' ? 'Pay with ShurjoPay' : 'Deposit',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
@@ -610,7 +712,7 @@ class _DepositPageState extends State<DepositPage> {
                 const SizedBox(height: 12),
               ],
 
-              if (method == 'onlinepayment(sslcommerz)') ...[
+              if (method == 'onlinepayment(shurjopay)') ...[
                 const SizedBox(height: 12),
                 _buildSSLInstructions(),
               ],
@@ -859,7 +961,7 @@ class _DepositPageState extends State<DepositPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'আমাদের সুরক্ষিত পেমেন্ট গেটওয়ে (SslCommerz)-এর মাধ্যমে যেকোনো মোবাইল ওয়ালেট (MFS) যেমন: বিকাশ, নগদ, রকেট, ব্যাংক কার্ড (ডেবিট, ক্রেডিট, প্রিপেইড) ব্যবহার করে সহজেই আপনার ওয়ালেট রিচার্জ করতে পারবেন। '
+              'আমাদের সুরক্ষিত পেমেন্ট গেটওয়ে (ShurjoPay)-এর মাধ্যমে যেকোনো মোবাইল ওয়ালেট (MFS) যেমন: বিকাশ, নগদ, রকেট, ব্যাংক কার্ড (ডেবিট, ক্রেডিট, প্রিপেইড) ব্যবহার করে সহজেই আপনার ওয়ালেট রিচার্জ করতে পারবেন। '
               'এছাড়াও, নির্দিষ্ট ব্যাংকের ক্রেডিট কার্ড ব্যবহারকারীরা সহজ মাসিক কিস্তি (EMI) সুবিধা ব্যবহার করে ওয়ালেট রিচার্জ করতে পারবেন।',
               style: TextStyle(
                 fontSize: 12,
