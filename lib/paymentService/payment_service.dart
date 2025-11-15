@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../utils/api_constants.dart';
+
 class PaymentService {
-  static const String _baseUrlSuccess = 'https://growupagro.online/api/sslcommerz/payment/success';
-  static const String _baseUrlFail = 'https://growupagro.online/api/sslcommerz/payment/success';
-  static const String _baseUrlCancel = 'https://growupagro.online/api/sslcommerz/payment/success';
+  static final String _baseUrlSuccess = '${ApiConstants.baseUrl}/sslcommerz/payment/success';
+  static final String _baseUrlFail = '${ApiConstants.baseUrl}/sslcommerz/payment/success';
+  static final String _baseUrlCancel = '${ApiConstants.baseUrl}/sslcommerz/payment/success';
+
+  static final String _baseUrlShurjoPay = '${ApiConstants.baseUrl}/shurjopay/payment/callback';
 
   static Uri? url = null;
 
@@ -17,6 +21,8 @@ class PaymentService {
         url = Uri.parse('$_baseUrlFail?transaction_id=$transactionId');
       } else if(status == "Closed"){
         url = Uri.parse('$_baseUrlCancel?transaction_id=$transactionId');
+      } else if (status == "ShurjoPay"){
+        url = Uri.parse('$_baseUrlShurjoPay?order_id=$transactionId');
       } else {
         url = Uri.parse('$_baseUrlCancel?transaction_id=$transactionId');
       }

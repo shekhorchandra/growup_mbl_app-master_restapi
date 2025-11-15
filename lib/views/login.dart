@@ -41,15 +41,31 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     _loadRememberMeValue();
 
     // Animation setup
-    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _logoOpacity = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
     _logoSlide = Tween<Offset>(begin: const Offset(0, -0.5), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack));
+        .animate(
+          CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
+        );
 
-    _formController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
-    _formOpacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _formController, curve: Curves.easeIn));
-    _formSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
+    _formController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _formOpacity = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _formController, curve: Curves.easeIn));
+    _formSlide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _formController, curve: Curves.easeOut));
 
     // Animate sequentially
     Timer(const Duration(milliseconds: 200), () => _logoController.forward());
@@ -86,8 +102,14 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     setState(() => rememberMe = value);
 
     if (value) {
-      await secureStorage.write(key: 'username', value: usernameController.text);
-      await secureStorage.write(key: 'password', value: passwordController.text);
+      await secureStorage.write(
+        key: 'username',
+        value: usernameController.text,
+      );
+      await secureStorage.write(
+        key: 'password',
+        value: passwordController.text,
+      );
     } else {
       await secureStorage.delete(key: 'username');
       await secureStorage.delete(key: 'password');
@@ -103,12 +125,17 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         final data = jsonDecode(response.body);
         final redirectUrl = data['redirect_url'];
         if (redirectUrl != null) {
-          await launchUrlString(redirectUrl, mode: LaunchMode.externalApplication);
+          await launchUrlString(
+            redirectUrl,
+            mode: LaunchMode.externalApplication,
+          );
         } else {
           debugPrint('Redirect URL is null');
         }
       } else {
-        debugPrint('Failed to call forgot password API: ${response.statusCode}');
+        debugPrint(
+          'Failed to call forgot password API: ${response.statusCode}',
+        );
       }
     } catch (e) {
       debugPrint('Error occurred: $e');
@@ -122,8 +149,8 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
     final width = size.width;
 
     // ⚙️ Default demo credentials
-    //  usernameController.text = "01833933567";
-     // passwordController.text = "ja!1ma!3Pa#2";
+    usernameController.text = "01833933567";
+    passwordController.text = "ja!1ma!3Pa#2";
 
     return Container(
       decoration: const BoxDecoration(
@@ -137,7 +164,9 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom), // ✅ prevents bottom overflow
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ), // ✅ prevents bottom overflow
             child: Column(
               children: [
                 SizedBox(height: height * 0.03),
@@ -224,13 +253,21 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
               onChanged: (value) {
                 if (value != null) _updateRememberMeValue(value);
               },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
               side: const BorderSide(color: Colors.white),
               fillColor: MaterialStateProperty.resolveWith<Color>(
-                      (states) => states.contains(MaterialState.selected) ? Colors.white : Colors.transparent),
+                (states) => states.contains(MaterialState.selected)
+                    ? Colors.white
+                    : Colors.transparent,
+              ),
               checkColor: Colors.black,
             ),
-            const Text('Remember me', style: TextStyle(color: Colors.white, fontSize: 15)),
+            const Text(
+              'Remember me',
+              style: TextStyle(color: Colors.white, fontSize: 15),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -238,89 +275,125 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           onPressed: isLoading
               ? null
               : () async {
-            final username = usernameController.text.trim();
-            final password = passwordController.text.trim();
+                  final username = usernameController.text.trim();
+                  final password = passwordController.text.trim();
 
-            if (username.isEmpty || password.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Please enter both username and password")),
-              );
-              return;
-            }
+                  if (username.isEmpty || password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Please enter both username and password",
+                        ),
+                      ),
+                    );
+                    return;
+                  }
 
-            setState(() => isLoading = true);
-            try {
-              final token = await login(context, username, password);
-              debugPrint('Token: $token');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Login successful"), backgroundColor: Colors.green),
-              );
-              Navigator.pushReplacementNamed(context, '/mainscreen');
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Login Failed"), backgroundColor: Colors.red),
-              );
-            } finally {
-              setState(() => isLoading = false);
-            }
-          },
+                  setState(() => isLoading = true);
+                  try {
+                    final token = await login(context, username, password);
+                    debugPrint('Token: $token');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Login successful"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    Navigator.pushReplacementNamed(context, '/mainscreen');
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Login Failed"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  } finally {
+                    setState(() => isLoading = false);
+                  }
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+            ),
             minimumSize: const Size(double.infinity, 50),
           ),
           child: isLoading
               ? const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-          )
-              : const Text('Login', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text(
+                  'Login',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
         ),
         const SizedBox(height: 12),
         TextButton(
           onPressed: isForgotLoading
               ? null
               : () async {
-            setState(() => isForgotLoading = true);
-            await handleForgotPassword();
-            setState(() => isForgotLoading = false);
-          },
+                  setState(() => isForgotLoading = true);
+                  await handleForgotPassword();
+                  setState(() => isForgotLoading = false);
+                },
           child: isForgotLoading
               ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(color: Colors.green, strokeWidth: 2),
-          )
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.green,
+                    strokeWidth: 2,
+                  ),
+                )
               : Column(
-            children: const [
-              Text('Forgot Password?', style: TextStyle(color: Colors.green, fontSize: 15)),
-              SizedBox(height: 2),
-              SizedBox(width: 130, child: Divider(color: Colors.white24, thickness: 1.2)),
-            ],
-          ),
+                  children: const [
+                    Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: Colors.green, fontSize: 15),
+                    ),
+                    SizedBox(height: 2),
+                    SizedBox(
+                      width: 130,
+                      child: Divider(color: Colors.white24, thickness: 1.2),
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Don't Have an Account?", style: TextStyle(color: Colors.white, fontSize: 15)),
+            const Text(
+              "Don't Have an Account?",
+              style: TextStyle(color: Colors.white, fontSize: 15),
+            ),
             TextButton(
               onPressed: isSignUpLoading
                   ? null
                   : () async {
-                setState(() => isSignUpLoading = true);
-                await Future.delayed(const Duration(milliseconds: 300));
-                setState(() => isSignUpLoading = false);
-                Navigator.pushNamed(context, 'register');
-              },
+                      setState(() => isSignUpLoading = true);
+                      await Future.delayed(const Duration(milliseconds: 300));
+                      setState(() => isSignUpLoading = false);
+                      Navigator.pushNamed(context, 'register');
+                    },
               child: isSignUpLoading
                   ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(color: Colors.green, strokeWidth: 2),
-              )
-                  : const Text('Sign Up', style: TextStyle(color: Colors.green, fontSize: 15)),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.green,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Sign Up',
+                      style: TextStyle(color: Colors.green, fontSize: 15),
+                    ),
             ),
           ],
         ),
@@ -349,25 +422,35 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
           child: Icon(icon, color: Colors.green, size: 18),
         ),
         suffixIcon: suffixIcon,
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
         contentPadding: const EdgeInsets.symmetric(vertical: 10),
       ),
     );
   }
 
-  Future<String> login(BuildContext context, String email, String password) async {
+  Future<String> login(
+    BuildContext context,
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http
           .post(
-        Uri.parse(ApiConstants.login),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'phone_email': email, 'password': password}),
-      )
+            Uri.parse(ApiConstants.login),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'phone_email': email, 'password': password}),
+          )
           .timeout(const Duration(seconds: 15));
 
       debugPrint("Status Code: ${response.statusCode}");
@@ -386,45 +469,77 @@ class _MyLoginState extends State<MyLogin> with TickerProviderStateMixin {
         await prefs.setString('investor_code', investor['investor_code'] ?? '');
         await prefs.setString('investor_id', investor['id'].toString());
         await prefs.setString('investor_image', investor['image'] ?? '');
-        await prefs.setString('investor_address', investor['address'] ?? 'Dhaka');
-        await prefs.setString('wallet_balance', data['wallet_balance']?.toString() ?? '0');
-        await prefs.setString('total_transation', data['total_transation']?.toString() ?? '0');
-        await prefs.setString('total_investment', data['total_investment']?.toString() ?? '0');
-        await prefs.setString('total_income', data['total_income']?.toString() ?? '0');
-        await prefs.setString('todays_income', data['todays_income']?.toString() ?? '0');
-        await prefs.setString('total_projects', data['total_projects']?.toString() ?? '0');
+        await prefs.setString(
+          'investor_address',
+          investor['address'] ?? 'Dhaka',
+        );
+        await prefs.setString(
+          'wallet_balance',
+          data['wallet_balance']?.toString() ?? '0',
+        );
+        await prefs.setString(
+          'total_transation',
+          data['total_transation']?.toString() ?? '0',
+        );
+        await prefs.setString(
+          'total_investment',
+          data['total_investment']?.toString() ?? '0',
+        );
+        await prefs.setString(
+          'total_income',
+          data['total_income']?.toString() ?? '0',
+        );
+        await prefs.setString(
+          'todays_income',
+          data['todays_income']?.toString() ?? '0',
+        );
+        await prefs.setString(
+          'total_projects',
+          data['total_projects']?.toString() ?? '0',
+        );
 
         return token;
       } else if (response.statusCode == 401 || response.statusCode == 400) {
         final json = jsonDecode(response.body);
         final message = json['message'] ?? 'Invalid email or password.';
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
         throw Exception(message);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Invalid Email or Phone no. Please enter your valid email or phone no.'),
-          backgroundColor: Colors.red,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Invalid Email or Phone no. Please enter your valid email or phone no.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
         throw Exception('Invalid email or password');
       }
     } on SocketException {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('No internet connection. Please check your network.'),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection. Please check your network.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       throw Exception('No internet connection');
     } on TimeoutException {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Connection timed out. Please try again later.'),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connection timed out. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       throw Exception('Connection timeout');
     } on HttpException {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Server error. Please try again later.'),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server error. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       throw Exception('Server error');
     } catch (e) {
       debugPrint("Login error: $e");

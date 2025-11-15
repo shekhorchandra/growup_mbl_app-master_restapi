@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
 import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
 import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
@@ -9,6 +8,11 @@ import 'package:growup_agro/utils/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:shurjopay/models/config.dart';
+import 'package:shurjopay/models/payment_verification_model.dart';
+import 'package:shurjopay/models/shurjopay_request_model.dart';
+import 'package:shurjopay/models/shurjopay_response_model.dart';
+import 'package:shurjopay/shurjopay.dart';
 import '../models/project_details_model.dart';
 import '../paymentService/payment_service.dart';
 import '../widgets/custom_button.dart'; // your CustomButton file
@@ -218,7 +222,6 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                     // _sectionDivider("Key Points"),
                     // _buildKeyPointsCard(project),
                     // const SizedBox(height: 16),
-
                     _sectionDivider("Summary"),
                     _buildSummaryCard(project),
                     const SizedBox(height: 16),
@@ -369,7 +372,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
               const SizedBox(width: 10),
               Expanded(
                 child: CustomButton(
-                  text: 'Pay with SSLCOMMERZ',
+                  text: 'Pay with Shurjopay',
                   icon: Icons.payment,
                   backgroundColor: Colors.green,
                   height: 44,
@@ -440,7 +443,10 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
         bool loading = false;
         return StatefulBuilder(
           builder: (ctx, setState) => AlertDialog(
-            title: const Text("Invest in this Project", style: TextStyle(fontSize: 16),),
+            title: const Text(
+              "Invest in this Project",
+              style: TextStyle(fontSize: 16),
+            ),
             backgroundColor: Colors.white,
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -557,7 +563,8 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
 
   Future<void> _triggerShurjoInvestDialog() async {
     final resData = await _showInvestDialog(
-      isShurjoPay: true,
+      isGetwayPay: true,
+      isSSL : false,
     ); //
 
     if (resData == null) return;
@@ -582,7 +589,8 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
   }
 
   Future<Map<String, dynamic>?> _showInvestDialog({
-    bool isShurjoPay = false,
+    bool isGetwayPay = false,
+    bool isSSL = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -629,16 +637,39 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                 return true;
               },
               child: AlertDialog(
-                title: const Text("Invest in this Project", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                title: const Text(
+                  "Invest in this Project",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InfoRow(title: "Wallet Balance", value: '৳$walletBalance', fontSize: 12, showDivider: false,),
-                      InfoRow(title: "Min. Investment", value: '৳${project.minInvestmentAmount}', fontSize: 12, showDivider: false,),
-                      InfoRow(title: "In Waiting", value: '৳${project.in_waiting}', fontSize: 12, showDivider: false,),
-                      InfoRow(title: "Investment Time", value: '${project.investment_time} days', fontSize: 12, showDivider: false,),
+                      InfoRow(
+                        title: "Wallet Balance",
+                        value: '৳$walletBalance',
+                        fontSize: 12,
+                        showDivider: false,
+                      ),
+                      InfoRow(
+                        title: "Min. Investment",
+                        value: '৳${project.minInvestmentAmount}',
+                        fontSize: 12,
+                        showDivider: false,
+                      ),
+                      InfoRow(
+                        title: "In Waiting",
+                        value: '৳${project.in_waiting}',
+                        fontSize: 12,
+                        showDivider: false,
+                      ),
+                      InfoRow(
+                        title: "Investment Time",
+                        value: '${project.investment_time} days',
+                        fontSize: 12,
+                        showDivider: false,
+                      ),
 
                       const SizedBox(height: 24),
                       TextField(
@@ -666,16 +697,18 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                     onPressed: _isLoading
                         ? null
                         : () {
-                      disposeController();
-                      Navigator.pop(dialogContext);
-                    },
+                            disposeController();
+                            Navigator.pop(dialogContext);
+                          },
                   ),
 
                   // PAY / INVEST Button (uses loading spinner)
                   CustomButton(
-                    text: isShurjoPay ? "PAY NOW" : "INVEST",
-                    icon: isShurjoPay ? Icons.payment : Icons.account_balance_wallet,
-                    backgroundColor: isShurjoPay ? Colors.green : Colors.blue,
+                    text: isGetwayPay ? "PAY NOW" : "INVEST",
+                    icon: isGetwayPay
+                        ? Icons.payment
+                        : Icons.account_balance_wallet,
+                    backgroundColor: isGetwayPay ? Colors.green : Colors.blue,
                     textColor: Colors.white,
                     height: 40,
                     fontSize: 13,
@@ -684,214 +717,354 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
                     onPressed: _isLoading
                         ? null
                         : () async {
-                      setState(() => _isLoading = true);
+                            setState(() => _isLoading = true);
 
-                      final amount = int.tryParse(amountController.text);
+                            final amount = int.tryParse(amountController.text);
 
-                      // ------------------- VALIDATION CHECKS -------------------
-                      if (amount == null || amount <= 0) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          const SnackBar(content: Text("Enter a valid investment amount.")),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            // ------------------- VALIDATION CHECKS -------------------
+                            if (amount == null || amount <= 0) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Enter a valid investment amount.",
+                                  ),
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      if (amount < (project.minInvestmentAmount ?? 0)) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Invest amount must be at least ৳${project.minInvestmentAmount}",
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            if (amount < (project.minInvestmentAmount ?? 0)) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Invest amount must be at least ৳${project.minInvestmentAmount}",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      if (project.investment_time < 1) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          const SnackBar(
-                            content: Text("You can't invest. Investment time is too short."),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            //if (project.investment_time > 1) { // dev
+                            if (project.investment_time < 1) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "You can't invest. Investment time is too short.",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      if ((project.minInvestmentAmount ?? 0) > project.in_waiting) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          const SnackBar(
-                            content: Text("You can't invest. In Waiting amount too low."),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            if ((project.minInvestmentAmount ?? 0) >
+                                project.in_waiting) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "You can't invest. In Waiting amount too low.",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      if (!isShurjoPay && walletBalance < amount) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          const SnackBar(
-                            content: Text("Insufficient wallet balance. Please recharge."),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            if (!isGetwayPay && walletBalance < amount) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Insufficient wallet balance. Please recharge.",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      if (project.status != 1) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(outerContext).showSnackBar(
-                          const SnackBar(
-                            content: Text("Project is not running."),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        setState(() => _isLoading = false);
-                        return;
-                      }
+                            if (project.status != 1) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(outerContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Project is not running."),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
-                      // ------------------- PAYMENT LOGIC -------------------
-                      if (isShurjoPay) {
-                        try {
-                          if (token == null || token.isEmpty) {
-                            _showSnack("Authorization token missing. Please login again.");
-                            setState(() => _isLoading = false);
-                            return;
-                          }
+                            // ------------------- PAYMENT LOGIC -------------------
+                            if (isGetwayPay) {
+                              try {
+                                if (token == null || token.isEmpty) {
+                                  _showSnack(
+                                    "Authorization token missing. Please login again.",
+                                  );
+                                  setState(() => _isLoading = false);
+                                  return;
+                                }
 
-                          // 🔹 Step 1: Initiate transaction
-                          final initiateResponse = await http.post(
-                            Uri.parse('https://growupagro.online/api/transaction-initiate'),
-                            headers: {
-                              'Content-Type': 'application/json',
-                              'Authorization': 'Bearer $token',
-                            },
-                            body: jsonEncode({
-                              "amount": amount,
-                              "type": "deposit",
-                              "note": "ok",
-                            }),
-                          );
+                                // 🔹 Step 1: Initiate transaction
+                                final initiateResponse = await http.post(
+                                  Uri.parse(
+                                    '${ApiConstants.baseUrl}/transaction-initiate',
+                                  ),
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer $token',
+                                  },
+                                  body: jsonEncode({
+                                    "amount": amount,
+                                    "project_id": widget.projectId,
+                                  }),
+                                );
 
-                          if (initiateResponse.statusCode != 200 &&
-                              initiateResponse.statusCode != 201) {
-                            _showSnack("Failed to initiate transaction.");
-                            setState(() => _isLoading = false);
-                            return;
-                          }
+                                if (initiateResponse.statusCode != 200 &&
+                                    initiateResponse.statusCode != 201) {
+                                  _showSnack("Failed to initiate transaction.");
+                                  Navigator.pop(dialogContext);
+                                  setState(() => _isLoading = false);
+                                  return;
+                                }
 
-                          final initiateData = jsonDecode(initiateResponse.body);
-                          if (initiateData['success'] != true) {
-                            _showSnack(
-                              initiateData['message'] ?? 'Transaction initiation failed.',
-                            );
-                            setState(() => _isLoading = false);
-                            return;
-                          }
+                                final initiateData = jsonDecode(
+                                  initiateResponse.body,
+                                );
+                                if (initiateData['success'] != true) {
+                                  _showSnack(
+                                    initiateData['message'] ??
+                                        'Transaction initiation failed.',
+                                  );
+                                  Navigator.pop(dialogContext);
+                                  setState(() => _isLoading = false);
+                                  return;
+                                }
 
-                          final walletTransaction = initiateData['data'];
-                          final transactionId = walletTransaction?['transaction_id']?.toString();
-                          final transactionAmount = walletTransaction?['amount'];
+                                final walletTransaction = initiateData['data'];
+                                final transactionId = walletTransaction?['transaction_id']?.toString();
+                                final walletTransactionId = walletTransaction?['wallet_transaction_id'];
+                                final transactionAmount = walletTransaction?['amount'];
 
-                          if (transactionId == null || transactionId.isEmpty) {
-                            _showSnack("Transaction ID missing from server response.");
-                            setState(() => _isLoading = false);
-                            return;
-                          }
+                                if (transactionId == null ||
+                                    transactionId.isEmpty) {
+                                  _showSnack(
+                                    "Transaction ID missing from server response.",
+                                  );
+                                  Navigator.pop(dialogContext);
+                                  setState(() => _isLoading = false);
+                                  return;
+                                }
 
-                          // Initialize SSLCommerz
-                          Sslcommerz sslcommerz = Sslcommerz(
-                            initializer: SSLCommerzInitialization(
-                              multi_card_name: "visa,master,bkash",
-                              currency: SSLCurrencyType.BDT,
-                              product_category: "Digital Product",
-                              sdkType: SSLCSdkType.TESTBOX, // Change to LIVE later
-                              store_id: "datab67593a46c4062",
-                              store_passwd: "datab67593a46c4062@ssl",
-                              total_amount: transactionAmount.toDouble(),
-                              tran_id: transactionId,
-                            ),
-                          );
+                                if (isSSL) {
+                                  // Initialize SSLCommerz
+                                  Sslcommerz sslcommerz = Sslcommerz(
+                                    initializer: SSLCommerzInitialization(
+                                      multi_card_name: "visa,master,bkash",
+                                      currency: SSLCurrencyType.BDT,
+                                      product_category: "Digital Product",
+                                      sdkType: SSLCSdkType.TESTBOX,
+                                      // Change to LIVE later
+                                      store_id: "datab67593a46c4062",
+                                      store_passwd: "datab67593a46c4062@ssl",
+                                      total_amount: transactionAmount
+                                          .toDouble(),
+                                      tran_id: transactionId,
+                                    ),
+                                  );
 
-                          final response = await sslcommerz.payNow();
+                                  final response = await sslcommerz.payNow();
 
-                          Navigator.pop(dialogContext);
-                          showProcessingPaymentDialog(context);
-                          _loadPaymentStatus(transactionId, _isLoading, context, response.status);
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(outerContext).showSnackBar(
-                            SnackBar(content: Text('Payment failed: $e')),
-                          );
-                        } finally {
-                          if (mounted) setState(() => _isLoading = false);
-                        }
-                      } else {
-                        // ------------------- WALLET FLOW -------------------
-                        try {
-                          final response = await http.post(
-                            Uri.parse('https://growupagro.tech/api/investor/invest-now'),
-                            headers: {
-                              'Content-Type': 'application/json',
-                              'Authorization': 'Bearer $token',
-                            },
-                            body: jsonEncode({
-                              'project_id': widget.projectId,
-                              'invest_amount': amount,
-                              'investment_media': 1,
-                              'investor_code': investorCode,
-                            }),
-                          );
+                                  Navigator.pop(dialogContext);
+                                  showProcessingPaymentDialog(context);
+                                  _loadPaymentStatus(
+                                    transactionId,
+                                    _isLoading,
+                                    context,
+                                    response.status,
+                                  );
+                                } else {
+                                  shurjoPay(
+                                    walletTransactionId : walletTransactionId,
+                                    investorId: investorId,
+                                    dialogContext : dialogContext,
+                                    transactionId: transactionId,
+                                    transactionAmount: transactionAmount
+                                        .toDouble(),
+                                    investorName: investorName,
+                                    investorPhone: investorPhone,
+                                    investorEmail: email,
+                                    investorAddress: investorAddress,
+                                     isLoading: _isLoading,
+                                  );
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(outerContext).showSnackBar(
+                                  SnackBar(content: Text('Payment failed: $e')),
+                                );
+                              } finally {
+                                if (mounted) setState(() => _isLoading = false);
+                              }
+                            } else {
+                              // ------------------- WALLET FLOW -------------------
+                              try {
+                                final response = await http.post(
+                                  Uri.parse(
+                                    'https://growupagro.tech/api/investor/invest-now',
+                                  ),
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer $token',
+                                  },
+                                  body: jsonEncode({
+                                    'project_id': widget.projectId,
+                                    'invest_amount': amount,
+                                    'investment_media': 1,
+                                    'investor_code': investorCode,
+                                  }),
+                                );
 
-                          final resData = jsonDecode(response.body);
-                          if (!mounted) return;
+                                final resData = jsonDecode(response.body);
+                                if (!mounted) return;
 
-                          if (resData['success'] == true) {
-                            disposeController();
-                            Navigator.pop(dialogContext, resData);
-                            ScaffoldMessenger.of(outerContext).showSnackBar(
-                              const SnackBar(
-                                content: Text('Payment successful!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(outerContext).showSnackBar(
-                              SnackBar(
-                                content: Text(resData['message'] ?? 'Payment failed'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(outerContext).showSnackBar(
-                            SnackBar(content: Text('Payment failed')),
-                          );
-                        } finally {
-                          if (mounted) setState(() => _isLoading = false);
-                        }
-                      }
-                    },
+                                if (resData['success'] == true) {
+                                  disposeController();
+                                  Navigator.pop(dialogContext, resData);
+                                  ScaffoldMessenger.of(
+                                    outerContext,
+                                  ).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Payment successful!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(
+                                    outerContext,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        resData['message'] ?? 'Payment failed',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(outerContext).showSnackBar(
+                                  SnackBar(content: Text('Payment failed')),
+                                );
+                              } finally {
+                                if (mounted) setState(() => _isLoading = false);
+                              }
+                            }
+                          },
                   ),
                 ],
-
               ),
             );
           },
         );
       },
     );
+  }
+
+  void shurjoPay({
+    required transactionAmount,
+    required String transactionId,
+    required String investorName,
+    required String investorPhone,
+    required String investorEmail,
+    required String investorAddress,
+    required BuildContext dialogContext,
+    required bool isLoading, required String investorId,
+    int? walletTransactionId,
+  }) async {
+    Navigator.pop(dialogContext);
+    final shurjoPay = ShurjoPay();
+
+    ShurjopayConfigs shurjopayConfigs = ShurjopayConfigs(
+      prefix: "SP",
+      userName: "sp_sandbox",
+      password: "pyyk97hu&6u6",
+      clientIP: "127.0.0.1",
+    );
+
+    ShurjopayResponseModel shurjopayResponseModel = ShurjopayResponseModel();
+    ShurjopayVerificationModel shurjopayVerificationModel = ShurjopayVerificationModel();
+
+    ShurjopayRequestModel shurjopayRequestModel =
+    ShurjopayRequestModel(
+      configs: shurjopayConfigs,
+      currency: "BDT",
+      amount: transactionAmount,
+      orderID: transactionId,
+      discountAmount: 0,
+      discountPercentage: 0,
+      customerName: investorName,
+      customerPhoneNumber: investorPhone,
+      customerAddress: investorAddress,
+      customerEmail: investorEmail,
+      customerCity: "Dhaka",
+      customerPostcode: "0000",
+      value1: investorId,
+      value2: "N/A",
+      value3: "project_investment",
+      value4: walletTransactionId.toString(),
+      // Live: https://www.engine.shurjopayment.com/return_url
+      returnURL:
+      "https://www.sandbox.shurjopayment.com/return_url",
+      // Live: https://www.engine.shurjopayment.com/cancel_url
+      cancelURL:
+      "https://www.sandbox.shurjopayment.com/cancel_url",
+    );
+    shurjopayResponseModel = await shurjoPay.makePayment(
+      context: context,
+      shurjopayRequestModel: shurjopayRequestModel,
+    );
+    if (shurjopayResponseModel.status == true) {
+      try {
+        shurjopayVerificationModel =
+        await shurjoPay.verifyPayment(
+          orderID: shurjopayResponseModel.shurjopayOrderID!,
+        );
+        print(shurjopayVerificationModel.spCode);
+        print(shurjopayVerificationModel.spMessage);
+        if (shurjopayVerificationModel.spCode == "1000") {
+          print("Payment Varified");
+
+          showProcessingPaymentDialog(context);
+          _loadPaymentStatus(
+            shurjopayVerificationModel.orderId!,
+            isLoading,
+            context,
+            "ShurjoPay",
+          );
+
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Something went wrong"), backgroundColor: Colors.red),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Something went wrong"), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _loadPaymentStatus(
@@ -905,7 +1078,7 @@ class _ProjectDescriptionPageState extends State<ProjectDescriptionPage> {
       status!,
     );
 
-    if (status == 'VALID') {
+    if (status == 'VALID' || status == 'approved' || status == 'ShurjoPay') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

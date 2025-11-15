@@ -234,7 +234,7 @@ class _DepositPageState extends State<DepositPage> {
 
       // 🔹 Step 1: Initiate transaction
       final initiateResponse = await http.post(
-        Uri.parse('https://growupagro.online/api/transaction-initiate'),
+        Uri.parse('${ApiConstants.baseUrl}/transaction-initiate'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
