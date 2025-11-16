@@ -147,13 +147,13 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
           nidFrontUrl =
           (investor['nid_front'] != null &&
               investor['nid_front'].toString().isNotEmpty)
-              ? 'https://growupagro.online/storage/${investor['nid_front']}'
+              ? 'https://growupagro.tech/storage/${investor['nid_front']}'
               : null;
 
           nidBackUrl =
           (investor['nid_back'] != null &&
               investor['nid_back'].toString().isNotEmpty)
-              ? 'https://growupagro.online/storage/${investor['nid_back']}'
+              ? 'https://growupagro.tech/storage/${investor['nid_back']}'
               : null;
 
           // Debug prints

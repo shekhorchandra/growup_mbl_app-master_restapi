@@ -222,9 +222,12 @@ class _DepositPageState extends State<DepositPage> {
     final shurjoPay = ShurjoPay();
 
     ShurjopayConfigs shurjopayConfigs = ShurjopayConfigs(
-      prefix: "SP",
-      userName: "sp_sandbox",
-      password: "pyyk97hu&6u6",
+      // prefix: "SP",
+      prefix: "GAL",
+      // userName: "sp_sandbox",
+      // password: "pyyk97hu&6u6",
+      userName: 'growup_agrotech',
+      password: 'growjjxwdm6wazy4',
       clientIP: "127.0.0.1",
     );
 
@@ -251,10 +254,17 @@ class _DepositPageState extends State<DepositPage> {
       value4: walletTransactionId.toString(),
       // Live: https://www.engine.shurjopayment.com/return_url
       returnURL:
-      "https://www.sandbox.shurjopayment.com/return_url",
+      "https://www.engine.shurjopayment.com/return_url",
+
+      // returnURL:
+      // "https://www.sandbox.shurjopayment.com/return_url",
       // Live: https://www.engine.shurjopayment.com/cancel_url
+
       cancelURL:
-      "https://www.sandbox.shurjopayment.com/cancel_url",
+      "https://www.engine.shurjopayment.com/cancel_url",
+
+      // cancelURL:
+      // "https://www.sandbox.shurjopayment.com/cancel_url",
     );
     shurjopayResponseModel = await shurjoPay.makePayment(
       context: context,

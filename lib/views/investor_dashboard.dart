@@ -451,11 +451,11 @@ class _DashboardInvestorState extends State<DashboardInvestor> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('No'),
+                child: const Text('No', style: TextStyle(fontSize: 30),),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Yes', style: TextStyle(color: Colors.red)),
+                child: const Text('Yes', style: TextStyle(color: Colors.red, fontSize: 30)),
               ),
             ],
           ),

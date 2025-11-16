@@ -47,7 +47,7 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
       }
 
       final url = Uri.parse(
-          'https://growupagro.online/api/tax-certificates?investor_code=$_investorCode');
+          'https://growupagro.tech/api/tax-certificates?investor_code=$_investorCode');
 
       final response = await http.get(
         url,
@@ -169,9 +169,9 @@ class _TaxCertificatePageState extends State<TaxCertificatePage>
 
               // Generate dynamic URLs
               final viewUrl =
-                  'https://growupagro.online/api/investor/tax-certificates/${fiscal['start']}?investor_code=$_investorCode';
+                  'https://growupagro.tech/api/investor/tax-certificates/${fiscal['start']}?investor_code=$_investorCode';
               final downloadUrl =
-                  'https://growupagro.online/api/investor/tax-certificates/${fiscal['start']}/download?investor_code=$_investorCode';
+                  'https://growupagro.tech/api/investor/tax-certificates/${fiscal['start']}/download?investor_code=$_investorCode';
 
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),

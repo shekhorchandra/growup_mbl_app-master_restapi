@@ -36,8 +36,8 @@ import 'main_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  initializeShurjopay(environment: 'sandbox');
-  // initializeShurjopay(environment: "live"); // use live API
+  // initializeShurjopay(environment: 'sandbox');
+  initializeShurjopay(environment: "live"); // use live API
   runApp(const MyApp());
 }
 

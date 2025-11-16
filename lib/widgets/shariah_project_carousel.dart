@@ -186,7 +186,7 @@ class _ShariahProjectCarouselState extends State<ShariahProjectCarousel> {
                       ...[
                         _infoRow(label: 'Type:', value: type),
                         _infoRow(label: 'Goal:', value: goal),
-                        _infoRow(label: 'Duration:', value: duration + 'Month'),
+                        _infoRow(label: 'Duration:', value: duration + ' Month'),
                         _infoRow(label: 'Min Invest:', value: minInvestment),
                         _infoRow(label: 'Time:', value: time),
                       ],
@@ -259,8 +259,8 @@ class _ShariahProjectCarouselState extends State<ShariahProjectCarousel> {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: isTablet
-                                ? screenWidth * 0.022
-                                : screenWidth * 0.025,
+                                ? screenWidth * 0.020
+                                : screenWidth * 0.022,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
