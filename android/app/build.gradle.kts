@@ -44,8 +44,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 36
-        versionName = "1.1.19"
+        versionCode = 39
+        versionName = "2.0.0"
     }
 
     splits {
@@ -74,7 +74,6 @@ android {
 
             // Signing config
             signingConfig = signingConfigs.getByName("release")
-//            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

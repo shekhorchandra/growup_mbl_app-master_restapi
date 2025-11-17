@@ -222,12 +222,14 @@ class _DepositPageState extends State<DepositPage> {
     final shurjoPay = ShurjoPay();
 
     ShurjopayConfigs shurjopayConfigs = ShurjopayConfigs(
+
+
       // prefix: "SP",
-      prefix: "GAL",
       // userName: "sp_sandbox",
       // password: "pyyk97hu&6u6",
       userName: 'growup_agrotech',
       password: 'growjjxwdm6wazy4',
+      prefix: "GAL",
       clientIP: "127.0.0.1",
     );
 
