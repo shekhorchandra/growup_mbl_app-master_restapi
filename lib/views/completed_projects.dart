@@ -183,7 +183,7 @@ class _CompletedProjectsPageState extends State<CompletedProjectsPage> {
                       projectDuration: '${project.project_duration_viewer ?? 'N/A'} Months',
                       startDate: formatDate(project.project_start_date),
                       endDate: formatDate(project.project_end_date),
-                      roiStartDate: formatDate("s"),
+                      roiStartDate: formatDate(project.roi_start_date),
                       investmentGoal: project.investmentGoal ?? 0,
                       minInvestment: project.min_investment_amount ?? 0,
                       raised: (project.raised ?? 0).toDouble(),

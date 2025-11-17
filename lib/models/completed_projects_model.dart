@@ -16,6 +16,7 @@ class CompletedProject {
   final int status;
   final String? project_start_date;
   final String? project_end_date;
+  final String? roi_start_date;
 
   CompletedProject({
     required this.id,
@@ -35,6 +36,7 @@ class CompletedProject {
     required this.status,
     this.project_start_date,
     this.project_end_date,
+    this.roi_start_date,
   });
 
   factory CompletedProject.fromJson(Map<String, dynamic> json) {
@@ -60,6 +62,7 @@ class CompletedProject {
       status: int.tryParse(json['status'].toString()) ?? 0,
       project_start_date: json['project_start_date'],
       project_end_date: json['project_end_date'],
+      roi_start_date: json['roi_start_date'],
     );
   }
 
