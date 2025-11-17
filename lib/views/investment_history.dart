@@ -243,7 +243,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                       ),
                                     ),
                                     Text(
-                                      '45 Days Remaining',
+                                      'Remaining Days: ${item.days_remaining ?? 0}',
                                       style: const TextStyle(
                                         fontSize: 8,
                                         fontWeight: FontWeight.w600,

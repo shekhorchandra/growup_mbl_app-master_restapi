@@ -11,6 +11,7 @@ class InvestmentHistoryItem {
   final String? projectImage;
   final double? roiDetails;
   final double? capitalReturnDetails;
+  final int days_remaining;
 
 
   InvestmentHistoryItem({
@@ -26,6 +27,7 @@ class InvestmentHistoryItem {
     required this.roiDetails,
     required this.capitalReturnDetails,
     required this.projectImage,
+    required this.days_remaining,
   });
 
   factory InvestmentHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class InvestmentHistoryItem {
       firstInvestmentDate: json['first_investment_date'],
       totalInvestment: json['total_investment'],
       investmentCount: int.parse(json['investment_count'].toString()), // fixed
+      days_remaining: int.parse(json['days_remaining'].toString()), // fixed
       projectProgress: (json['project_progress'] as num?)?.toDouble(),
       status: json['status'],
       roiDetails: (json['roi_details'] as num?)?.toDouble(),
