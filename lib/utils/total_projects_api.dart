@@ -24,14 +24,14 @@ class ApiService {
 
       List<TotalProject> allProjects = [];
 
-      // Loop through all project categories except "Live Projects"
       decoded['projects'].forEach((key, value) {
-        if (key != "Shariah" && key != "Live Projects") {
+        if (key == "Long Term" || key == "Short Term") {
           allProjects.addAll(
             (value as List).map((e) => TotalProject.fromJson(e)),
           );
         }
-      });
+      }
+    );
 
       return allProjects;
     } else {
