@@ -364,7 +364,7 @@ class _InvestmentHistoryPageState extends State<InvestmentHistoryPage> {
                                   if (investorCode != null)
                                     Expanded(
                                       child: CustomButton(
-                                        text: '60/5 Days ROI',
+                                        text: '${item.roi_details ?? 0}',
                                         fontSize: 9,
                                         height: 20,
                                         backgroundColor: Colors.purple[100]!,

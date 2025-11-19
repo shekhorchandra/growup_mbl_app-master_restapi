@@ -11,7 +11,8 @@ class InvestmentHistoryItem {
   final String? projectImage;
   final double? roiDetails;
   final double? capitalReturnDetails;
-  final int days_remaining;
+  final int ? days_remaining;
+  final String? roi_details;
 
 
   InvestmentHistoryItem({
@@ -28,24 +29,43 @@ class InvestmentHistoryItem {
     required this.capitalReturnDetails,
     required this.projectImage,
     required this.days_remaining,
+    required this.roi_details,
   });
 
   factory InvestmentHistoryItem.fromJson(Map<String, dynamic> json) {
     return InvestmentHistoryItem(
-      sl: json['sl'] ?? 0,
+      sl: int.tryParse(json['sl']?.toString() ?? '') ?? 0,
+
+      project_id: int.tryParse(json['project_id']?.toString() ?? '') ?? 0,
+
       projectImage: json['project_image'],
-      project_id: json['project_id'],
       projectTitle: json['project_title'],
       projectCategory: json['project_category'],
       firstInvestmentDate: json['first_investment_date'],
-      totalInvestment: json['total_investment'],
-      investmentCount: int.parse(json['investment_count'].toString()), // fixed
-      days_remaining: int.parse(json['days_remaining'].toString()), // fixed
-      projectProgress: (json['project_progress'] as num?)?.toDouble(),
-      status: json['status'],
-      roiDetails: (json['roi_details'] as num?)?.toDouble(),
-      capitalReturnDetails: (json['capital_return_details'] as num?)?.toDouble(),
+
+      totalInvestment: int.tryParse(json['total_investment']?.toString() ?? '') ?? 0,
+
+      investmentCount:
+      int.tryParse(json['investment_count']?.toString() ?? '') ?? 0,
+
+      days_remaining:
+      int.tryParse(json['days_remaining']?.toString() ?? '') ?? 0,
+
+      projectProgress:
+      double.tryParse(json['project_progress']?.toString() ?? '') ?? 0.0,
+
+      roiDetails:
+      double.tryParse(json['roi_details']?.toString() ?? '') ?? 0.0,
+
+      capitalReturnDetails:
+      double.tryParse(json['capital_return_details']?.toString() ?? '') ?? 0.0,
+
+      status: json['status'] ?? "",
+
+      roi_details: json['roi_details']?.toString(),
+
     );
   }
+
 
 }
