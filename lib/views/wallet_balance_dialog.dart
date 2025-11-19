@@ -89,35 +89,6 @@ class _WalletHistoryDialogState extends State<WalletHistoryDialog> {
     return filteredHistory.sublist(start, end > filteredHistory.length ? filteredHistory.length : end);
   }
 
-  // Future<void> _downloadInvoiceToDownloads(BuildContext context, String invoiceNo) async {
-  //   setState(() => downloadingInvoices.add(invoiceNo));
-  //   final dio = Dio();
-  //   final url = 'https://admin-growup.onebitstore.site/api/invoice/pdf/$invoiceNo';
-  //
-  //   try {
-  //     if (Platform.isAndroid) {
-  //       final perm = await [
-  //         Permission.storage,
-  //         Permission.manageExternalStorage
-  //       ].request();
-  //       if (!perm.values.every((status) => status.isGranted)) {
-  //         throw Exception('Permission denied');
-  //       }
-  //     }
-  //
-  //     final dir = Directory('/storage/emulated/0/Download/Growup');
-  //     if (!await dir.exists()) await dir.create(recursive: true);
-  //     final path = '${dir.path}/invoice_$invoiceNo.pdf';
-  //
-  //     await dio.download(url, path);
-  //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloaded to $path'), backgroundColor: Colors.green));
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
-  //   } finally {
-  //     setState(() => downloadingInvoices.remove(invoiceNo));
-  //   }
-  // }
-
   Widget _getStatusChip(String? status) {
     final s = status?.toLowerCase() ?? 'n/a';
     final map = {
@@ -220,15 +191,6 @@ class _WalletHistoryDialogState extends State<WalletHistoryDialog> {
                           ],
                         )),
                         DataCell(_getStatusChip(item.status)),
-                        //DataCell(Text(item.note ?? 'N/A')),
-                        // DataCell(item.invoiceNo != 0
-                        //     ? (downloadingInvoices.contains(item.invoiceNo.toString())
-                        //     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                        //     : IconButton(
-                        //   icon: const Icon(Icons.download, color: Colors.green),
-                        //   onPressed: () => _downloadInvoiceToDownloads(context, item.invoiceNo.toString()),
-                        // ))
-                        //     : const Text('N/A')),
                       ]);
                     }),
                   ),

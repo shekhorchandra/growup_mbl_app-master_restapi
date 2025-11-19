@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/invoice_action_buttons.dart';
 
 class ProjectInvestmentDetailPage extends StatefulWidget {
   final int projectId;
@@ -269,35 +270,13 @@ class _ProjectInvestmentDetailPageState
                           ),
                           const SizedBox(height: 8),
 
-                          // Action Button
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: downloadingInvoices.contains(
-                                item['invoice_no'].toString())
-                                ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.blue,
-                              ),
-                            )
-                                : CustomButton(
-                              text: "View Invoice",
-                              icon: Icons.picture_as_pdf,
-                              backgroundColor: Colors.green[400]!,
-                              textColor: Colors.white,
-                              height: 28,
-                              fontSize: 12,
-                              borderRadius: 8,
-                              onPressed: item['invoice_no'] != null
-                                  ? () => _downloadInvoice(
-                                context,
-                                item['invoice_no']
-                                    .toString(),
-                              )
-                                  : null,
-                            ),
+                          InvoiceActionButtons(
+                            invoiceNo: item['invoice_no'].toString(),
+                            downloadUrl:
+                            ApiConstants.invoicePdf(item['invoice_no'].toString() ?? ''),
+                            viewUrl:
+                            ApiConstants.invoicePdf(item['invoice_no'].toString() ?? ''),
+                            status: "approved",
                           ),
                         ],
                       ),
@@ -354,51 +333,5 @@ class _ProjectInvestmentDetailPageState
         ),
       ),
     );
-  }
-
-  Future<void> _downloadInvoice(BuildContext context, String? invoiceNo) async {
-    if (invoiceNo == null || invoiceNo.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'No invoice found for this record. Please contact support if this issue persists.'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      downloadingInvoices.add(invoiceNo);
-    });
-
-    final url = ApiConstants.invoicePdf(invoiceNo);
-    final uri = Uri.parse(url);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open invoice in browser.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error opening invoice: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to open invoice.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        downloadingInvoices.remove(invoiceNo);
-      });
-    }
   }
 }
